@@ -1,0 +1,367 @@
+jurassic-gpu:
+
+Main files:
+  jurassic.h
+    macros, constants, dimensions; 
+    structs: atm_t, ctl_t, pos_t, obs_t, tbl_t   
+    functions: atm2x +, atm2x_help +, brightness +, climatology +,
+      ctmco2, ctmh2o, ctmn2, ctmo2, copy_atm +, copy_obs +,
+      find_emitter +, formod, formod_fov +, formod_pencil, 
+      formod_rfm, formod_srcfunc, hydrostatic +, 
+      hydrostatic_1d +, idx2name +, init_tbl +, intpol_atm +,
+      intpol_atm_geo +, intpol_atm_1d +, intpol_atm_2d +, 
+      intpol_atm_3d +, intpol_tbl_eps, intpol_tbl_u, 
+      jsec2time +, kernel +, obs2y +, planck +, altitude_range +, 
+      trapezoid_rule +, read_atm +, read_ctl +, read_matrix +, 
+      read_obs +, read_obs_rfm +, read_rfm_spec +, read_shape +,
+      scan_ctl +, time2jsec +, timer +, write_atm +, write_atm_rfm +,
+      write_matrix +, write_obs +, x2atm +, x2atm_help +, y2obs +, 
+      mkFile +, shell + 
+
+  jurassic.c - not all functions declared in jurassic.h are 
+               defined here, functions which are defined are marked
+               with +
+    additional declarations:
+      gravity, locate, geo2cart <-- all of them are also declared
+                                    in jr_common.h
+    functions declared in jurassic.h which are not defined here:
+      ctmco2, ctmh20, ctmn2, ctmo2
+      formod, formod_pencil, formod_rfm, formod_srcfunc
+      intpol_tbl_eps, intpol_tbl_u
+
+  jr_common.h:
+    #ifdef __NVCC__ 
+    CPU <--__host__-- CPU --__global__--> GPU --__device__--> GPU 
+    extern inline              - ?
+    restrict                   - ?
+    #define ptr const restrict - ?
+    functions:
+      fast_logaritmic_index, c01, lip, eip, get_tbl, locate_st,
+      locate, locate_id, locate_tbl_id, locate_atm, get_eps,
+      get_u, brightness, save_mask, apply_mask, gravity,
+      src_planck_core, add_surface_core, ega_eps, apply_ega_core,
+      apply_ega_kernel, new_obs_core, load_ro, continua_ctmco2,
+      continua_ctmh2o, continua_ctmn2, continua_ctmo2,
+      continua_core, altitude_range_nn, write_pos_points,
+      trapezoid_rule_poz, column_density, curtis_godson,
+      refractivity, cart2geo, cart2alt, geo2cart, tangent_point,
+      last_point, intpol_atm_1d_pt, inpol_atm_1d_qk,
+      intpol_atm_geo_pt, intpol_atm_geo_qk, traceray,
+      find_reference_parcel, hydrostatic_1d_h2o 
+
+  CPUdrivers.c
+    formod
+      formod_CPU
+        save_mask
+        if(..) find_emitter
+        hydrostatic1d_CPU
+        raytrace_rays_CPU
+          omp for { // loop over rays
+            traceray
+          }
+        omp parallel {
+          apply_kernels_CPU
+            omp for { // loop over rays
+              multi_continua_CPU
+                continua_core_0000      
+              apply_ega_core
+              src_planck_core
+              new_obs_core
+            }
+          surface_terms_CPU
+            omp for { // loop over rays
+              add_surface_core
+            }
+        }
+        apply_mask
+  
+  GPUdrivers.cu
+    Helper functions:
+      __cudaSafeCall
+      __cuKernelCheck
+    GPU Memory management:
+      copy_data_to_GPU
+      get_data_from_GPU
+      __allocate_on_GPU
+      free_memory_on_GPU
+      __allocate_unified_memory
+      get_tbl_on_GPU
+    GPU control struct:
+      gpuLane_t
+
+    __host__ formod
+      __host__ formodGPU
+        omp critical      
+          initialization, allocation of GPU memory and setting myLane
+        omp parallel {
+          omp parallel for { // loop over devices
+            __host__ formod_one_package
+              __host__ hydrostatic1d_GPU
+                __global__ hydrostatic_kernel_GPU<<<nr/32 + 1, 32, 0, stream>>>
+                  __device__ hydrostatic_1d_h20
+
+              __global__ raytrace_rays_GPU <<< (nr/64)+1, 64, 0, stream>>>
+                __device__ traceray
+
+              __host__ multi_version_GPU
+                __global__ fusion_kernel_GPU_fourbit <<< grid, block, shmem, stream >>>
+                  __device__ continua_core_fourbit
+                  __device__ apply_ega_core
+                  __device__ src_planck_core
+                  __device__ new_obs_core
+
+              __global__ surface_terms_GPU <<< nr, nd, 0, stream>>>
+                __device__ add_surface_core
+
+              __global__ radiance_to_brightness_GPU <<< nr, nd, 0, stream >>>
+                __device__ brightness_core
+          }
+        }
+
+  formod.c:
+    main - formod is called in here, also is used for benchmark
+
+Write/read binary tables, for emissivity look-up tables:
+  jr_binary_tables_io.h
+  jr_simple_string_hash.h - called by jr_binary_tables_io.h
+
+Multi-versioning fusion kernel for 4 gases:
+  jr_multiversion4gases.h - #defines miracle
+  jr_fusion_kernel.mv4g.cu
+  jr_continua_core.mv4g.h - called by jr_fusion_kernel.mv4g.cu
+
+Tables:
+  climatology.tbl - included in jurassic.c 
+  ctmco2.tbl ctmh2o.tbl ctmn2.tbl ctmo2.tbl - included in jr_common.h 
+
+Not very important files for the forward model, mainly used for preparation and testing:
+  brightness.c - Convert radiance to brightness temperature.
+  climatology.c - Prepare atmospheric data file from climatological data.
+  hash.c - use the internal hash function onto string provide
+  jsec2time.c - Convert Julian seconds to date.
+  limb.c - Create observation geometry for a limb sounder.
+  memoryinfo.c - Show detailed memory consumption of structs with the current jurassic.h
+  nadir.c - Create observation geometry for a nadir sounder.
+  obs2spec.c - Converter for spectra.
+  planck.c - Convert brightness temperature to radiance.
+  time2jsec.c - Convert date to Julian seconds.
+---------------------------------------------------------------------------
+
+jurassic-scatter:
+
+Main files:
+  jurassic.h - global structs declarations:
+    macros, constants, dimensions; ctl_t, los_t, obs_t, tbl_t, aero_t,
+    atm_t, ret_t       
+  formod.c:
+    main, call_formod
+
+Declarations and definitions of important program functions:
+  atmosphere.c atmosphere.h:
+    atm2x, atm2x_help, copy_atm, find_emmiter, gracity, hydrostatic_1d,
+    intpol_atm, intpol_atm_geo, intpol_atm_1d, intpol_atm_2d, 
+    intpol_atm_3d, read_atm, write_atm
+  continua.c continua.h:
+    ctmco2, ctmh20, ctmn2, ctm02 
+  control.c control.h:
+    read_ctl, scan_ctl
+  forwardmodel.c forwardmodel.h:
+    brightness, formod, formod_continuea, formod_fov, formod_pencil,
+    intpol_tbl, intpol_tbl_eps, intpol_tbl_u, locate_tbl, planck,
+    read_shape, read_tbl, srcfunc_planck
+  lineofsight.c lineofsight.h:
+    raytrace, refractivity, tangent_point, intersectoin_point,
+    add_aerosol_layers 
+  misc.c misc.h:
+    cart2geo, copy_obs, geo2cart, init_tbl, locate, read_obs, 
+    write_obs  
+  retrievalmodel.c retrievalmodel.h:
+    analyze_avk, analyze_avk_quantity, corr_function, cost_function,
+    idx2name, kernel, matrix_invert, matrix_product, obs2y, 
+    optimal_estimation, read_ret, set_cov_meas, write_stddev, 
+    write_matrix, x2atm, x2atm_help, y2obs 
+  scatter.c scatter.h:
+    bascoord, bhmie, gauher, copy_aero, get_opt_prop,
+    opt_prop_mie_log, opt_prop_external, read_aero, srcfunc_sca,
+    srcfunc_sca_1d, srcfunc_sca_3d, srcfunc_sca_sun, suncoord,
+    write_aero 
+  workqueue.c workqueue.h
+    structs: queue_item_t, queue_t
+    functions: init_queue, push_queue, get_queue_item, pop_queue
+
+Not very important files for the forward model, mainly used for preparation and testing:
+  brightness.c
+  climatology.c  
+  collect.c
+  interpolate.c
+  kernel.c
+  limb.c
+  nadir.c
+  planck.c
+  raytrace.c
+  retrieval.c
+  tab2bin.c
+
+/*
+0.  call_formod (formod.c:104)
+1.    formod (forwardmodel.c:13)
+2.      formod_pencil (forwardmodel.c:169)    |  called obs->nr times
+3.        raytrace (lineofsight.c:5)              |  called 1 time    
+4. abc    [intpol_tbl, formod_continua, srcfunc_planck] |  in 1..los->np
+5.        srcfunc_sca (scatter.c:642)                   |      loop
+6.          srcfunc_sca_1d (scatter.c:665)      |  called if ctl->ip == 1, 
+                                                   else 3d is called 
+recursoin ->  formod_pencil (forwardmodel.c:169)   |  called nalpha (28?) times 
+*/
+
+// Structs with some important variables: (for more information see jurassic.h)
+/* 
+ctl_t: Forward model control parameters.
+  Number of emitters: ng
+  Number of radiance channels: nd
+  Number of spectral windows: nw
+
+los_t: Line-of-sight data. 
+  Number of LOS points: np
+  Altitude, Longitude, Pressure, Temperature, Volume mixing ratio...
+
+obs_t: Observation geometry and radiance data. 
+  Number of ray paths: nr
+ 
+tbl_t: Emissivity look-up tables. 
+  Number of pressure levels: np[NGMAX][NDMAX]
+  Number of temperatures: nt[NGMAX][NDMAX][TBLNPMAX]
+  Number of column densities: nu[NGMAX][NDMAX][TBLNPMAX][TBLNTMAX]
+
+aero_t: Aerosol and Cloud properties.
+  Aerosol and cloud input parameters
+    Number of aerosol/cloud models: nm
+  Aerosol and cloud optical properties for radiative transfer
+    Number of aerosol/cloud layers: nl
+
+atm_t: Atmospheric data. 
+  Number of data points: np 
+
+ret_t: Retrieval control parameters.
+  ...
+*/
+
+/*0. Call forward model, called in the main function of program. */
+/*Optional are TASK, DIRLIST (Section 3.4) and AEROFILE (Section 3.1). The option
+TASK c calculates the contribution of each specified trace gas separately. The output
+files are named rad.tab.GAS (e.g. rad.tab.H2O) and the format is the same as for the
+rad.tab output file in Section 4.
+The option DIRLIST provides a file with directories. Each directory must contain an
+observation file, atmosphere file and optionally an aerosol file with the same name, 
+but different content. The DIRLIST is a feature that is used to distribute large 
+simulation/retrieval sets among multiple cores, e.g. on a supercomputer.
+The option AEROFILE is required for scattering simulations. The AEROFILE contains 
+the aerosol/cloud altitude information and the corresponding microphysical
+cloud/aerosol properties. */
+// "return" -- radfile - where radiance data is saved, in the same format as obs data
+void call_formod(ctl_t *ctl,
+    const char *wrkdir,
+    const char *obsfile,
+    const char *atmfile,
+    const char *radfile,
+    const char *task,
+    const char *aerofile);
+
+/*1.  Determine ray paths and compute radiative transfer. */
+// "return" -- radiance via obs->rad[id][ir], 
+//             id for radiance channel, ir for ray path
+void formod(ctl_t *ctl,
+	    atm_t *atm,
+	    obs_t *obs,
+	    aero_t *aero);
+
+/*2.  Compute radiative transfer for a pencil beam. */
+/* args -- scattering - ctl->sca_mult - Number of recursions for multiple scattering: 
+                      (0=no scattering, 1=single scattering, 2<=multiple scattering)
+           ir - index of ray path */
+// "return" -- radiance via obs->rad[id][ir] 
+void formod_pencil(ctl_t *ctl,
+		   atm_t *atm,
+ 		   obs_t *obs,
+ 		   aero_t *aero,
+ 		   int scattering,
+ 		   int ir);
+
+/*3.  Do ray-tracing to determine LOS (line of sight). */
+// args -- ir - index of ray path 
+// "return" -- los, calculated in steps, refractivity is important 
+void raytrace(ctl_t *ctl,
+	      atm_t *atm,
+	      obs_t *obs,
+	      aero_t *aero,
+	      los_t *los,
+	      int ir);
+
+/*4. a) Get transmittance from look-up tables. */
+// args -- ip - index of LOS segment 
+// "return" -- tau_path[ig][id]    <--- this may be declared in intpol_tbl?
+//          -- tau_seg[id] - segment transmittance for every channel
+void intpol_tbl(ctl_t *ctl,
+		tbl_t *tbl,
+		los_t *los,
+		int ip,
+		double tau_path[NGMAX][NDMAX],
+		double tau_seg[NDMAX]);
+
+/*4. b) Compute absorption coefficient of continua. */
+// args -- ip - index of LOS segment  
+// return -- beta[id] - value of beta functoin for every channel
+void formod_continua(ctl_t *ctl,
+		     los_t *los,
+		     int ip,
+		     double *beta);
+
+/*4. c) Compute Planck source function. */
+// args -- t - temeprature, from los->t[ip] which is calcualted with
+//                          inpol_atm_geo function in raytrace 
+// return -- src[id] - interpolated Planck function value for every channel 
+void srcfunc_planck(ctl_t *ctl,
+		    double t,
+		    double *src);
+
+/* 5. Compute scattering source. */
+
+// args -- ctl - forward model control parameters
+//      -- atm - atmospheric data
+//      -- aero - aerosol and cloud properties
+//      -- sec - time in sec, from obs->time[ir], ir is index of ray path 
+//      -- x - LOS segment endpoint (in 3d, in cart format)
+//      -- dx - vector of LOS segment
+//      -- il - aerosol/cloud layer index of this LOS segment
+//      -- scattering - Number of recursions for multiple scattering: 
+//                      (0=no scattering, 1=single scattering, 2<=multiple scattering)
+// return -- src_sca[id] - for every channel
+void srcfunc_sca(ctl_t *ctl,
+		 atm_t *atm,
+		 aero_t *aero,
+		 double sec,
+		 double *x,
+		 double *dx,
+		 int il,
+		 double *src_sca,
+		 int scattering);
+
+/* 6. 1d - Compute scattering source (thermal emissions). */
+void srcfunc_sca_1d(ctl_t *ctl,
+		    atm_t *atm,
+		    aero_t *aero,
+		    double *x,
+		    double *dx,
+		    int il,
+		    double *src_sca,
+		    int scattering);
+
+/* New: 3d - Compute scattering source (thermal emissions). */
+void srcfunc_sca_3d(ctl_t *ctl,
+		    atm_t *atm,
+		    aero_t *aero,
+		    double *x,
+		    double *dx,
+		    int il,
+		    double *src_sca,
+		    int scattering);
