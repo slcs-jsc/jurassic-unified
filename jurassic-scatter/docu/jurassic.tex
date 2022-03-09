@@ -1,0 +1,98 @@
+%\documentclass[12pt,a4paper,titlepage,openright,twoside]{book}
+\documentclass[12pt,a4paper,titlepage,twoside]{article}
+%\documentclass[12pt,a4paper,titlepage,draft]{book}
+%\documentclass[12pt,a4paper,titlepage,draft]{article}
+\usepackage{amsmath, amssymb, dcolumn, amsxtra, alltt}
+
+\usepackage{latexsym,graphicx}
+\usepackage{psfrag}
+\usepackage{epsfig,multicol}
+\usepackage{float}
+
+\usepackage{parskip}
+\usepackage{multirow}
+%\usepackage{lscape} 
+%\usepackage{url} 
+
+%\usepackage{pdflscape}
+%\usepackage{breakurl}
+
+\usepackage[british,ngerman]{babel}
+\usepackage[round,authoryear]{natbib}
+\usepackage[bf]{caption}
+
+\usepackage{color}
+\usepackage[table]{xcolor}
+
+\usepackage{minted} %code syntax highlightning
+\usepackage{hyperref}
+
+\setlength{\evensidemargin}{0.3cm}
+\setlength{\textwidth}{15.5cm}
+
+% \renewcommand{\captionfont}{\small\itshape}
+\renewcommand{\captionfont}{\itshape}
+
+\definecolor{pink}{RGB}{255,0,155}
+\definecolor{lightblue}{RGB}{153,255,255}
+\definecolor{lightorange}{RGB}{255,200,0}
+\definecolor{peach}{RGB}{255,204,153}
+\definecolor{mediumblue}{RGB}{00,200,200}
+\newcommand{\ud}{\,\mathrm{d}}
+\newcommand{\tcb}{\cellcolor{lightblue} } 
+\newcommand{\tcp}{\cellcolor{pink} } 
+\newcommand{\tco}{\cellcolor{lightorange} } 
+\newcommand{\tcmb}{\textcolor{mediumblue} } 
+
+\newcommand{\todo}{\textcolor{red}{\large{TO DO}}}
+
+\begin{document}
+\selectlanguage{british}
+
+%\frontmatter
+\author{Simulation Laboratoy Climate Science (SimLab Climate),\\
+  J\"u{}lich Supercomputing Centre (JSC),\\ Forschungszentrum J\"u{}lich GmbH, J\"u{}lich, Germany \footnote{Contact: l.hoffmann@fz-juelich.de, s.griessbach@fz-juelich.de}}
+\title{JURASSIC - scatter}
+
+\maketitle
+\tableofcontents
+\clearpage
+
+\section{Introduction}
+\input{intro.tex}
+\clearpage
+
+\section{Getting Started}
+\input{install.tex}
+\clearpage
+
+\section{Input Files}
+\label{sec:Input}
+\input{input.tex}
+\clearpage
+
+\section{Output Files}
+\label{sec:Output}
+\input{output.tex}
+\clearpage
+
+\section{JURASSIC Modules and Libraries}
+\label{sec:Modules}
+\input{modules.tex}
+\clearpage
+
+\begin{appendix}
+\section{Lists of Constants and Dimensions}
+%\label{chap:Appendix}
+\input{constants.tex}
+\end{appendix}
+
+\clearpage
+\addcontentsline{toc}{section}{Bibliography}
+%\backmatter
+\bibliography{/home/zam/sgrie/1/Literatur/Literatur.bib}
+\bibliographystyle{plainnat}
+
+%\input{acknowledgement.tex}
+
+\end{document}
