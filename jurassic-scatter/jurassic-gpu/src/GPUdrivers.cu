@@ -1,7 +1,8 @@
 #include <cuda.h>
+#include <omp.h>
 #include "jr_common.h" // ...
 #include "scatter_lineofsight.h"
-#include <omp.h>
+#include "compare_raytracers.h"
 
 #ifdef GPUDEBUG
     #define debug_printf(...) printf(__VA_ARGS__)
@@ -219,18 +220,19 @@
 		hydrostatic_kernel_GPU<<<nr/32 + 1, 32, 0, stream>>> (ctl_G, atm_G, nr, ig_h2o);
 	} // hydrostatic1d_GPU
 
-  // at the moment same as get_los_and_convert_lot_t_to_pos_t_CPU
+  // at the moment same as get_los_and_convert_los_t_to_pos_t_CPU
   __host__
   void get_los_and_convert_los_t_to_pos_t_GPU(pos_t (*pos)[NLOS], int *np,
                                               double *tsurf, ctl_t *ctl, 
                                               atm_t *atm, obs_t *obs,
-                                              aero_t *aero) {
-#pragma omp  parallel for
+                                              aero_t *aero) { 
+    #pragma omp  parallel for
     for(int ir = 0; ir < obs->nr; ir++) {
       los_t *one_los;
       one_los = (los_t*) malloc(sizeof(los_t));
       // raytracer copied from jurassic-scatter
-      jur_raytrace(ctl, atm, obs, aero, one_los, ir);
+      // the last argument is "ignore_scattering"
+      jur_raytrace(ctl, atm, obs, aero, one_los, ir, 0);
       np[ir] = one_los->np;
       tsurf[ir] = one_los->tsurf;
       for(int ip = 0; ip < one_los->np; ip++) { 
@@ -439,13 +441,14 @@
 			// if(nextLane >= numLanes) nextLane=0;
 		} // omp critical
 
+    // TODO: this may be a probelm in juwels-buster case (with more then one GPU  device per node)
     cudaSetDevice(0);
 
 		if (ctl->checkmode) { printf("# %s: no operation in checkmode\n", __func__); return; }
 		
     printf("numDevices: %d\n", numDevices);
     printf("DEBUG #%d numDevices: %d\n", ctl->MPIglobrank, numDevices);
-    
+
     //I should added this because of CPUs converting los to pos..    
     omp_set_nested(true);
 #pragma omp parallel num_threads(numLanes)
@@ -461,4 +464,6 @@
 		  apply_mask(mask, &obs[i], ctl);
     }
     omp_set_nested(false);
+
+    compare_raytracers(ctl, atm, obs, aero);
 	} // formod_GPU

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "jr_common.h"
+#include "assert.h"
 
 /* The functions of this file have been copied from lineofsight.h and 
  * lineofsight.c from jurassic-scatter project. Also, jur_ preffix
@@ -12,47 +13,49 @@
 
 /* Do ray-tracing to determine LOS. */
 void jur_raytrace(ctl_t *ctl,
-	      atm_t *atm,
-	      obs_t *obs,
-	      aero_t *aero,
-	      los_t *los,
-	      int ir);
+    atm_t *atm,
+    obs_t *obs,
+    aero_t *aero,
+    los_t *los,
+    int ir,
+    int ignore_scattering);
 
 /* Compute refractivity (return value is n - 1). */
 double jur_sca_refractivity(double p,
-		    double t);
+    double t);
 
 /* Find tangent point of a given LOS. */
 void jur_sca_tangent_point(los_t *los,
-		   double *tpz,
-		   double *tplon,
-		   double *tplat);
+    double *tpz,
+    double *tplon,
+    double *tplat);
 
 /* Find ground or TOA intersection point of a LOS. */
 void jur_intersection_point(ctl_t *ctl,
-			atm_t *atm,
-			double *znew,
-			los_t *los,
-			int ip,
-			los_t *los_aero,
-			int jp);
+    atm_t *atm,
+    double *znew,
+    los_t *los,
+    int ip,
+    los_t *los_aero,
+    int jp);
 
 /* Add points to LOS for fine sampling of aerosol/cloud layers. */
 void jur_add_aerosol_layers(ctl_t *ctl,
-			atm_t *atm,
-			los_t *los,
-			aero_t *aero);
+    atm_t *atm,
+    los_t *los,
+    aero_t *aero);
 
 void jur_raytrace(ctl_t *ctl,
-	      atm_t *atm,
-	      obs_t *obs,
-	      aero_t *aero,
-	      los_t *los,
-	      int ir) {
-  
+    atm_t *atm,
+    obs_t *obs,
+    aero_t *aero,
+    los_t *los,
+    int ir,
+    int ignore_scattering) {
+
   double cosa, d, dmax, dmin=0, ds, ex0[3], ex1[3], h=0.02, k[NWMAX],
-    lat, lon, n, naux, ng[3], norm, p, q[NGMAX], 
-    t, x[3], xh[3], xobs[3], xvp[3], z=1e99, zmax, zmin, zrefrac=60;
+  lat, lon, n, naux, ng[3], norm, p, q[NGMAX], 
+  t, x[3], xh[3], xobs[3], xvp[3], z=1e99, zmax, zmin, zrefrac=60;
   /*zrefrac=25 for CRISTA-NF*/
   int i, ig, ip, iw, stop=0;
 
@@ -66,64 +69,64 @@ void jur_raytrace(ctl_t *ctl,
   /* Get altitude range of atmospheric data... */
   zmin=gsl_stats_min(atm->z, 1, (size_t)atm->np);
   zmax=gsl_stats_max(atm->z, 1, (size_t)atm->np);
-  
+
   /* Check observer altitude... */
   if(obs->obsz[ir]<zmin)
     ERRMSG("Observer below surface!");
-  
+
   /* Check view point altitude... */
   if(obs->vpz[ir]>zmax-0.001)
     return;
-  
+
   /* Determine Cartesian coordinates for observer and view point... */
   jur_geo2cart(obs->obsz[ir], obs->obslon[ir], obs->obslat[ir], xobs);
   jur_geo2cart(obs->vpz[ir], obs->vplon[ir], obs->vplat[ir], xvp);
-  
+
   /* Determine initial tangent vector... */
   for(i=0; i<3; i++)
     ex0[i]=xvp[i]-xobs[i];
   norm=NORM(ex0);
   for(i=0; i<3; i++)
     ex0[i]/=norm;
-  
+
   /* Observer within atmosphere... */
   for(i=0; i<3; i++)
     x[i]=xobs[i];
-  
+
   /* Observer above atmosphere (search entry point)... */
   if(obs->obsz[ir]>zmax) {
     dmax=norm;
     while(fabs(dmin-dmax)>0.001) {
       d=(dmax+dmin)/2;
       for(i=0; i<3; i++)
-	x[i]=xobs[i]+d*ex0[i];
+        x[i]=xobs[i]+d*ex0[i];
       jur_cart2geo(x, &z, &lon, &lat);
       if(z<=zmax && z>zmax-0.001)
-	break;
+        break;
       if(z<zmax-0.0005)
-	dmax=d;
+        dmax=d;
       else
-	dmin=d;
+        dmin=d;
     }
   }
-  
+
   /* Ray-tracing... */
   while(1) {
-    
+
     /* Set step length... */
     ds=ctl->rayds;
     if(ctl->raydz>0) {
       norm=NORM(x);
       for(i=0; i<3; i++)
-	xh[i]=x[i]/norm;
+        xh[i]=x[i]/norm;
       cosa=fabs(DOTP(ex0, xh));
       if(cosa!=0)
-	ds=GSL_MIN(ctl->rayds, ctl->raydz/cosa);
+        ds=GSL_MIN(ctl->rayds, ctl->raydz/cosa);
     }
-    
+
     /* Determine geolocation... */
     jur_cart2geo(x, &z, &lon, &lat);
-    
+
     /* Check if LOS hits the ground or has left atmosphere and save last los point. */
     if(z<zmin+0.001 || z>zmax+0.001) {
       stop=(z<zmin+0.001 ? 2 : 1);
@@ -133,20 +136,20 @@ void jur_raytrace(ctl_t *ctl,
       jur_intersection_point(ctl, atm, (z<zmin+0.001 ? &zmin : &zmax), los, los->np, los, los->np);
       los->ds[los->np]=0.;
     }
-    
+
     /* Save first and middle los points. */
     if(stop==0) {
       jur_intpol_atm_geo(ctl, atm, z, lon, lat, &p, &t, q, k);
-      
+
       los->lon[los->np]=lon;
       los->lat[los->np]=lat;
       los->z[los->np]=z;
       los->p[los->np]=p;
       los->t[los->np]=t;
       for(ig=0; ig<ctl->ng; ig++)
-	los->q[los->np][ig]=q[ig];
+        los->q[los->np][ig]=q[ig];
       for(iw=0; iw<ctl->nw; iw++)
-	los->k[los->np][iw]=k[iw];
+        los->k[los->np][iw]=k[iw];
       los->ds[los->np]=ds;
     }
 
@@ -159,61 +162,61 @@ void jur_raytrace(ctl_t *ctl,
       los->tsurf=(stop==2 ? t : -999);
       break;
     }
-    
+
     /* Determine refractivity... */
     if(ctl->refrac && z<=zrefrac)
       n=1+jur_sca_refractivity(p, t);
     else
       n=1;
-    
+
     /* Construct new tangent vector (first term)... */
     for(i=0; i<3; i++)
       ex1[i]=ex0[i]*n;
-    
+
     /* Compute gradient of refractivity... */
     if(ctl->refrac && z<=zrefrac) {
       for(i=0; i<3; i++)
-	xh[i]=x[i]+0.5*ds*ex0[i];
+        xh[i]=x[i]+0.5*ds*ex0[i];
       jur_cart2geo(xh, &z, &lon, &lat);
       jur_intpol_atm_geo(ctl, atm, z, lon, lat, &p, &t, q, k);
       n=jur_sca_refractivity(p, t);
       for(i=0; i<3; i++) {
-	xh[i]+=h;
-	jur_cart2geo(xh, &z, &lon, &lat);
-	jur_intpol_atm_geo(ctl, atm, z, lon, lat, &p, &t, q, k);
-	naux=jur_sca_refractivity(p, t);
-	ng[i]=(naux-n)/h;
-	xh[i]-=h;
+        xh[i]+=h;
+        jur_cart2geo(xh, &z, &lon, &lat);
+        jur_intpol_atm_geo(ctl, atm, z, lon, lat, &p, &t, q, k);
+        naux=jur_sca_refractivity(p, t);
+        ng[i]=(naux-n)/h;
+        xh[i]-=h;
       }
     } else
       for(i=0; i<3; i++)
-	ng[i]=0;
-    
+        ng[i]=0;
+
     /* Construct new tangent vector (second term)... */
     for(i=0; i<3; i++)
       ex1[i]+=ds*ng[i];
-    
+
     /* Normalize new tangent vector... */
     norm=NORM(ex1);
     for(i=0; i<3; i++)
       ex1[i]/=norm;
-    
+
     /* Determine next point of LOS... */
     for(i=0; i<3; i++)
       x[i]+=0.5*ds*(ex0[i]+ex1[i]);
-    
+
     /* Copy tangent vector... */
     for(i=0; i<3; i++)
       ex0[i]=ex1[i];
   }
-  
+
   /* Check length of last segment... */
   if(los->ds[los->np-2]<1e-3 && los->np-1>1)
     los->np--;
-  
+
   /* Get tangent point (to be done before changing segment lengths!)... */
   jur_sca_tangent_point(los, &obs->tpz[ir], &obs->tplon[ir], &obs->tplat[ir]);
-  
+
   /* Change segment lengths according to trapezoid rule... */
   los->ds[0]=0.5*los->ds[0];
   for(ip=1; ip<los->np; ip++)
@@ -223,21 +226,25 @@ void jur_raytrace(ctl_t *ctl,
   for(ip=0; ip<los->np; ip++)
     for(ig=0; ig<ctl->ng; ig++)
       los->u[ip][ig]=10*los->q[ip][ig]*los->p[ip]
-	/(GSL_CONST_MKSA_BOLTZMANN*los->t[ip])*los->ds[ip];
+        /(GSL_CONST_MKSA_BOLTZMANN*los->t[ip])*los->ds[ip];
 
   /* Add additional los points for aerosol layers and add aerosol data */
-  if (ctl->sca_n > 0)
-    jur_add_aerosol_layers(ctl,atm,los,aero);
+  // TODO: ignore scattering was added for testing and debuging
+  if(!ignore_scattering) {
+    if (ctl->sca_n > 0)
+      jur_add_aerosol_layers(ctl,atm,los,aero);
+  }
 }
 
 /*****************************************************************************/
 void jur_add_aerosol_layers(ctl_t *ctl,
-			atm_t *atm,
-			los_t *los,
-			aero_t *aero){
+    atm_t *atm,
+    los_t *los,
+    aero_t *aero){
 
   los_t *los_aero;
 
+  // TODO: I think we should use double alti[(?)*NLMAX]
   double alti[4*NLMAX], altimax, altimin, x1[3], x2[3], x3[3], tt=0., epsilon=0.005; 
   /* deltatop=10., deltabot=10., */
 
@@ -259,17 +266,17 @@ void jur_add_aerosol_layers(ctl_t *ctl,
     /* Create altitudes to sample transition layers */
     if (aero->trans[il] > ctl->transs) {
       tt = aero->trans[il] / ctl->transs;
-      
+
       alti[jl] = aero->top[il] + aero->trans[il] + epsilon;
       alti[jl+1] = aero->top[il] + aero->trans[il] - epsilon;
       alti[jl+2] = aero->bottom[il] - aero->trans[il] + epsilon;
       alti[jl+3] = aero->bottom[il] - aero->trans[il] - epsilon;
       jl = jl+4;
       for (it=1; it<(int)tt; it++){
-	alti[jl] = aero->top[il] + aero->trans[il] - epsilon - it*ctl->transs;
-	jl++;
-	alti[jl] = aero->bottom[il] - aero->trans[il] + epsilon + it*ctl->transs;
-	jl++;
+        alti[jl] = aero->top[il] + aero->trans[il] - epsilon - it*ctl->transs;
+        jl++;
+        alti[jl] = aero->bottom[il] - aero->trans[il] + epsilon + it*ctl->transs;
+        jl++;
       }
     }  
   }
@@ -280,7 +287,7 @@ void jur_add_aerosol_layers(ctl_t *ctl,
   gsl_sort(alti,1,(size_t)jl);
   for (il=0; il<jl;il++)
     alti[il]=alti[il]*(-1.);
-  
+
   altimax = gsl_stats_max(alti, 1, (size_t)jl);
   altimin = gsl_stats_min(alti, 1, (size_t)jl);
 
@@ -299,21 +306,21 @@ void jur_add_aerosol_layers(ctl_t *ctl,
   los_aero->np = 1;
 
   for (ip=1; ip<los->np; ip++){
-    
+
     /* add new los points around cloud edges */
     if ( (los->z[ip-1] < altimax || los->z[ip] < altimax) &&
-	 (los->z[ip-1] > altimin || los->z[ip] > altimin) ) { 
+        (los->z[ip-1] > altimin || los->z[ip] > altimin) ) { 
       for (il=0; il<jl;il++){ /* loop over cloud edges */
-	/* von oben */
-	if(los->z[ip-1] > alti[il] && los->z[ip] < alti[il]){
-	  jur_intersection_point(ctl, atm, &alti[il], los, ip, los_aero, los_aero->np);
-	  los_aero->np++; 
-	}
-	/* von unten */
-	if(los->z[ip-1] < alti[jl-il-1] && los->z[ip] > alti[jl-il-1]){
-	  jur_intersection_point(ctl, atm, &alti[jl-il-1], los, ip, los_aero, los_aero->np);
-	  los_aero->np++;
-	}
+        /* von oben */
+        if(los->z[ip-1] > alti[il] && los->z[ip] < alti[il]){
+          jur_intersection_point(ctl, atm, &alti[il], los, ip, los_aero, los_aero->np);
+          los_aero->np++; 
+        }
+        /* von unten */
+        if(los->z[ip-1] < alti[jl-il-1] && los->z[ip] > alti[jl-il-1]){
+          jur_intersection_point(ctl, atm, &alti[jl-il-1], los, ip, los_aero, los_aero->np);
+          los_aero->np++;
+        }
       }
     }
 
@@ -328,7 +335,7 @@ void jur_add_aerosol_layers(ctl_t *ctl,
     /* 	continue; */
     /*   } */
     /* } */
-    
+
     /* only copy old los points, if they are outside top||bottom +-2m */ 
     /* if ( deltatop >= epsilon*2. && deltabot >= epsilon*2. ) {  */
     /* copy old los points */
@@ -341,7 +348,7 @@ void jur_add_aerosol_layers(ctl_t *ctl,
       los_aero->q[los_aero->np][ig] = los->q[ip][ig];
     for(iw=0; iw<ctl->nw; iw++)
       los_aero->k[los_aero->np][iw] = los->k[ip][iw];
-    
+
     /* Increment and check number of new LOS points */
     if((los_aero->np++)>NLOS)
       ERRMSG("Too many LOS points!");
@@ -359,9 +366,9 @@ void jur_add_aerosol_layers(ctl_t *ctl,
     los_aero->ds[ip] = 0.5 * (DIST(x1,x2) + DIST(x2,x3));
   }
   jur_geo2cart(los_aero->z[los_aero->np-1], los_aero->lon[los_aero->np-1], 
-	   los_aero->lat[los_aero->np-1], x1);
+      los_aero->lat[los_aero->np-1], x1);
   jur_geo2cart(los_aero->z[los_aero->np-2], los_aero->lon[los_aero->np-2], 
-	   los_aero->lat[los_aero->np-2], x2);
+      los_aero->lat[los_aero->np-2], x2);
   los_aero->ds[los_aero->np-1] = 0.5 * (DIST(x1,x2));
 
   /* add aerosol/cloud information and column density u to new los  */
@@ -370,35 +377,35 @@ void jur_add_aerosol_layers(ctl_t *ctl,
     /* Compute column density... */
     for(ig=0; ig<ctl->ng; ig++)
       los_aero->u[ip][ig]=10*los_aero->q[ip][ig]*los_aero->p[ip]
-	/(GSL_CONST_MKSA_BOLTZMANN*los_aero->t[ip])*los_aero->ds[ip];
+        /(GSL_CONST_MKSA_BOLTZMANN*los_aero->t[ip])*los_aero->ds[ip];
 
     /* Get aerosol/cloud layer id and factor */
     los_aero->aeroi[ip] = -999;
     los_aero->aerofac[ip] = 0.;
     if ( (los_aero->z[ip-1] < altimax || los_aero->z[ip] < altimax) &&
-	 (los_aero->z[ip-1] > altimin || los_aero->z[ip] > altimin) ) { 
+        (los_aero->z[ip-1] > altimin || los_aero->z[ip] > altimin) ) { 
       for (il=0; il<aero->nl;il++){
         /* Aerosol info within layer centre */
-	if (los_aero->z[ip] <= aero->top[il] && 
-	    los_aero->z[ip] >= aero->bottom[il]){
-	  los_aero->aeroi[ip] = il;
-	  los_aero->aerofac[ip] = 1.;	  
-	}
-	/* Aerosol info in transition region */
-	if (aero->trans[il] > ctl->transs &&
-	    los_aero->z[ip] <= (aero->top[il] + aero->trans[il]) &&
-	    los_aero->z[ip] > aero->top[il]){
-	  los_aero->aeroi[ip] = il;
-	  los_aero->aerofac[ip] = (aero->top[il] + aero->trans[il] - los_aero->z[ip])/
-	    aero->trans[il];
-	}
-	if (aero->trans[il] > ctl->transs &&
-	    los_aero->z[ip] < aero->bottom[il] &&
-	    los_aero->z[ip] >= (aero->bottom[il] - aero->trans[il])){
-	  los_aero->aeroi[ip] = il;
-	  los_aero->aerofac[ip] = fabs(aero->bottom[il]-aero->trans[il]-los_aero->z[ip])/
-	    aero->trans[il];
-	}
+        if (los_aero->z[ip] <= aero->top[il] && 
+            los_aero->z[ip] >= aero->bottom[il]){
+          los_aero->aeroi[ip] = il;
+          los_aero->aerofac[ip] = 1.;	  
+        }
+        /* Aerosol info in transition region */
+        if (aero->trans[il] > ctl->transs &&
+            los_aero->z[ip] <= (aero->top[il] + aero->trans[il]) &&
+            los_aero->z[ip] > aero->top[il]){
+          los_aero->aeroi[ip] = il;
+          los_aero->aerofac[ip] = (aero->top[il] + aero->trans[il] - los_aero->z[ip])/
+            aero->trans[il];
+        }
+        if (aero->trans[il] > ctl->transs &&
+            los_aero->z[ip] < aero->bottom[il] &&
+            los_aero->z[ip] >= (aero->bottom[il] - aero->trans[il])){
+          los_aero->aeroi[ip] = il;
+          los_aero->aerofac[ip] = fabs(aero->bottom[il]-aero->trans[il]-los_aero->z[ip])/
+            aero->trans[il];
+        }
       }
     }
   }
@@ -407,7 +414,7 @@ void jur_add_aerosol_layers(ctl_t *ctl,
   /*   *los = *los_aero; */
   s=sizeof(los_t);
   memcpy(los, los_aero, s);
-   
+
   /* Free help los... */
   free(los_aero);
 }
@@ -415,8 +422,8 @@ void jur_add_aerosol_layers(ctl_t *ctl,
 /*****************************************************************************/
 
 double jur_sca_refractivity(double p,
-		    double t) {
-  
+    double t) {
+
   /* Refractivity of air at 4 to 15 micron... */
   return 7.753e-05*p/t;
 }
@@ -424,16 +431,16 @@ double jur_sca_refractivity(double p,
 /*****************************************************************************/
 
 void jur_intersection_point(ctl_t *ctl,
-			atm_t *atm,
-			double *znew,
-			los_t *los,
-			int ip,
-			los_t *los_aero,
-			int jp){
-  
+    atm_t *atm,
+    double *znew,
+    los_t *los,
+    int ip,
+    los_t *los_aero,
+    int jp){
+
   double frac, x1[3], x2[3];
   int i ;
-  
+
   frac = (los->z[ip-1] - *znew) / (los->z[ip-1] - los->z[ip]);
   jur_geo2cart(los->z[ip-1], los->lon[ip-1], los->lat[ip-1], x1);
   jur_geo2cart(los->z[ip], los->lon[ip], los->lat[ip], x2);
@@ -444,33 +451,33 @@ void jur_intersection_point(ctl_t *ctl,
   jur_cart2geo(x2, &los_aero->z[jp], &los_aero->lon[jp], &los_aero->lat[jp]);
   /* get atmosphere parameters */
   jur_intpol_atm_geo(ctl, atm, los_aero->z[jp], los_aero->lon[jp], los_aero->lat[jp],
-		 &los_aero->p[jp], &los_aero->t[jp], los_aero->q[jp], los_aero->k[jp]);
+      &los_aero->p[jp], &los_aero->t[jp], los_aero->q[jp], los_aero->k[jp]);
 }
 
 /*****************************************************************************/
 
 void jur_sca_tangent_point(los_t *los,
-		   double *tpz,
-		   double *tplon,
-		   double *tplat) {
-  
+    double *tpz,
+    double *tplon,
+    double *tplat) {
+
   double a, b, c, dummy, v[3], v0[3], v2[3], x, x1, x2, yy0, yy1, yy2;
-  
+
   size_t i, ip;
-  
+
   /* Find minimum altitude... */
   ip=gsl_stats_min_index(los->z, 1, (size_t)los->np);
-  
+
   /* Nadir or zenith... */
   if(ip<=0 || ip>=(size_t)los->np-1) {
     *tpz=los->z[los->np-1];
     *tplon=los->lon[los->np-1];
     *tplat=los->lat[los->np-1];
   }
-  
+
   /* Limb... */
   else {
-    
+
     /* Determine interpolating polynomial y=a*x^2+b*x+c... */
     yy0=los->z[ip-1];
     yy1=los->z[ip];
@@ -480,7 +487,7 @@ void jur_sca_tangent_point(los_t *los,
     a=1/(x1-x2)*(-(yy0-yy1)/x1+(yy0-yy2)/x2);
     b=-(yy0-yy1)/x1-a*x1;
     c=yy0;
-    
+
     /* Get tangent point location... */
     x=-b/(2*a);
     *tpz=a*x*x+b*x+c;

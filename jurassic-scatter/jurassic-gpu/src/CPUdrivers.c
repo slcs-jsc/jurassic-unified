@@ -117,7 +117,8 @@
       los_t *one_los;
       one_los = (los_t*) malloc(sizeof(los_t));
       // raytracer copied from jurassic-scatter
-      jur_raytrace(ctl, atm, obs, aero, one_los, ir);
+      // the last argument is "ignore_scattering"
+      jur_raytrace(ctl, atm, obs, aero, one_los, ir, 0);
       np[ir] = one_los->np;
       tsurf[ir] = one_los->tsurf;
       for(int ip = 0; ip < one_los->np; ip++) { 
