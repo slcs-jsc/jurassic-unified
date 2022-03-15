@@ -2,6 +2,57 @@
 
 #include "jr_common.h"
 
+int plain_locate_irr(
+    double *xx,
+    int n,
+    double x) {
+
+  int ilo = 0;
+  int ihi = n - 1;
+  int i = (ihi + ilo) >> 1;
+
+  if (xx[i] < xx[i + 1])
+    while (ihi > ilo + 1) {
+      i = (ihi + ilo) >> 1;
+      if (xx[i] > x)
+        ihi = i;
+      else
+        ilo = i;
+    } else
+      while (ihi > ilo + 1) {
+        i = (ihi + ilo) >> 1;
+        if (xx[i] <= x)
+          ihi = i;
+        else
+          ilo = i;
+      }
+
+    return ilo;
+}
+
+void plain_intpol_atm(
+    ctl_t * ctl,
+    atm_t * atm,
+    double z,
+    double *p,
+    double *t,
+    double *q,
+    double *k) {
+
+  /* Get array index... */
+  int ip = plain_locate_irr(atm->z, atm->np, z);
+
+  /* Interpolate... */
+  *p = EXP(atm->z[ip], atm->p[ip], atm->z[ip + 1], atm->p[ip + 1], z);
+  *t = LIN(atm->z[ip], atm->t[ip], atm->z[ip + 1], atm->t[ip + 1], z);
+  for (int ig = 0; ig < ctl->ng; ig++)
+    q[ig] =
+      LIN(atm->z[ip], atm->q[ig][ip], atm->z[ip + 1], atm->q[ig][ip + 1], z);
+  for (int iw = 0; iw < ctl->nw; iw++)
+    k[iw] =
+      LIN(atm->z[ip], atm->k[iw][ip], atm->z[ip + 1], atm->k[iw][ip + 1], z);
+}
+
 void plain_raytrace(
     ctl_t * ctl,
     atm_t * atm,
@@ -18,22 +69,23 @@ void plain_raytrace(
 
   /* Initialize... */
   los->np = 0;
-  los->sft = -999;
+  los->tsurf = -999;
   obs->tpz[ir] = obs->vpz[ir];
   obs->tplon[ir] = obs->vplon[ir];
   obs->tplat[ir] = obs->vplat[ir];
 
   /* Get altitude range of atmospheric data... */
   gsl_stats_minmax(&zmin, &zmax, atm->z, 1, (size_t) atm->np);
-  if (ctl->nsf > 0) {
+
+  /*(if (ctl->nsf > 0) { // ignore this because ctl->nsf is not in jurassic-scatter-gpu ctl_t struct
     zmin = GSL_MAX(atm->sfz, zmin);
     if (atm->sfp > 0) {
-      int ip = locate_irr(atm->p, atm->np, atm->sfp);
-      double zip = LIN(log(atm->p[ip]), atm->z[ip],
-          log(atm->p[ip + 1]), atm->z[ip + 1], log(atm->sfp));
-      zmin = GSL_MAX(zip, zmin);
+    int ip = locate_irr(atm->p, atm->np, atm->sfp);
+    double zip = LIN(log(atm->p[ip]), atm->z[ip],
+    log(atm->p[ip + 1]), atm->z[ip + 1], log(atm->sfp));
+    zmin = GSL_MAX(zip, zmin);
     }
-  }
+    }*/
 
   /* Check observer altitude... */
   if (obs->obsz[ir] < zmin)
@@ -44,8 +96,8 @@ void plain_raytrace(
     return;
 
   /* Determine Cartesian coordinates for observer and view point... */
-  geo2cart(obs->obsz[ir], obs->obslon[ir], obs->obslat[ir], xobs);
-  geo2cart(obs->vpz[ir], obs->vplon[ir], obs->vplat[ir], xvp);
+  jur_geo2cart(obs->obsz[ir], obs->obslon[ir], obs->obslat[ir], xobs);
+  jur_geo2cart(obs->vpz[ir], obs->vplon[ir], obs->vplat[ir], xvp);
 
   /* Determine initial tangent vector... */
   for (int i = 0; i < 3; i++)
@@ -65,7 +117,7 @@ void plain_raytrace(
       double d = (dmax + dmin) / 2;
       for (int i = 0; i < 3; i++)
         x[i] = xobs[i] + d * ex0[i];
-      cart2geo(x, &z, &lon, &lat);
+      jur_cart2geo(x, &z, &lon, &lat);
       if (z <= zmax && z > zmax - 0.001)
         break;
       if (z < zmax - 0.0005)
@@ -90,7 +142,7 @@ void plain_raytrace(
     }
 
     /* Determine geolocation... */
-    cart2geo(x, &z, &lon, &lat);
+    jur_cart2geo(x, &z, &lon, &lat);
 
     /* Check if LOS hits the ground or has left atmosphere... */
     if (z < zmin || z > zmax) {
@@ -99,17 +151,17 @@ void plain_raytrace(
         ((z <
           zmin ? zmin : zmax) - los->z[los->np - 1]) / (z - los->z[los->np -
           1]);
-      geo2cart(los->z[los->np - 1], los->lon[los->np - 1],
+      jur_geo2cart(los->z[los->np - 1], los->lon[los->np - 1],
           los->lat[los->np - 1], xh);
       for (int i = 0; i < 3; i++)
         x[i] = xh[i] + frac * (x[i] - xh[i]);
-      cart2geo(x, &z, &lon, &lat);
+      jur_cart2geo(x, &z, &lon, &lat);
       los->ds[los->np - 1] = ds * frac;
       ds = 0;
     }
 
     /* Interpolate atmospheric data... */
-    intpol_atm(ctl, atm, z, &p, &t, q, k);
+    plain_intpol_atm(ctl, atm, z, &p, &t, q, k);
 
     /* Save data... */
     los->lon[los->np] = lon;
@@ -122,17 +174,17 @@ void plain_raytrace(
     for (int id = 0; id < ctl->nd; id++)
       los->k[los->np][id] = k[ctl->window[id]];
     los->ds[los->np] = ds;
-
-    /* Add cloud extinction... */
-    if (ctl->ncl > 0 && atm->cldz > 0) {
-      double aux = exp(-0.5 * POW2((z - atm->clz) / atm->cldz));
-      for (int id = 0; id < ctl->nd; id++) {
-        int icl = locate_irr(ctl->clnu, ctl->ncl, ctl->nu[id]);
-        los->k[los->np][id]
-          += aux * LIN(ctl->clnu[icl], atm->clk[icl],
-              ctl->clnu[icl + 1], atm->clk[icl + 1], ctl->nu[id]);
-      }
-    }
+    /* Add cloud extinction... */ // ignore this because ctl->ncl is not in jurassic-scatter-gpu ctl_t struct
+    /*
+       if (ctl->ncl > 0 && atm->cldz > 0) {
+       double aux = exp(-0.5 * POW2((z - atm->clz) / atm->cldz));
+       for (int id = 0; id < ctl->nd; id++) {
+       int icl = locate_irr(ctl->clnu, ctl->ncl, ctl->nu[id]);
+       los->k[los->np][id]
+       += aux * LIN(ctl->clnu[icl], atm->clk[icl],
+       ctl->clnu[icl + 1], atm->clk[icl + 1], ctl->nu[id]);
+       }
+       } */
 
     /* Increment and check number of LOS points... */
     if ((++los->np) > NLOS)
@@ -141,21 +193,21 @@ void plain_raytrace(
     /* Check stop flag... */
     if (stop) {
 
-      /* Set surface temperature... */
-      if (ctl->nsf > 0 && atm->sft > 0)
-        t = atm->sft;
-      los->sft = (stop == 2 ? t : -999);
+      /* Set surface temperature...         // ignore this because ctl->ncl is not in jurassic-scatter-gpu ctl_t struct
+         if (ctl->nsf > 0 && atm->t_surf > 0)  // maybe just if statemet should be ignored
+         t = atm->t_surf; */
+      los->tsurf = (stop == 2 ? t : -999);
 
-      /* Set surface emissivity... */
-      for (int id = 0; id < ctl->nd; id++) {
+      /* Set surface emissivity... */       // ignore this because los->sfeps is not in jurassic-scatter-gpu ctl_t struct
+      /*for (int id = 0; id < ctl->nd; id++) {
         los->sfeps[id] = 1.0;
         if (ctl->nsf > 0) {
-          int isf = locate_irr(ctl->sfnu, ctl->nsf, ctl->nu[id]);
-          los->sfeps[id] = LIN(ctl->sfnu[isf], atm->sfeps[isf],
-              ctl->sfnu[isf + 1], atm->sfeps[isf + 1],
-              ctl->nu[id]);
+        int isf = locate_irr(ctl->sfnu, ctl->nsf, ctl->nu[id]);
+        los->sfeps[id] = LIN(ctl->sfnu[isf], atm->sfeps[isf],
+        ctl->sfnu[isf + 1], atm->sfeps[isf + 1],
+        ctl->nu[id]);
         }
-      }
+        }*/
 
       /* Leave raytracer... */
       break;
@@ -163,7 +215,7 @@ void plain_raytrace(
 
     /* Determine refractivity... */
     if (ctl->refrac && z <= zrefrac)
-      n = 1 + refractivity(p, t);
+      n = 1 + jur_refractivity(p, t);
     else
       n = 1;
 
@@ -175,14 +227,14 @@ void plain_raytrace(
     if (ctl->refrac && z <= zrefrac) {
       for (int i = 0; i < 3; i++)
         xh[i] = x[i] + 0.5 * ds * ex0[i];
-      cart2geo(xh, &z, &lon, &lat);
-      intpol_atm(ctl, atm, z, &p, &t, q, k);
-      n = refractivity(p, t);
+      jur_cart2geo(xh, &z, &lon, &lat);
+      plain_intpol_atm(ctl, atm, z, &p, &t, q, k);
+      n = jur_refractivity(p, t);
       for (int i = 0; i < 3; i++) {
         xh[i] += h;
-        cart2geo(xh, &z, &lon, &lat);
-        intpol_atm(ctl, atm, z, &p, &t, q, k);
-        ng[i] = (refractivity(p, t) - n) / h;
+        jur_cart2geo(xh, &z, &lon, &lat);
+        plain_intpol_atm(ctl, atm, z, &p, &t, q, k);
+        ng[i] = (jur_refractivity(p, t) - n) / h;
         xh[i] -= h;
       }
     } else
@@ -208,7 +260,7 @@ void plain_raytrace(
   }
 
   /* Get tangent point (to be done before changing segment lengths!)... */
-  tangent_point(los, &obs->tpz[ir], &obs->tplon[ir], &obs->tplat[ir]);
+  jur_sca_tangent_point(los, &obs->tpz[ir], &obs->tplon[ir], &obs->tplat[ir]);
 
   /* Change segment lengths according to trapezoid rule... */
   for (int ip = los->np - 1; ip >= 1; ip--)
@@ -219,7 +271,7 @@ void plain_raytrace(
   for (int ip = 0; ip < los->np; ip++)
     for (int ig = 0; ig < ctl->ng; ig++)
       los->u[ip][ig] = 10 * los->q[ip][ig] * los->p[ip]
-        / (KB * los->t[ip]) * los->ds[ip];
+        / (GSL_CONST_MKSA_BOLTZMANN * los->t[ip]) * los->ds[ip];
 }
 
 /*
@@ -227,95 +279,24 @@ void plain_raytrace(
 // compile errors: 
 // the differences between jurassic and jurassic-scatter-gpu struct variables
 
-plain_lineofsight.h(21): error: class "los_t" has no member "sft"
-
-plain_lineofsight.h(28): error: class "ctl_t" has no member "nsf"
-
-plain_lineofsight.h(29): error: class "atm_t" has no member "sfz"
-
-plain_lineofsight.h(29): error: class "atm_t" has no member "sfz"
-
-plain_lineofsight.h(30): error: class "atm_t" has no member "sfp"
-
-plain_lineofsight.h(31): error: class "atm_t" has no member "sfp"
-
-plain_lineofsight.h(31): error: identifier "locate_irr" is undefined
-
-plain_lineofsight.h(32): error: class "atm_t" has no member "sfp"
-
-plain_lineofsight.h(47): error: identifier "geo2cart" is undefined
-
-plain_lineofsight.h(68): error: identifier "cart2geo" is undefined
-
-plain_lineofsight.h(93): error: identifier "cart2geo" is undefined
-
-plain_lineofsight.h(112): error: identifier "intpol_atm" is undefined
-
-plain_lineofsight.h(127): error: class "ctl_t" has no member "ncl"
-
-plain_lineofsight.h(127): error: class "atm_t" has no member "cldz"
-
-plain_lineofsight.h(128): error: class "atm_t" has no member "clz"
-
-plain_lineofsight.h(128): error: class "atm_t" has no member "cldz"
-
-plain_lineofsight.h(128): error: identifier "POW2" is undefined
-
-plain_lineofsight.h(130): error: class "ctl_t" has no member "clnu"
-
-plain_lineofsight.h(130): error: class "ctl_t" has no member "ncl"
-
-plain_lineofsight.h(130): error: identifier "locate_irr" is undefined
-
-plain_lineofsight.h(132): error: class "atm_t" has no member "clk"
-
-plain_lineofsight.h(132): error: class "atm_t" has no member "clk"
-
-plain_lineofsight.h(132): error: class "atm_t" has no member "clk"
-
-plain_lineofsight.h(132): error: class "ctl_t" has no member "clnu"
-
-plain_lineofsight.h(132): error: class "ctl_t" has no member "clnu"
-
-plain_lineofsight.h(132): error: class "ctl_t" has no member "clnu"
-
-plain_lineofsight.h(145): error: class "ctl_t" has no member "nsf"
-
-plain_lineofsight.h(145): error: class "atm_t" has no member "sft"
-
-plain_lineofsight.h(146): error: class "atm_t" has no member "sft"
-
-plain_lineofsight.h(147): error: class "los_t" has no member "sft"
-
-plain_lineofsight.h(151): error: class "los_t" has no member "sfeps"
-
-plain_lineofsight.h(152): error: class "ctl_t" has no member "nsf"
-
-plain_lineofsight.h(153): error: class "ctl_t" has no member "sfnu"
-
-plain_lineofsight.h(153): error: class "ctl_t" has no member "nsf"
-
-plain_lineofsight.h(153): error: identifier "locate_irr" is undefined
-
-plain_lineofsight.h(154): error: class "los_t" has no member "sfeps"
-
-plain_lineofsight.h(154): error: class "atm_t" has no member "sfeps"
-
-plain_lineofsight.h(154): error: class "atm_t" has no member "sfeps"
-
-plain_lineofsight.h(154): error: class "atm_t" has no member "sfeps"
-
-plain_lineofsight.h(154): error: class "ctl_t" has no member "sfnu"
-
-plain_lineofsight.h(154): error: class "ctl_t" has no member "sfnu"
-
-plain_lineofsight.h(154): error: class "ctl_t" has no member "sfnu"
-
-plain_lineofsight.h(166): error: identifier "refractivity" is undefined
-
-plain_lineofsight.h(180): error: identifier "refractivity" is undefined
-
-plain_lineofsight.h(211): error: identifier "tangent_point" is undefined
-
-plain_lineofsight.h(222): error: identifier "KB" is undefined
+plain_lineofsight.h(21): error: class "los_t" has no member "sft"         -> tsurf
+plain_lineofsight.h(28): error: class "ctl_t" has no member "nsf"         -> ignore (comment)
+plain_lineofsight.h(29): error: class "atm_t" has no member "sfz"         -> ignore
+plain_lineofsight.h(30): error: class "atm_t" has no member "sfp"         -> ignore
+plain_lineofsight.h(31): error: identifier "locate_irr" is undefined      -> ignore
+plain_lineofsight.h(47): error: identifier "geo2cart" is undefined        -> jur_geo2cart
+plain_lineofsight.h(68): error: identifier "cart2geo" is undefined        -> jur_cart2geo
+plain_lineofsight.h(112): error: identifier "intpol_atm" is undefined     -> jur_intpol_atm  <- copied plain_intpol_atm & plain_locate_irr from the plain  from the plain versionversion
+plain_lineofsight.h(127): error: class "ctl_t" has no member "ncl"        -> ignore
+plain_lineofsight.h(127): error: class "atm_t" has no member "cldz"       -> ignore
+plain_lineofsight.h(128): error: class "atm_t" has no member "clz"        -> ignore
+plain_lineofsight.h(128): error: identifier "POW2" is undefined           -> ignore
+plain_lineofsight.h(130): error: class "ctl_t" has no member "clnu"       -> ignore
+plain_lineofsight.h(132): error: class "atm_t" has no member "clk"        -> ignore
+plain_lineofsight.h(145): error: class "ctl_t" has no member "nsf"        -> ignore, maybe just if statement should be ignored
+plain_lineofsight.h(151): error: class "los_t" has no member "sfeps"      -> ignore
+plain_lineofsight.h(153): error: class "ctl_t" has no member "sfnu"       -> ignore
+plain_lineofsight.h(166): error: identifier "refractivity" is undefined   -> jur_refractivity
+plain_lineofsight.h(211): error: identifier "tangent_point" is undefined  -> jur_sca_tangent_point
+plain_lineofsight.h(222): error: identifier "KB" is undefined             -> GSL_CONST_MKSA_BOLTZMANN
 */
