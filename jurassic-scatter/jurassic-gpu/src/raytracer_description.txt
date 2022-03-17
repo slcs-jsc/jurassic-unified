@@ -1,0 +1,64 @@
+differences:
+
+1. Change segment lengths according to trapezoid rule...
+  jurassic-scatter:
+    los->ds[0]=0.5*los->ds[0];
+    for(ip=1; ip<los->np; ip++)
+      los->ds[ip]=0.5*(los->ds[ip-1]+los->ds[ip]);
+
+  jurassic: (plain)
+    for (int ip = los->np - 1; ip >= 1; ip--)
+      los->ds[ip] = 0.5 * (los->ds[ip - 1] + los->ds[ip]);
+    los->ds[0] *= 0.5;
+
+  =>  this part is the same in jurassic and jurassic-gpu,
+      so I opted for this vesion in jurassic-scatter
+
+
+2. if I ignore the last 10 points in line of sights, computed
+   segment lengths are the same!
+  => so problem is in the few final points..
+
+3. also, when the last 10 points are ignored, all computed values
+   in lines of sights, expect Surface temperature [K] (los->tsurf)
+   are the same!
+
+4. it turns out that in case when LOS hits the ground or has 
+   left atmosphere and save last los point it is not ok to use
+   intersection_point(..) function to calculate new z, lon, lat,
+   previous ds, ..., tsurf. At first we tried to modify 
+   intersection_point(..) function, but there were still some
+   problems, for example, when calling jur_intpol_atm_geo(..)
+   function to determine the temerature, local variables z, lon, lat
+   shuould be updated.
+   so the most elegant solution was to copy this
+   part of code from jurassic-scatter raytracer.
+
+   => after these changes all computed LOS values were the same
+      in our test cases, except that in few cases number of 
+      segments differ by one
+
+5. jurassic-scatter: 
+    /* Check length of last segment... */
+    /*if(los->ds[los->np-2]<1e-3 && los->np-1>1)
+      los->np--;*/
+
+   jurassic: (plain)
+   -
+
+   => it has to be removed!
+
+5. after removing +0.001 in some if statements in jurassic-scatter
+   raytracer the two raytracers become the same!!!
+
+6. there is one more difference which could be dangerous:
+  jurassic-scatter:
+    for(iw=0; iw<ctl->nw; iw++)
+      los->k[los->np][iw]=k[iw];
+
+  jurassic: (plain)
+    for (int id = 0; id < ctl->nd; id++)
+      los->k[los->np][id] = k[ctl->window[id]];
+
+  jurassic-gpu:
+	  for(int iw = 0; iw < NW; iw++) los->k[iw] = k[iw];

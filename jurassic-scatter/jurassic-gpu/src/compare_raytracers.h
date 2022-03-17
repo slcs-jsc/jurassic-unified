@@ -5,6 +5,7 @@
 #include "jr_common.h" // contains jurassic-gpu raytracer 
 #include "scatter_lineofsight.h" // containts jurassic-scatter raytracer
 #include "plain_lineofsight.h" // contains jurassic-plain raytracer
+#include "changed_lineofsight.h" // jurassic-scatter raytracer with minimal changes to be equal to the plain version
 
 /*
 // jurassic-scatter los type:
@@ -149,7 +150,7 @@ void update(int *ret_index, double *max_diff, int id, double diff) {
   }
 }
 
-int los_diff(los_t *a, los_t *b, ctl_t *ctl, int *ret_index, double *max_diff) {
+void los_diff(los_t *a, los_t *b, ctl_t *ctl, int *ret_index, double *max_diff, int scattering) {
   *ret_index = 0;
   *max_diff = 0;
 
@@ -157,6 +158,7 @@ int los_diff(los_t *a, los_t *b, ctl_t *ctl, int *ret_index, double *max_diff) {
     printf("DEBUG #%d number of los points differ: %d vs. %d\n", ctl->MPIglobrank, a->np, b->np);
 
   update(ret_index, max_diff, 1, a->np - b->np);
+  if(a->np != b->np) return;
 
   for(int i = 0; i < a->np; i++) {
     update(ret_index, max_diff, 2, a->z[i] - b->z[i]);
@@ -165,7 +167,9 @@ int los_diff(los_t *a, los_t *b, ctl_t *ctl, int *ret_index, double *max_diff) {
     update(ret_index, max_diff, 5, a->p[i] - b->p[i]);
     update(ret_index, max_diff, 6, a->t[i] - b->t[i]);
     // TODO: YET NOT PART OF jurassic-gpu raytracer
-    //update(ret_index, max_diff, 7, a->aerofac[i] - b->aerofac[i]);
+    if(scattering) {
+      update(ret_index, max_diff, 7, a->aerofac[i] - b->aerofac[i]);
+    }
 
     // TODO: Segment length [km]. WHY?
     update(ret_index, max_diff, 8, a->ds[i] - b->ds[i]);
@@ -181,62 +185,51 @@ int los_diff(los_t *a, los_t *b, ctl_t *ctl, int *ret_index, double *max_diff) {
   }
 
   // TODO: YET NOT PART OF jurassic-gpu raytracer
-  /* for(int i = 0; i < a->np; i++) {
-     update(ret_index, max_diff, 12, a->aeroi[i] - b->aeroi[i]);
-     if(a->aeroi[i] - b->aeroi[i] == 999 || b->aeroi[i] - a->aeroi[i] == 999)
-     printf("DEBUG #%d i-th point cloud layer index: %d vs. %d\n", ctl->MPIglobrank, i, a->aeroi[i], b->aeroi[i]);
-     } */
+  if(scattering) {
+    for(int i = 0; i < a->np; i++)
+      if(!(a->aeroi[i] - b->aeroi[i] == 999 || b->aeroi[i] - a->aeroi[i] == 999)) // special case
+        update(ret_index, max_diff, 12, a->aeroi[i] - b->aeroi[i]); 
+  }
 
   // TODO: WHY?
   update(ret_index, max_diff, 13, a->tsurf - b->tsurf);
-  return 0;
 }
 
 void compare_raytracers(ctl_t *ctl,
     atm_t *atm,
     obs_t *obs,
     aero_t *aero) {
+  
+  printf("DEBUG #%d comparing raytracers on set of %d rays\n...", ctl->MPIglobrank, obs->nr);
 
   // compare computed lines of sight one by one
   for(int ir = 0; ir < obs->nr; ir++) { 
     // jurassic-scatter (copied from scatter) raytracer
     // without calling jur_add_aerosol_layers() function
-    los_t *jr_scatter_los = (los_t*) malloc(sizeof(los_t));
-    jur_raytrace(ctl, atm, obs, aero, jr_scatter_los, ir, 1); // with ignoring scattering!
+    //los_t *jr_scatter_los = (los_t*) malloc(sizeof(los_t));
+    //jur_raytrace(ctl, atm, obs, aero, jr_scatter_los, ir, 0); // without ignoring scattering!
+
+    los_t *changed_jr_scatter_los = (los_t*) malloc(sizeof(los_t));
+    changed_jur_raytrace(ctl, atm, obs, aero, changed_jr_scatter_los, ir, 1); // with ignoring scattering!
 
     // jurassic-gpu raytracer
-    pos_t *p = (pos_t*) malloc((NLOS) * sizeof(pos_t));
-    double tsurf;
-    int n = traceray(ctl, atm, obs, ir, p, &tsurf);
-    los_t *jr_gpu_los = (los_t*) malloc(sizeof(los_t));
-    convert_pos_to_los(jr_gpu_los, p, n, tsurf); 
+    //pos_t *p = (pos_t*) malloc((NLOS) * sizeof(pos_t));
+    //double tsurf;
+    //int n = traceray(ctl, atm, obs, ir, p, &tsurf);
+    //los_t *jr_gpu_los = (los_t*) malloc(sizeof(los_t));
+    //convert_pos_to_los(jr_gpu_los, p, n, tsurf); 
 
     // jurassic-plain raytracer
     los_t *jr_plain_los = (los_t*) malloc(sizeof(los_t));
     plain_raytrace(ctl, atm, obs, jr_plain_los, ir);
 
-    printf("DEBUG #%d ray #%d:\n", ctl->MPIglobrank, ir);
-
-    // comparison of jurassic-scatter and jurassic-gpu raytracers
     int ret_index;
     double max_diff;
-    int diff = los_diff(jr_scatter_los, jr_gpu_los, ctl, &ret_index, &max_diff);
-    printf("DEBUG #%d scatter vs. gpu:   max_diff = %lf, ret_index = %d\n", ctl->MPIglobrank, max_diff, ret_index);
 
-    // comparison of jurassic-scatter and jurassic-plain raytracers
-    diff = los_diff(jr_scatter_los, jr_plain_los, ctl, &ret_index, &max_diff);
-    printf("DEBUG #%d scatter vs. plain: max_diff = %lf, ret_index = %d\n", ctl->MPIglobrank, max_diff, ret_index);
-
-    // comparison of jurassic-gpu and jurassic-plain raytracers
-    diff = los_diff(jr_gpu_los, jr_plain_los, ctl, &ret_index, &max_diff);
-    printf("DEBUG #%d gpu vs. plain:     max_diff = %lf, ret_index = %d\n", ctl->MPIglobrank, max_diff, ret_index);
-
-    printf("DEBUG #%d\n", ctl->MPIglobrank);
-
+    los_diff(jr_plain_los, changed_jr_scatter_los, ctl, &ret_index, &max_diff, 0);
+    if(max_diff > 0.001) {
+      printf("DEBUG #%d ray #%d:\n", ctl->MPIglobrank, ir);
+      printf("DEBUG #%d plain vs. changed scatter:     max_diff = %lf, ret_index = %d\n", ctl->MPIglobrank, max_diff, ret_index);
+    }
   }
 }
-// result:  jurassic-gpu computes the same line of sight as jurassic-plain
-//          jurassic-scatter differ from them
-//          for comparison of lines of sight we were using absolute difference,
-//          except for column density (los->u[i][j]) where relative difference
-//          was used because those values were very large
