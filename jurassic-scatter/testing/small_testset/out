@@ -1,0 +1,238 @@
+DEBUG #0 processor name: jsfc014
+
+JURASSIC - Version with Scattering
+Executable: ../../src/formod
+Control parameters: cloud-785-798.ctl
+NG = 13
+EMITTER[0] = CCl4
+EMITTER[1] = ClO
+EMITTER[2] = ClONO2
+EMITTER[3] = CO2
+EMITTER[4] = F11
+EMITTER[5] = F113
+EMITTER[6] = F22
+EMITTER[7] = H2O
+EMITTER[8] = HNO3
+EMITTER[9] = HNO4
+EMITTER[10] = NO2
+EMITTER[11] = O3
+EMITTER[12] = PAN
+ND = 5
+NU[0] = 785.00
+NU[1] = 785.42
+NU[2] = 785.84
+NU[3] = 786.26
+NU[4] = 786.68
+NW = 1
+WINDOW[0] = 0
+WINDOW[1] = 0
+WINDOW[2] = 0
+WINDOW[3] = 0
+WINDOW[4] = 0
+TBLBASE = /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf
+HYDZ = -999
+CTM_CO2 = 1
+CTM_H2O = 1
+CTM_N2 = 0
+CTM_O2 = 0
+SCA_N = 1
+SCA_MULT = 1
+SCA_EXT = beta_e
+IP = 1
+CZ = 0
+CX = 0
+REFRAC = 1
+RAYDS = 10.
+RAYDZ = 0.1
+TRANSS = 0.02
+FOV = -
+RETP_ZMIN = -999
+RETP_ZMAX = -999
+RETT_ZMIN = -999
+RETT_ZMAX = -999
+RETQ_ZMIN[0] = -999
+RETQ_ZMAX[0] = -999
+RETQ_ZMIN[1] = -999
+RETQ_ZMAX[1] = -999
+RETQ_ZMIN[2] = -999
+RETQ_ZMAX[2] = -999
+RETQ_ZMIN[3] = -999
+RETQ_ZMAX[3] = -999
+RETQ_ZMIN[4] = -999
+RETQ_ZMAX[4] = -999
+RETQ_ZMIN[5] = -999
+RETQ_ZMAX[5] = -999
+RETQ_ZMIN[6] = -999
+RETQ_ZMAX[6] = -999
+RETQ_ZMIN[7] = -999
+RETQ_ZMAX[7] = -999
+RETQ_ZMIN[8] = -999
+RETQ_ZMAX[8] = -999
+RETQ_ZMIN[9] = -999
+RETQ_ZMAX[9] = -999
+RETQ_ZMIN[10] = -999
+RETQ_ZMAX[10] = -999
+RETQ_ZMIN[11] = -999
+RETQ_ZMAX[11] = -999
+RETQ_ZMIN[12] = -999
+RETQ_ZMAX[12] = -999
+RETK_ZMIN[0] = -999
+RETK_ZMAX[0] = -999
+RETNN = 0
+RETRR = 0
+RETSS = 0
+RETNN_ZMIN = -999
+RETNN_ZMAX = -999
+WRITE_BBT = 0
+WRITE_MATRIX = 0
+MAX_QUEUE = 1e5
+USEGPU = -1
+TASK = -
+DIRLIST = aux/first_001
+AEROFILE = aero.tab
+Allocate memory for tables: 1.605e+04 MB
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000_CCl4.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200_CCl4.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.8400_CCl4.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.2600_CCl4.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.6800_CCl4.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000_ClO.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200_ClO.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.8400_ClO.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.2600_ClO.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.6800_ClO.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000_ClONO2.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200_ClONO2.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.8400_ClONO2.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.2600_ClONO2.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.6800_ClONO2.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000_CO2.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200_CO2.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.8400_CO2.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.2600_CO2.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.6800_CO2.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000_F11.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200_F11.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.8400_F11.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.2600_F11.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.6800_F11.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000_F113.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200_F113.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.8400_F113.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.2600_F113.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.6800_F113.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000_F22.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200_F22.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.8400_F22.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.2600_F22.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.6800_F22.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000_H2O.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200_H2O.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.8400_H2O.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.2600_H2O.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.6800_H2O.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000_HNO3.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200_HNO3.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.8400_HNO3.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.2600_HNO3.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.6800_HNO3.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000_HNO4.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200_HNO4.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.8400_HNO4.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.2600_HNO4.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.6800_HNO4.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000_NO2.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200_NO2.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.8400_NO2.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.2600_NO2.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.6800_NO2.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000_O3.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200_O3.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.8400_O3.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.2600_O3.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.6800_O3.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000_PAN.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200_PAN.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.8400_PAN.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.2600_PAN.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.6800_PAN.tab
+TIMER #0 jurassic-scatter FIRST and ONLY reading table time: 12.811271
+41
+DEBUG #0 call table_initializaiton..
+DEBUG #0 call initilaze GPU..
+DEBUG #0 get_tbl_on_GPU was called..
+DEBUG #0 tbl_G == nullptr
+# call cudaMallocManaged for tables of size 16831.722 MByte
+Timer 'INIT_TBL' (jurassic.c, jur_init_tbl, l323-418): 4.392 sec
+
+# jurassic.h could be configured minimally with
+# NG = 13  	 now 25
+# ND = 5  	 now 130
+# TBLNP = 41  	 now 50 	(gas[0]=CCl4  nu[0]=785.0000)
+# TBLNT = 29  	 now 30 	(gas[0]=CCl4  nu[0]=785.0000  pressure[0]=1.03e-02)
+# TBLNU = 400  	 now 430 	(gas[0]=CCl4  nu[0]=785.0000  pressure[0]=1.03e-02  temperature[6]=164.11)
+# now main table arrays (tbl->u + tbl->eps) consume 16.770000 GByte
+# main table arrays could consume 0.247312 GByte
+# with sparse storage only 0.145452 GByte (58.8 %)
+
+Initialize source function table...
+Count initialized tables...
+# per channel   13 13 13 13 13  total=65 (of 65)
+# per gas       5 5 5 5 5 5 5 5 5 5 5 5 5  total=65 (of 65)
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.6800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.8400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.2600.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200.filt
+[INFO] allocated 16831.722 MByte unified memory for tables
+TIMER #0 jurassic-gpu table initialization time: 0.000000
+
+Working directory: 001
+DEBUG #0 forward calculation: 001
+Read observation data: 001/obs33.tab
+Read atmospheric data: 001/atm.tab
+Read aerosol data: 001/aero.tab
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+# init_queue(20001) requires 0.458 MiByte
+# init_queue(20001) requires 0.458 MiByte
+# init_queue(20001) requires 0.458 MiByte
+# init_queue(20001) requires 0.458 MiByte
+# init_queue(20001) requires 0.458 MiByte
+DEBUG #0 formod init 5 queues with 20001 elements
+DEBUG #0 formod start Queue_Prepare
+TIMER #0 Prepare 1st part time: 0.008001
+
+TIMER #0 Prepare 2nd part time: 0.044784
+DEBUG #0 Call advanced execute!
+TIMER #0 Execute: copy from queue to packages time: 0.001089
+1000 960 
+81 1
+DEBUG #0 number of packages.. 2
+DEBUG #0 call jur_formod..
+DEBUG #0 formod_GPU was called!
+DEBUG #0 get_tbl_on_GPU was called..
+TIMER #0 jurassic-gpu reading table time: 0.000005
+DEBUG #0 max possible number of Lanes: 2
+TIMER #0 jurassic-gpu gpu_lanes initialization time: 0.008492
+numDevices: 1
+DEBUG #0 numDevices: 1
+Heisenbug :) 0.001796
+Heisenbug :) 0.091471
+TIMER #0 Execute: formod_multiple_packages time: 0.881570
+TIMER #0 Execute: copy from packages queue time: 0.001277
+TIMER #0 Execute time: 0.883998
+DEBUG #0 formod start Queue_Collect
+Initialize source function table...
+TIMER #0 Collect-1st part time: 0.264414
+TIMER #0 Collect-2nd part time: 0.078500
+# init_queue(-1) releases the queue.
+# init_queue(-1) releases the queue.
+# init_queue(-1) releases the queue.
+# init_queue(-1) releases the queue.
+# init_queue(-1) releases the queue.
+TIMER #0 Memory free time: 0.000007
+TIMER #0 Total time for test 001: 1.279958
+TIMER #0 
+DEBUG #0 
+Write observation data: 001/submissions/rad-2.tab
+DEBUG #999 Global runtime is 20.090230 seconds 
