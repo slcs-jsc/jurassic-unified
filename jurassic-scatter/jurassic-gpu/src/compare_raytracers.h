@@ -202,37 +202,44 @@ void compare_raytracers(ctl_t *ctl,
   printf("DEBUG #%d comparing raytracers on set of %d rays...\n", ctl->MPIglobrank, obs->nr);
 
   // compare computed lines of sight one by one
+
   for(int ir = 0; ir < obs->nr; ir++) { 
-    // jurassic-scatter (copied from scatter) raytracer
-    // without calling jur_add_aerosol_layers() function
+    // scatter_line_of_sight
     los_t *scatter_los = (los_t*) malloc(sizeof(los_t));
-    changed_jur_raytrace(ctl, atm, obs, aero, scatter_los, ir, 0); // without ignoring scattering!
+    jur_raytrace(ctl, atm, obs, aero, scatter_los, ir, 0); // without ignoring scattering!
 
-    // los_t *pos_scatter_los = (los_t*) malloc(sizeof(los_t));
-    // pos_scatter_jur_raytrace(ctl, atm, obs, aero, pos_scatter_los, ir, 0); // without ignoring scattering!
+    los_t *plain_los = (los_t*) malloc(sizeof(los_t));
+    plain_raytrace(ctl, atm, obs, plain_los, ir); // without ignoring scattering!
 
-    //los_t *changed_jr_scatter_los = (los_t*) malloc(sizeof(los_t));
-    //changed_jur_raytrace(ctl, atm, obs, aero, changed_jr_scatter_los, ir, 1); // with ignoring scattering!
-
-    // jurassic-gpu raytracer
-    pos_t *p = (pos_t*) malloc((NLOS) * sizeof(pos_t));
-    double tsurf;
-    int n = pos_scatter_traceray(ctl, atm, obs, aero, ir, p, &tsurf, 0);
+    // pos_scatter_line_of_sight
+    pos_t *scatter_p = (pos_t*) malloc((NLOS) * sizeof(pos_t));
+    double scatter_tsurf;
+    int scatter_n = pos_scatter_traceray(ctl, atm, obs, aero, ir, scatter_p, &scatter_tsurf, 0);
     los_t *pos_scatter_los = (los_t*) malloc(sizeof(los_t));
-    convert_pos_to_los(pos_scatter_los, p, n, tsurf); 
+    convert_pos_to_los(pos_scatter_los, scatter_p, scatter_n, scatter_tsurf); 
 
-    // jurassic-plain raytracer
-    //los_t *jr_plain_los = (los_t*) malloc(sizeof(los_t));
-    //plain_raytrace(ctl, atm, obs, jr_plain_los, ir);
+    // pos_line_of_sight
+    pos_t *plain_p = (pos_t*) malloc((NLOS) * sizeof(pos_t));
+    double plain_tsurf;
+    int plain_n = pos_scatter_traceray(ctl, atm, obs, aero, ir, plain_p, &plain_tsurf, 1);
+    los_t *pos_los = (los_t*) malloc(sizeof(los_t));
+    convert_pos_to_los(pos_los, plain_p, plain_n, plain_tsurf); 
+
 
     int ret_index;
     double max_diff;
 
     los_diff(scatter_los, pos_scatter_los, ctl, &ret_index, &max_diff, 0);
-    if(max_diff > 0.001) {
+    if(max_diff > 0.000001) {
       printf("DEBUG #%d ray #%d:\n", ctl->MPIglobrank, ir);
       printf("DEBUG #%d scatter vs. pos_scatter scatter:     max_diff = %lf, ret_index = %d\n", ctl->MPIglobrank, max_diff, ret_index);
     }
-    // printf("DEBUG #%d ray #%d, scatter vs. pos_scatter: %d vs. %d\n", ctl->MPIglobrank, ir, scatter_los->np, pos_scatter_los->np);
+    
+    los_diff(plain_los, pos_los, ctl, &ret_index, &max_diff, 1);
+    if(max_diff > 0.000001) {
+      printf("DEBUG #%d ray #%d:\n", ctl->MPIglobrank, ir);
+      printf("DEBUG #%d plain vs. pos plain:     max_diff = %lf, ret_index = %d\n", ctl->MPIglobrank, max_diff, ret_index);
+    }
   }
+  printf("DEBUG #%d comparison of raytracers on set of %d rays has finished!\n", ctl->MPIglobrank, obs->nr);
 }

@@ -465,5 +465,7 @@
     }
     omp_set_nested(false);
 
-    compare_raytracers(ctl, atm, obs, aero);
+    for(int i = 0; i < n; i++) {
+      compare_raytracers(ctl, atm, &obs[i], aero);
+    }
 	} // formod_GPU

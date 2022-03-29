@@ -32,9 +32,14 @@ void pos_scatter_jur_intersection_point(ctl_t *ctl,
 /* Add points to LOS for fine sampling of aerosol/cloud layers. */
 int pos_scatter_jur_add_aerosol_layers(ctl_t *ctl,
     atm_t *atm,
-    pos_t los_arg[],
+    pos_t los[],
     aero_t *aero,
-    double *tsurf,
+    int np);
+
+int pos_scatter_jur_add_aerosol_layers_with_los_aero(ctl_t *ctl,
+    atm_t *atm,
+    pos_t los[],
+    aero_t *aero,
     int np);
 
 
@@ -90,30 +95,42 @@ int pos_scatter_traceray(ctl_t *ctl, atm_t *atm, obs_t *obs, aero_t *aero, int c
       if(cosa != 0.) ds = fmin(ds, dz/cosa);
     }
     jur_cart2geo(x, &z, &lon, &lat);																					// Determine geolocation
-    if((z < zmin) || (z > zmax)) {																						// LOS escaped
+    double EPS = 0.001;
+    if(ignore_scattering) EPS = 0.0;
+    if((z < zmin + EPS) || (z > zmax + EPS)) {																						// LOS escaped
       double xh[3];
-      stop = (z < zmin) ? 2 : 1;
+      stop = (z < zmin + EPS) ? 2 : 1;
       jur_geo2cart(los[np - 1].z, los[np - 1].lon, los[np - 1].lat, xh);
-      double const zfrac = (z < zmin) ? zmin : zmax;
+      double const zfrac = (z < zmin + EPS) ? zmin : zmax;
       double const frac = (zfrac - los[np - 1].z)/(z - los[np - 1].z);
       UNROLL
         for(int i = 0; i < 3; i++) x[i] = xh[i] + frac*(x[i] - xh[i]);
       jur_cart2geo(x, &z, &lon, &lat);
-      los[np - 1].ds = ds*frac;
-      ds = 0.;
+      if(ignore_scattering) {
+        los[np - 1].ds = ds*frac;
+        ds = 0.;
+      }
+      else {
+        intpol_atm_geo_pt(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, &los[np].p, &los[np].t);		// Interpolate atmospheric data
+        intpol_atm_geo_qk(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, los[np].q, los[np].k);			// Interpolate atmospheric data
+        los[np].z = z;
+        los[np].lon = lon;
+        los[np].lat = lat;
+        los[np].ds=0.;
+      }
     }
-
-    intpol_atm_geo_pt(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, &p, &t);		// Interpolate atmospheric data
-    intpol_atm_geo_qk(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, q, k);			// Interpolate atmospheric data
-    //     printf("ray #%i point#%i %g %g %g\n", ir, np, lon, lat, z);        // to debug the jur_raytracer
-    write_pos_point(los + np, lon, lat, z, p, t, q, k, ds);
+    if(ignore_scattering || (!ignore_scattering && stop == 0)) {
+      intpol_atm_geo_pt(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, &p, &t);		// Interpolate atmospheric data
+      intpol_atm_geo_qk(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, q, k);			// Interpolate atmospheric data
+      write_pos_point(los + np, lon, lat, z, p, t, q, k, ds);
+    }
+#ifdef GPUDEBUG
+      los[np].ir = ir; los[np].ip = np; // for DEBUGging
+#endif
     if(z < z_low) {
       z_low = z;
       z_low_idx = np; // store the index of the point where the altitude is lowest, used to compute the tangent point later
     }
-#ifdef GPUDEBUG
-    los[np].ir = ir; los[np].ip = np; // for DEBUGging
-#endif
 
     if(stop) { *tsurf = (stop == 2 ? t : -999); break; }											// Hit ground or space?
 
@@ -150,6 +167,13 @@ int pos_scatter_traceray(ctl_t *ctl, atm_t *atm, obs_t *obs, aero_t *aero, int c
   if (NLOS <= np) ERRMSG("Too many LOS points!");
 #endif
 
+  // FIXME: added..
+  if(!ignore_scattering) {
+    /* Check length of last segment... */
+    if(los[np - 2].ds < 1e-3 && np - 1 > 1)
+      np--;
+  }
+
   // Get tangent point (before changing segment lengths!)
   jur_tangent_point(los, np, z_low_idx, &obs->tpz[ir], &obs->tplon[ir], &obs->tplat[ir]);
   trapezoid_rule_pos(np, los);
@@ -165,7 +189,7 @@ int pos_scatter_traceray(ctl_t *ctl, atm_t *atm, obs_t *obs, aero_t *aero, int c
 
   if(!ignore_scattering) {
     if (ctl->sca_n > 0) {
-      np = pos_scatter_jur_add_aerosol_layers(ctl, atm, los, aero, tsurf, np);
+      np = pos_scatter_jur_add_aerosol_layers(ctl, atm, los, aero, np);
     }
   }
   return np;
@@ -173,16 +197,199 @@ int pos_scatter_traceray(ctl_t *ctl, atm_t *atm, obs_t *obs, aero_t *aero, int c
 
 /*****************************************************************************/
 
+
+// FIXME: these 2 functions are added to remove gsl min and 
+//        gsl_stats_min and gsl_stats_max functions
+double min_value_in_array(double *arr, int n) {
+  double ret = arr[0];
+  for(int i = 1; i < n; i++)
+    if(arr[i] < ret)
+      ret = arr[i];
+  return ret;
+}
+
+double max_value_in_array(double *arr, int n) {
+  double ret = arr[0];
+  for(int i = 1; i < n; i++)
+    if(arr[i] > ret)
+      ret = arr[i];
+  return ret;
+}
+
+// comparator for qsort (reversed)
+int cmp(const void *a, const void *b) {
+   if (*(double*) a > *(double*) b) return -1;
+   if (*(double*) a < *(double*) b) return 1;
+   return 0;
+} 
+
+// copy pos
+void copy_pos(const pos_t *source, pos_t *dest) {
+  dest -> z   = source -> z;
+  dest -> lat = source -> lat;
+  dest -> lon = source -> lon;
+  dest -> ds  = source -> ds;  
+  dest -> t   = source -> t;
+  dest -> p   = source -> p;
+  for(int ig = 0; ig < NG; ig++)
+    dest -> q[ig] = source -> q[ig];
+  for(int iw = 0; iw < NW; iw++)
+    dest -> k[iw] = source -> k[iw];
+  
+}
+
 int pos_scatter_jur_add_aerosol_layers(ctl_t *ctl,
     atm_t *atm,
     pos_t los[],
     aero_t *aero,
-    double *tsurf,
+    int np) {
+
+  double alti[8*NLMAX], altimax, altimin, x1[3], x2[3], x3[3], tt=0., epsilon=0.005; 
+  /* deltatop=10., deltabot=10., */
+
+  int il, ig, jl=0, ip, it;
+
+  /* Create altitudes to sample aerosol edges */
+  for (il=0; il<aero->nl;il++){
+    alti[jl] = aero->top[il] + epsilon;
+    alti[jl+1] = aero->top[il] - epsilon;
+    alti[jl+2] = aero->bottom[il] + epsilon;
+    alti[jl+3] = aero->bottom[il] - epsilon;
+    jl = jl+4;
+
+    /* Create altitudes to sample transition layers */
+    if (aero->trans[il] > ctl->transs) {
+      tt = aero->trans[il] / ctl->transs;
+
+      alti[jl] = aero->top[il] + aero->trans[il] + epsilon;
+      alti[jl+1] = aero->top[il] + aero->trans[il] - epsilon;
+      alti[jl+2] = aero->bottom[il] - aero->trans[il] + epsilon;
+      alti[jl+3] = aero->bottom[il] - aero->trans[il] - epsilon;
+      jl = jl+4;
+      for (it=1; it<(int)tt; it++){
+        alti[jl] = aero->top[il] + aero->trans[il] - epsilon - it*ctl->transs;
+        jl++;
+        alti[jl] = aero->bottom[il] - aero->trans[il] + epsilon + it*ctl->transs;
+        jl++;
+      }
+    }  
+  }
+
+  if(jl >= 8 * NLMAX) ERRMSG("You should increase NLMAX!");
+
+  qsort(alti, jl, sizeof(double), cmp); 
+
+  altimax = max_value_in_array(alti, jl);
+  altimin = min_value_in_array(alti, jl);
+
+  int los_aero_np = 0;
+  for(int i = 0; i < np; i++) {
+    copy_pos(&los[i], &los[NLOS - np + i]);
+  }
+  copy_pos(&los[NLOS - np + 0], &los[0]);
+  los_aero_np = 1;
+
+  int prev_pos_index = 0;
+
+  for (ip=1; ip<np; ip++){
+
+    /* add new los points around cloud edges */
+    if ( (los[prev_pos_index].z < altimax || los[NLOS - np + ip].z < altimax) &&
+        (los[prev_pos_index].z > altimin || los[NLOS - np + ip].z > altimin) ) { 
+      for (il=0; il<jl;il++){ /* loop over cloud edges */
+        /* von oben */
+        if(los[prev_pos_index].z > alti[il] && los[NLOS - np + ip].z < alti[il]){
+          if(los_aero_np >= NLOS - np + ip) ERRMSG("Too many LOS points!");
+          pos_scatter_jur_intersection_point(ctl, atm, &alti[il], los, NLOS - np + ip, los, los_aero_np);
+          los_aero_np++; 
+        }
+        /* von unten */
+        if(los[prev_pos_index].z < alti[jl-il-1] && los[NLOS - np + ip].z > alti[jl-il-1]){
+          if(los_aero_np >= NLOS - np + ip) ERRMSG("Too many LOS points!");
+          pos_scatter_jur_intersection_point(ctl, atm, &alti[jl-il-1], los, NLOS - np + ip, los, los_aero_np);
+          los_aero_np++;
+        }
+      }
+    }
+    copy_pos(&los[NLOS - np + ip], &los[los_aero_np]);
+    prev_pos_index = los_aero_np;
+
+    if(los_aero_np >= NLOS - np + ip)
+      ERRMSG("Too many LOS points!");
+
+    /* Increment and check number of new LOS points */
+    if((los_aero_np++)>NLOS)
+      ERRMSG("Too many LOS points!");
+  }
+
+  /* Compute segment length following trapezoidal rule */
+  jur_geo2cart(los[0].z, los[0].lon,los[0].lat, x1);
+  jur_geo2cart(los[1].z, los[1].lon,los[1].lat, x2);
+  los[0].ds= 0.5 * (DIST(x1,x2));
+  for(ip=1; ip<los_aero_np-1; ip++){
+    jur_geo2cart(los[ip-1].z, los[ip-1].lon, los[ip-1].lat, x1);
+    jur_geo2cart(los[ip].z, los[ip].lon, los[ip].lat, x2);
+    jur_geo2cart(los[ip+1].z, los[ip+1].lon, los[ip+1].lat, x3);
+    los[ip].ds = 0.5 * (DIST(x1,x2) + DIST(x2,x3));
+  }
+  jur_geo2cart(los[los_aero_np-1].z, los[los_aero_np-1].lon, 
+      los[los_aero_np-1].lat, x1);
+  jur_geo2cart(los[los_aero_np-2].z, los[los_aero_np-2].lon,
+      los[los_aero_np-2].lat, x2);
+  los[los_aero_np-1].ds = 0.5 * (DIST(x1,x2));
+
+  /* add aerosol/cloud information and column density u to new los  */
+  for (ip=0; ip<los_aero_np; ip++){
+
+    /* Compute column density... */
+    for(ig=0; ig<ctl->ng; ig++)
+      los[ip].u[ig]=10*los[ip].q[ig]*los[ip].p
+        /(GSL_CONST_MKSA_BOLTZMANN*los[ip].t)*los[ip].ds;
+
+    /* Get aerosol/cloud layer id and factor */
+    los[ip].aeroi = -999;
+    los[ip].aerofac = 0.;
+    // FIXME: added ip > 0 2 times..
+    if ( ((ip > 0 && los[ip-1].z < altimax) || los[ip].z < altimax) &&
+        ((ip > 0 && los[ip-1].z > altimin) || los[ip].z > altimin) ) { 
+      for (il=0; il<aero->nl;il++){
+        /* Aerosol info within layer centre */
+        if (los[ip].z <= aero->top[il] && 
+            los[ip].z >= aero->bottom[il]){
+          los[ip].aeroi = il;
+          los[ip].aerofac = 1.;	  
+        }
+        /* Aerosol info in transition region */
+        if (aero->trans[il] > ctl->transs &&
+            los[ip].z <= (aero->top[il] + aero->trans[il]) &&
+            los[ip].z > aero->top[il]){
+          los[ip].aeroi = il;
+          los[ip].aerofac = (aero->top[il] + aero->trans[il] - los[ip].z)/
+            aero->trans[il];
+        }
+        if (aero->trans[il] > ctl->transs &&
+            los[ip].z < aero->bottom[il] &&
+            los[ip].z >= (aero->bottom[il] - aero->trans[il])){
+          los[ip].aeroi = il;
+          los[ip].aerofac = fabs(aero->bottom[il]-aero->trans[il]-los[ip].z)/
+            aero->trans[il];
+        }
+      }
+    }
+  }
+
+  np = los_aero_np;
+  return np;
+}
+
+int pos_scatter_jur_add_aerosol_layers_with_los_aero(ctl_t *ctl,
+    atm_t *atm,
+    pos_t los[],
+    aero_t *aero,
     int np) {
 
   /* Allocate extended los... */
   pos_t *los_aero = (pos_t*) malloc((NLOS) * sizeof(pos_t));
-  double los_aero_tsurf;
   int los_aero_np = 0;
 
   double alti[8*NLMAX], altimax, altimin, x1[3], x2[3], x3[3], tt=0., epsilon=0.005; 
@@ -231,7 +438,6 @@ int pos_scatter_jur_add_aerosol_layers(ctl_t *ctl,
   altimin = gsl_stats_min(alti, 1, (size_t)jl);
 
   /* Copy los to new los and add additional points */
-  los_aero_tsurf = *tsurf;
   los_aero[0].z   = los[0].z;
   los_aero[0].lat = los[0].lat;
   los_aero[0].lon = los[0].lon;
@@ -321,8 +527,9 @@ int pos_scatter_jur_add_aerosol_layers(ctl_t *ctl,
     /* Get aerosol/cloud layer id and factor */
     los_aero[ip].aeroi = -999;
     los_aero[ip].aerofac = 0.;
-    if ( (los_aero[ip-1].z < altimax || los_aero[ip].z < altimax) &&
-        (los_aero[ip-1].z > altimin || los_aero[ip].z > altimin) ) { 
+    // FIXME: added ip > 0 2 times..
+    if ( ((ip > 0 && los_aero[ip-1].z < altimax) || los_aero[ip].z < altimax) &&
+        ((ip > 0 && los_aero[ip-1].z > altimin) || los_aero[ip].z > altimin) ) { 
       for (il=0; il<aero->nl;il++){
         /* Aerosol info within layer centre */
         if (los_aero[ip].z <= aero->top[il] && 
@@ -355,7 +562,6 @@ int pos_scatter_jur_add_aerosol_layers(ctl_t *ctl,
   memcpy(los, los_aero, s);
 
   np = los_aero_np;
-  *tsurf = los_aero_tsurf;
 
   /* Free help los... */
   free(los_aero);
