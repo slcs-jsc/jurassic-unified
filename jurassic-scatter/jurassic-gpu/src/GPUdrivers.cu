@@ -1,8 +1,6 @@
 #include <cuda.h>
 #include <omp.h>
 #include "jr_common.h" // ...
-#include "scatter_lineofsight.h"
-#include "compare_raytracers.h"
 
 #ifdef GPUDEBUG
     #define debug_printf(...) printf(__VA_ARGS__)
@@ -220,25 +218,13 @@
 		hydrostatic_kernel_GPU<<<nr/32 + 1, 32, 0, stream>>> (ctl_G, atm_G, nr, ig_h2o);
 	} // hydrostatic1d_GPU
 
-  // at the moment same as get_los_and_convert_los_t_to_pos_t_CPU
-  __host__
-  void get_los_and_convert_los_t_to_pos_t_GPU(pos_t (*pos)[NLOS], int *np,
+  void __global__
+  get_los_and_convert_los_t_to_pos_t_GPU(pos_t (*pos)[NLOS], int *np,
                                               double *tsurf, ctl_t *ctl, 
                                               atm_t *atm, obs_t *obs,
                                               aero_t *aero) { 
-    #pragma omp  parallel for
-    for(int ir = 0; ir < obs->nr; ir++) {
-      los_t *one_los;
-      one_los = (los_t*) malloc(sizeof(los_t));
-      // raytracer copied from jurassic-scatter
-      // the last argument is "ignore_scattering"
-      jur_raytrace(ctl, atm, obs, aero, one_los, ir, 0);
-      np[ir] = one_los->np;
-      tsurf[ir] = one_los->tsurf;
-      for(int ip = 0; ip < one_los->np; ip++) { 
-        convert_los_to_pos_core(&pos[ir][ip], one_los, ip);
-      }
-      free(one_los);
+    for(int ir = blockIdx.x*blockDim.x + threadIdx.x; ir < obs->nr; ir += blockDim.x*gridDim.x) { // grid stride loop over rays
+      np[ir] = pos_scatter_traceray(ctl, atm, obs, aero, ir, pos[ir], &tsurf[ir], 0);
     }
   }
 
@@ -246,6 +232,7 @@
 
 	// GPU control struct containing GPU version of input, intermediate and output arrays
 	typedef struct {
+    aero_t *aero_G; // new
 		obs_t  *obs_G;
 		atm_t  *atm_G;
 		pos_t (*los_G)[NLOS];
@@ -271,6 +258,7 @@
                __func__, obs->nr, NR, ctl->ng, NG, ctl->nd, ND);
         
 		atm_t *atm_G = gpu->atm_G;
+    aero_t *aero_G = gpu->aero_G;
 		obs_t *obs_G = gpu->obs_G;
     double (*aero_beta_G)[ND] = gpu->aero_beta_G;
     pos_t (* los_G)[NLOS] = gpu->los_G;
@@ -298,6 +286,7 @@
 		
     cudaStream_t stream = gpu->stream;
 		copy_data_to_GPU(atm_G, atm, 1*sizeof(atm_t), stream);
+    copy_data_to_GPU(aero_G, aero, 1*sizeof(aero_t), stream);
 		copy_data_to_GPU(obs_G, obs, 1*sizeof(obs_t), stream);
     copy_data_to_GPU(aero_beta_G, ('a' == beta_type) ? aero->beta_a :
                      aero->beta_e, NLMAX * ND * sizeof(double), stream);
@@ -311,22 +300,9 @@
       raytrace_rays_GPU <<< (nr/64)+1, 64, 0, stream>>> (ctl_G, atm_G, obs_G, los_G, tsurf_G, np_G);
       cuKernelCheck();
     } else {
-      pos_t (*los)[NLOS] = (pos_t (*)[NLOS])malloc(nr * (NLOS) * sizeof(pos_t));
-      int *np = (int*)malloc(nr * sizeof(int));
-      double *tsurf = (double*)malloc(nr * sizeof(double));
-      /* this converting is at the moment actually host function
-       * maybe we should write it as GPU kernel function
-       * but I think it is not necessary because it takes GPU memory
-       * convert_los_t_to_pos_t_GPU(los, np, tsurf, arg_los, nr); */
-      get_los_and_convert_los_t_to_pos_t_GPU(los, np, tsurf, ctl, atm, obs, aero);
-      copy_data_to_GPU(los_G, los, nr * NLOS * sizeof(pos_t), stream);
-      copy_data_to_GPU(np_G, np, nr * sizeof(int), stream);
-      copy_data_to_GPU(tsurf_G, tsurf, nr * sizeof(double), stream);
-
+      get_los_and_convert_los_t_to_pos_t_GPU <<< (nr/64)+1, 64, 0, stream>>>
+      (los_G, np_G, tsurf_G, ctl_G, atm_G, obs_G, aero_G);
       cuKernelCheck();
-      free(los);
-      free(np);
-      free(tsurf);
     }
 	
     multi_version_GPU(fourbit, tbl_G, ctl_G, obs_G, los_G, np_G, ig_co2, ig_h2o, aero_beta_G,
@@ -375,7 +351,7 @@
 			if (do_init) {
         printf("DEBUG #%d formod_GPU was called!\n", ctl->MPIglobrank);
         double tic = omp_get_wtime();
-				const size_t sizePerLane = sizeof(obs_t) + NR * (sizeof(atm_t) + sizeof(pos_t[NLOS]) + sizeof(double) + sizeof(int));
+				const size_t sizePerLane = sizeof(aero_t) + sizeof(obs_t) + NR * (sizeof(atm_t) + sizeof(pos_t[NLOS]) + sizeof(double) + sizeof(int));
         
               if (ctl->checkmode) {
                 printf("# %s: GPU memory requirement per lane is %.3f MByte\n", __func__, 1e-6*sizePerLane);
@@ -414,6 +390,7 @@
                 for(size_t lane = 0; lane < numLanes; ++lane) {
                   gpuLane_t* gpu = &(gpuLanes[lane]); // abbreviation
                   // Allocation of GPU memory
+                  gpu->aero_G		= malloc_GPU(aero_t, 1);
                   gpu->obs_G		= malloc_GPU(obs_t, 1);
                   gpu->atm_G		= malloc_GPU(atm_t, NR);
                   gpu->tsurf_G	= malloc_GPU(double, NR);
@@ -441,7 +418,7 @@
 			// if(nextLane >= numLanes) nextLane=0;
 		} // omp critical
 
-    // TODO: this may be a probelm in juwels-buster case (with more then one GPU  device per node)
+    // TODO: this may be a probelm in juwels-booster case (with more then one GPU  device per node)
     cudaSetDevice(0);
 
 		if (ctl->checkmode) { printf("# %s: no operation in checkmode\n", __func__); return; }
@@ -464,8 +441,4 @@
 		  apply_mask(mask, &obs[i], ctl);
     }
     omp_set_nested(false);
-
-    for(int i = 0; i < n; i++) {
-      compare_raytracers(ctl, atm, &obs[i], aero);
-    }
 	} // formod_GPU

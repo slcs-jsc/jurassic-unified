@@ -1,5 +1,4 @@
 #include "jr_common.h" // inline definitions of common functions for CPU and GPU code
-#include "scatter_lineofsight.h"
 
 	// ################ CPU driver routines - keep consistent with GPUdrivers.cu ##############
 
@@ -112,19 +111,10 @@
   __host__
   void get_los_and_convert_los_t_to_pos_t_CPU(pos_t (*pos)[NLOS], int *np, double *tsurf, ctl_t const *ctl, 
                                               atm_t const *atm, obs_t *obs, aero_t *aero) {
-#pragma omp parallel for
+    #pragma omp  parallel for
     for(int ir = 0; ir < obs->nr; ir++) {
-      los_t *one_los;
-      one_los = (los_t*) malloc(sizeof(los_t));
-      // raytracer copied from jurassic-scatter
-      // the last argument is "ignore_scattering"
-      jur_raytrace(ctl, atm, obs, aero, one_los, ir, 0);
-      np[ir] = one_los->np;
-      tsurf[ir] = one_los->tsurf;
-      for(int ip = 0; ip < one_los->np; ip++) { 
-        convert_los_to_pos_core(&pos[ir][ip], one_los, ip);
-      }
-      free(one_los);
+      np[ir] = pos_scatter_traceray(ctl, atm, obs, aero, ir, 
+                                    pos[ir], &tsurf[ir], 0);
     }
   }
 
