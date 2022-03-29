@@ -5,7 +5,6 @@
 
 #include "workqueue.h"
 
-
 int init_queue(queue_t *q, int size) {
     size_t mem;
 #ifdef  WORK_QUEUE_DEBUG
@@ -28,35 +27,33 @@ int init_queue(queue_t *q, int size) {
     return (NULL == q->items); /* raise error if malloc failed */
 }
 
-int push_queue(queue_t *q, void* inp, void* out, int ir) {
+int push_queue(queue_t *q, void* out, int ir) {
     int index;
     index = q->end++;
     if (index >= q->capacity) return -1-q->capacity; /* raise error */
-    q->items[index].input  = inp;
     q->items[index].result = out;
     q->items[index].ir = ir;
 #ifdef  WORK_QUEUE_DEBUG
-    printf("# %d = %s(%p, %p) ir=%d;\n", index, __func__, inp, out, ir);
+    printf("# %d = %s(-, %p) ir=%d;\n", index, __func__, out, ir);
 #endif
     return index;
 }
 
-int get_queue_item(queue_t *q, void** inp, void **out, int *ir, int index) {
-    *inp = q->items[index].input;
+int get_queue_item(queue_t *q, void **out, int *ir, int index) {
     *out = q->items[index].result;
     *ir  = q->items[index].ir;
 #ifdef  WORK_QUEUE_DEBUG
-    printf("# %d = %s(%p, %p) ir=%d;\n", index, __func__, *inp, *out, *ir);
+    printf("# %d = %s(-, %p) ir=%d;\n", index, __func__, *out, *ir);
 #endif
     return index;
 }
 
-int pop_queue(queue_t *q, void** inp, void **out, int *ir) {
+int pop_queue(queue_t *q, void **out, int *ir) {
     int index;
     index = q->begin++;
-    get_queue_item(q, inp, out, ir, index);
+    get_queue_item(q, out, ir, index);
 #ifdef  WORK_QUEUE_DEBUG
-    printf("# %d = %s(%p, %p) ir=%d;\n", index, __func__, *inp, *out, *ir);
+    printf("# %d = %s(-, %p) ir=%d;\n", index, __func__, *out, *ir);
 #endif
     return index;
 }

@@ -88,11 +88,9 @@ void advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs, int nr)
     for(int j = 0; j < qs[i].end - qs[i].begin; j++) {
       int ind;
       obs_t *obs;
-      los_t *los;
       int package_id = (pref_sizes[i] + j) / NR;
       int obs_row = (pref_sizes[i] + j) % NR;
-      get_queue_item(&qs[i], (void*)&los, (void*)&obs, &ind, qs[i].begin + j);
-      assert(los == NULL);
+      get_queue_item(&qs[i], (void*)&obs, &ind, qs[i].begin + j);
       copy_obs_row(obs, ind, &obs_packages[package_id], obs_row);
     }
   }
@@ -118,11 +116,9 @@ void advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs, int nr)
     for(int j = 0; j < qs[i].end - qs[i].begin; j++) {
       int ind;
       obs_t *obs; 
-      los_t *los;
       int package_id = (pref_sizes[i] + j) / NR;
       int obs_row = (pref_sizes[i] + j) % NR;
-      get_queue_item(&qs[i], (void*)&los, (void*)&obs, &ind, qs[i].begin + j);
-      assert(los == NULL);
+      get_queue_item(&qs[i], (void*)&obs, &ind, qs[i].begin + j);
       copy_obs_row(&obs_packages[package_id], obs_row, obs, ind);
     }
 
@@ -439,6 +435,7 @@ void formod_pencil(ctl_t *ctl,
   static tbl_t *tbl;
 
   los_t *los;
+  los = NULL; // because it has to be initialized 
   obs_t *obs2;
   
   double beta_ctm[NDMAX], beta_ext_tot, dx[3], eps, src_all, src_planck[NDMAX],
@@ -468,14 +465,13 @@ if ((Queue_Collect|Queue_Prepare) & queue_mode) { /* CPp */
 } /* CPp */
 
 if (Queue_Prepare_Leaf == queue_mode) { /* ==p */
-  i = push_queue(q, (void*)NULL, (void*)obs, ir); /* push input and pointer to output */
+  i = push_queue(q, (void*)obs, ir); /* push input and pointer to output */
   if (i < 0) ERRMSG("Too many queue items!"); /* failed */
   return;
 } /* ==p */
 
 if (Queue_Collect_Leaf == queue_mode) { /* ==c */
-  pop_queue(q, (void*)&los, (void*)&obs2, &ir); /* pop result */
-  assert(los == NULL);
+  pop_queue(q, (void*)&obs2, &ir); /* pop result */
   /* Copy results... */
   for(id=0; id<ctl->nd; id++) {
     obs->rad[ir][id] = obs2->rad[ir][id]; //CHANGED
@@ -487,8 +483,7 @@ if (Queue_Collect_Leaf == queue_mode) { /* ==c */
 } /* ==c */
 
 if (Queue_Execute_Leaf == queue_mode) { /* ==x */
-  get_queue_item(q, (void*)&los, (void*)&obs, &ir, ir); /* get input */
-  assert(los == NULL);
+  get_queue_item(q, (void*)&obs, &ir, ir); /* get input */
   ALLOC(los, los_t, 1);
   raytrace(ctl, atm, obs, aero, los, ir);
 } /* ==x */

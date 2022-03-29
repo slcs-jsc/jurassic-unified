@@ -281,7 +281,6 @@
 	 Structs...
 	 ------------------------------------------------------------ */
 typedef struct {
-    void* input;
     void* result;
     int ir;
 } queue_item_t;

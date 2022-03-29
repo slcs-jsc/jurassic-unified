@@ -15,8 +15,8 @@
    ------------------------------------------------------------ */
 
 int init_queue(queue_t *q, int size);
-int push_queue(queue_t *q, void* inp, void* out, int ir);
-int get_queue_item(queue_t *q, void** inp, void **out, int *ir, int index);
-int pop_queue(queue_t *q, void** inp, void **out, int *ir);
+int push_queue(queue_t *q, void* out, int ir);
+int get_queue_item(queue_t *q, void **out, int *ir, int index);
+int pop_queue(queue_t *q, void **out, int *ir);
 
 #endif
