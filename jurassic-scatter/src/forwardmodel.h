@@ -22,7 +22,7 @@ void formod(ctl_t *ctl,
 
 /* Compute absorption coefficient of continua. */
 void formod_continua(ctl_t *ctl,
-		     los_t *los,
+         pos_t los[],
 		     int ip,
 		     double *beta);
 
@@ -42,7 +42,7 @@ void formod_pencil(ctl_t *ctl,
 /* Get transmittance from look-up tables. */
 void intpol_tbl(ctl_t *ctl,
 		tbl_t *tbl,
-		los_t *los,
+    pos_t los[],
 		int ip,
 		double tau_path[NGMAX][NDMAX],
 		double tau_seg[NDMAX]);

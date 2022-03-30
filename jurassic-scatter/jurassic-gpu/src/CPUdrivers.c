@@ -249,3 +249,9 @@ void jur_table_initialization(ctl_t *ctl) {
   double toc = omp_get_wtime();
   printf("TIMER #%d jurassic-gpu table initialization time: %lf\n", ctl->MPIglobrank, toc - tic);
 }
+
+__host__
+int call_traceray(ctl_t *ctl, atm_t *atm, obs_t *obs, aero_t *aero, int const ir, 
+                            pos_t los[], double *tsurf, int const ignore_scattering) {
+  return pos_scatter_traceray(ctl, atm, obs, aero, ir, los, tsurf, ignore_scattering);
+}

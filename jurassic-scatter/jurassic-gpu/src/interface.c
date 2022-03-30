@@ -13,3 +13,8 @@ void initialize_jurassic_gpu_table(ctl_t *ctl) {
   printf("DEBUG #%d call table_initializaiton..\n", ctl->MPIglobrank);
   jur_table_initialization(ctl); 
 }
+
+int raytrace_from_jr_common(ctl_t *ctl, atm_t *atm, obs_t *obs, aero_t *aero, int const ir, 
+                            pos_t los[], double *tsurf, int const ignore_scattering) {
+  return call_traceray(ctl, atm, obs, aero, ir, los, tsurf, ignore_scattering);
+}

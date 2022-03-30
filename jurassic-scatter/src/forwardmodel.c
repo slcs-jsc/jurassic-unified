@@ -319,7 +319,7 @@ void formod(ctl_t *ctl,
 /*****************************************************************************/
 
 void formod_continua(ctl_t *ctl,
-		     los_t *los,
+         pos_t los[],
 		     int ip,
 		     double *beta) {
   
@@ -327,29 +327,29 @@ void formod_continua(ctl_t *ctl,
   
   /* Add extinction... */
   for(id=0; id<ctl->nd; id++)
-    beta[id]=los->k[ip][ctl->window[id]];
+    beta[id]=los[ip].k[ctl->window[id]];
   
   /* Add CO2 continuum... */
   if(ctl->ctm_co2)
     for(id=0; id<ctl->nd; id++)
-      beta[id]+=ctmco2(ctl, ctl->nu[id], los->p[ip],
-		       los->t[ip], los->u[ip])/los->ds[ip];
+      beta[id]+=ctmco2(ctl, ctl->nu[id], los[ip].p,
+		       los[ip].t, los[ip].u)/los[ip].ds;
   
   /* Add H2O continuum... */
   if(ctl->ctm_h2o)
     for(id=0; id<ctl->nd; id++)
-      beta[id]+=ctmh2o(ctl, ctl->nu[id], los->p[ip], los->t[ip],
-		       los->q[ip], los->u[ip])/los->ds[ip];
+      beta[id]+=ctmh2o(ctl, ctl->nu[id], los[ip].p, los[ip].t,
+		       los[ip].q, los[ip].u)/los[ip].ds;
   
   /* Add N2 continuum... */
   if(ctl->ctm_n2)
     for(id=0; id<ctl->nd; id++)
-      beta[id]+=ctmn2(ctl->nu[id], los->p[ip], los->t[ip]);
+      beta[id]+=ctmn2(ctl->nu[id], los[ip].p, los[ip].t);
 
   /* Add O2 continuum... */
   if(ctl->ctm_o2)
     for(id=0; id<ctl->nd; id++)
-      beta[id]+=ctmo2(ctl->nu[id], los->p[ip], los->t[ip]);
+      beta[id]+=ctmo2(ctl->nu[id], los[ip].p, los[ip].t);
 }
 
 /*****************************************************************************/
@@ -434,7 +434,9 @@ void formod_pencil(ctl_t *ctl,
 
   static tbl_t *tbl;
 
-  los_t *los;
+  pos_t *los;
+  int np = 0;
+  double tsurf;
   los = NULL; // because it has to be initialized 
   obs_t *obs2;
   
@@ -458,10 +460,12 @@ void formod_pencil(ctl_t *ctl,
   
 if ((Queue_Collect|Queue_Prepare) & queue_mode) { /* CPp */
   /* Allocate... */
-  ALLOC(los, los_t, 1);
+  // ALLOC(los, los_t, 1);
+  los = (pos_t*) malloc((NLOS) * sizeof(pos_t));
 
   /* Raytracing... */
-  raytrace(ctl, atm, obs, aero, los, ir);
+  // raytrace(ctl, atm, obs, aero, los, ir);
+  np = raytrace_from_jr_common(ctl, atm, obs, aero, ir, los, &tsurf, 0); // without ignoring scattering
 } /* CPp */
 
 if (Queue_Prepare_Leaf == queue_mode) { /* ==p */
@@ -484,8 +488,10 @@ if (Queue_Collect_Leaf == queue_mode) { /* ==c */
 
 if (Queue_Execute_Leaf == queue_mode) { /* ==x */
   get_queue_item(q, (void*)&obs, &ir, ir); /* get input */
-  ALLOC(los, los_t, 1);
-  raytrace(ctl, atm, obs, aero, los, ir);
+  // ALLOC(los, los_t, 1);
+  los = (pos_t*) malloc((NLOS) * sizeof(pos_t));
+  // raytrace(ctl, atm, obs, aero, los, ir);
+  np = raytrace_from_jr_common(ctl, atm, obs, aero, ir, los, &tsurf, 0); // without ignoring scattering
 } /* ==x */
 
 if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
@@ -504,7 +510,7 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
 
 
   /* Loop over LOS points... */
-  for(ip=0; ip<los->np; ip++) {
+  for(ip=0; ip<np; ip++) {
 
 if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
     /* Get trace gas transmittance... */
@@ -514,23 +520,23 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
     formod_continua(ctl, los, ip, beta_ctm);
 
     /* Compute Planck function... */
-    srcfunc_planck(ctl, los->t[ip], src_planck);
+    srcfunc_planck(ctl, los[ip].t, src_planck);
 } /* Cx */
 
     /* Compute radiative transfer with scattering source... */
-    if(scattering>0 && los->aerofac[ip]>0) {
+    if(scattering>0 && los[ip].aerofac>0) {
 
 if ((Queue_Collect|Queue_Prepare) & queue_mode) { /* CP */
       /* Compute scattering source term... */
-      geo2cart(los->z[ip], los->lon[ip], los->lat[ip], x);
+      geo2cart(los[ip].z, los[ip].lon, los[ip].lat, x);
       ip0=(ip>0 ? ip-1 : ip);
-      ip1=(ip<los->np ? ip+1 : ip);
-      geo2cart(los->z[ip0], los->lon[ip0], los->lat[ip0], x0);
-      geo2cart(los->z[ip1], los->lon[ip1], los->lat[ip1], x1);
+      ip1=(ip<np ? ip+1 : ip);
+      geo2cart(los[ip0].z, los[ip0].lon, los[ip0].lat, x0);
+      geo2cart(los[ip1].z, los[ip1].lon, los[ip1].lat, x1);
       for(i=0; i<3; i++)
         dx[i]=x1[i]-x0[i];
 
-      srcfunc_sca(ctl,atm,aero,obs->time[ir],x,dx,los->aeroi[ip],src_sca,scattering, q);
+      srcfunc_sca(ctl,atm,aero,obs->time[ir],x,dx,los[ip].aeroi,src_sca,scattering, q);
 } /* CP */
 
 if ((Queue_Collect) & queue_mode) { /* C */
@@ -540,25 +546,25 @@ if ((Queue_Collect) & queue_mode) { /* C */
 
           /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
           /* Get gas and aerosol/cloud extinctions... */
-          beta_ext_tot = (-1.)*log(tau_gas[id])/los->ds[ip] + beta_ctm[id] +
-                         los->aerofac[ip]*aero->beta_e[los->aeroi[ip]][id];
+          beta_ext_tot = (-1.)*log(tau_gas[id])/los[ip].ds + beta_ctm[id] +
+                         los[ip].aerofac*aero->beta_e[los[ip].aeroi][id];
 
           /* enthält tau_gas bereits k????????? */
 
           /* Get segment emissivity */
-          eps = 1-exp(-1*beta_ext_tot*los->ds[ip]);
+          eps = 1-exp(-1*beta_ext_tot*los[ip].ds);
 
           /* Compute weighted segment source */
-          src_all=((beta_ext_tot - los->aerofac[ip]*aero->beta_s[los->aeroi[ip]][id]) *
+          src_all=((beta_ext_tot - los[ip].aerofac*aero->beta_s[los[ip].aeroi][id]) *
                    src_planck[id] +
-                   los->aerofac[ip]*aero->beta_s[los->aeroi[ip]][id]*src_sca[id]) /
+                   los[ip].aerofac*aero->beta_s[los[ip].aeroi][id]*src_sca[id]) /
                   beta_ext_tot;
 
           /* Compute radiance: path extinction * segment emissivity * segment source */
           obs->rad[ir][id] += obs->tau[ir][id]*eps*src_all; //CHANGED
 
           /* Compute path transmittance... */
-          obs->tau[ir][id] *= exp(-1.*beta_ext_tot*los->ds[ip]); //CAHNGED
+          obs->tau[ir][id] *= exp(-1.*beta_ext_tot*los[ip].ds); //CAHNGED
         }
 } /* C */
     }
@@ -572,16 +578,16 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
         if(tau_gas[id]>0) {
 
           /* Get segment emissivity... */
-          if (ctl->sca_n==0 || los->aerofac[ip]==0 ) {
-            eps=1-tau_gas[id]*exp(-1. * beta_ctm[id] * los->ds[ip]);
+          if (ctl->sca_n==0 || los[ip].aerofac==0 ) {
+            eps=1-tau_gas[id]*exp(-1. * beta_ctm[id] * los[ip].ds);
           }
           else if (strcmp(ctl->sca_ext, "beta_a") == 0) {
 
-            eps=1-tau_gas[id]*exp(-1. * (beta_ctm[id] + los->aerofac[ip]*
-                                         aero->beta_a[los->aeroi[ip]][id])*los->ds[ip]);
+            eps=1-tau_gas[id]*exp(-1. * (beta_ctm[id] + los[ip].aerofac*
+                                         aero->beta_a[los[ip].aeroi][id])*los[ip].ds);
           } else {
-            eps=1-tau_gas[id]*exp(-1. * (beta_ctm[id] + los->aerofac[ip]*
-                                         aero->beta_e[los->aeroi[ip]][id])*los->ds[ip]);
+            eps=1-tau_gas[id]*exp(-1. * (beta_ctm[id] + los[ip].aerofac*
+                                         aero->beta_e[los[ip].aeroi][id])*los[ip].ds);
           }
 
           /* Compute radiance... */
@@ -596,8 +602,8 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
 
 if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
   /* Add surface... */
-  if(los->tsurf>0) {
-    srcfunc_planck(ctl, los->tsurf, src_planck);
+  if(tsurf>0) {
+    srcfunc_planck(ctl, tsurf, src_planck);
     for(id=0; id<ctl->nd; id++)
       obs->rad[ir][id]+=src_planck[id]*obs->tau[ir][id]; //CHANGED
   }
@@ -615,7 +621,7 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
 
 void intpol_tbl(ctl_t *ctl,
 		tbl_t *tbl,
-		los_t *los,
+    pos_t los[],
 		int ip,
 		double tau_path[NGMAX][NDMAX],
 		double tau_seg[NDMAX]) {
@@ -651,9 +657,9 @@ void intpol_tbl(ctl_t *ctl,
       else {
 	
 	/* Determine pressure and temperature indices... */
-	ipr=locate(tbl->p[ig][id], tbl->np[ig][id], los->p[ip]);
-	it0=locate(tbl->t[ig][id][ipr], tbl->nt[ig][id][ipr], los->t[ip]);
-	it1=locate(tbl->t[ig][id][ipr+1], tbl->nt[ig][id][ipr+1], los->t[ip]);
+	ipr=locate(tbl->p[ig][id], tbl->np[ig][id], los[ip].p);
+	it0=locate(tbl->t[ig][id][ipr], tbl->nt[ig][id][ipr], los[ip].t);
+	it1=locate(tbl->t[ig][id][ipr+1], tbl->nt[ig][id][ipr+1], los[ip].t);
 	
 	/* Check size of table (temperature and column density)... */
 	if(tbl->nt[ig][id][ipr]<2 || tbl->nt[ig][id][ipr+1]<2
@@ -665,33 +671,33 @@ void intpol_tbl(ctl_t *ctl,
 	  
 	  /* Get emissivities of extended path... */
 	  u=intpol_tbl_u(tbl, ig, id, ipr, it0, 1-tau_path[ig][id]);
-	  eps00=intpol_tbl_eps(tbl, ig, id, ipr, it0, u+los->u[ip][ig]);
+	  eps00=intpol_tbl_eps(tbl, ig, id, ipr, it0, u+los[ip].u[ig]);
 	  eps00=GSL_MAX(GSL_MIN(eps00, 1), 0);
 	  
 	  u=intpol_tbl_u(tbl, ig, id, ipr, it0+1, 1-tau_path[ig][id]);
-	  eps01=intpol_tbl_eps(tbl, ig, id, ipr, it0+1, u+los->u[ip][ig]);
+	  eps01=intpol_tbl_eps(tbl, ig, id, ipr, it0+1, u+los[ip].u[ig]);
 	  eps01=GSL_MAX(GSL_MIN(eps01, 1), 0);
 	  
 	  u=intpol_tbl_u(tbl, ig, id, ipr+1, it1, 1-tau_path[ig][id]);
-	  eps10=intpol_tbl_eps(tbl, ig, id, ipr+1, it1, u+los->u[ip][ig]);
+	  eps10=intpol_tbl_eps(tbl, ig, id, ipr+1, it1, u+los[ip].u[ig]);
 	  eps10=GSL_MAX(GSL_MIN(eps10, 1), 0);
 	  
 	  u=intpol_tbl_u(tbl, ig, id, ipr+1, it1+1, 1-tau_path[ig][id]);
-	  eps11=intpol_tbl_eps(tbl, ig, id, ipr+1, it1+1, u+los->u[ip][ig]);
+	  eps11=intpol_tbl_eps(tbl, ig, id, ipr+1, it1+1, u+los[ip].u[ig]);
 	  eps11=GSL_MAX(GSL_MIN(eps11, 1), 0);
 	  
 	  /* Interpolate with respect to temperature... */
 	  eps00=LIN(tbl->t[ig][id][ipr][it0], eps00,
-		    tbl->t[ig][id][ipr][it0+1], eps01, los->t[ip]);
+		    tbl->t[ig][id][ipr][it0+1], eps01, los[ip].t);
 	  eps00=GSL_MAX(GSL_MIN(eps00, 1), 0);
 	  
 	  eps11=LIN(tbl->t[ig][id][ipr+1][it1], eps10,
-		    tbl->t[ig][id][ipr+1][it1+1], eps11, los->t[ip]);
+		    tbl->t[ig][id][ipr+1][it1+1], eps11, los[ip].t);
 	  eps11=GSL_MAX(GSL_MIN(eps11, 1), 0);
 	  
 	  /* Interpolate with respect to pressure... */
 	  eps00=LIN(tbl->p[ig][id][ipr], eps00,
-		    tbl->p[ig][id][ipr+1], eps11, los->p[ip]);
+		    tbl->p[ig][id][ipr+1], eps11, los[ip].p);
 	  eps00=GSL_MAX(GSL_MIN(eps00, 1), 0);
 	  
 	  /* Determine segment emissivity... */
