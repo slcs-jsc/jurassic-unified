@@ -1,6 +1,9 @@
 #include "scatter.h"
 #include "workqueue.h" /* Queue_Prepare */
 
+#define __host__
+#include "interface.h"
+
 /*****************************************************************************/
 
 void bascoord(double *dz,
@@ -653,7 +656,7 @@ void srcfunc_sca(ctl_t *ctl,
   
   /* Compute scattering of thermal radiation... */
   if(ctl->ip==1)
-    srcfunc_sca_1d(ctl, atm, aero, sec, x, dx, il, src_sca, scattering, q);
+    srcfunc_sca_1d(ctl, atm, aero, sec, x, dx, il, src_sca, scattering, q); // #7
   else
     srcfunc_sca_3d(ctl, atm, aero, sec, x, dx, il, src_sca, scattering, q);
   
@@ -739,7 +742,7 @@ void srcfunc_sca_1d(ctl_t *ctl,
     cart2geo(xv, &obs2->vpz[ir], &obs2->vplon[ir], &obs2->vplat[ir]);
     obs2->time[ir] = sec; 
     /* Get pencil beam radiance... */
-    formod_pencil(ctl, atm, obs2, aero, scattering-1, ir, q);
+    formod_pencil(ctl, atm, obs2, aero, scattering-1, ir, q); // #6
   }
   if (Queue_Prepare == ctl->queue_state) return; /* prepare work queue items only */
   
@@ -876,17 +879,17 @@ void srcfunc_sca_3d(ctl_t *ctl,
 
       /* Loop over channels... */
       for(id=0; id<ctl->nd; id++) {
-	
-	/* Interpolate phase function... */
-	phase2=LIN(theta[idx], aero->p[il][id][idx],
-		   theta[idx+1], aero->p[il][id][idx+1], theta2);
-	
-	/* Get weighting factor (surface element area * phase function)... */
-	w=M_PI/ntheta2*2*M_PI*sin(theta2)/nphi*phase2;
-	
-	/* Integrate... */
-	src_sca[id]+=w*obs2->rad[0][id]; //CHANGED
-	wsum+=w;
+
+        /* Interpolate phase function... */
+        phase2=LIN(theta[idx], aero->p[il][id][idx],
+            theta[idx+1], aero->p[il][id][idx+1], theta2);
+
+        /* Get weighting factor (surface element area * phase function)... */
+        w=M_PI/ntheta2*2*M_PI*sin(theta2)/nphi*phase2;
+
+        /* Integrate... */
+        src_sca[id]+=w*obs2->rad[0][id]; //CHANGED
+        wsum+=w;
       }
     }
   }
@@ -902,8 +905,6 @@ void srcfunc_sca_3d(ctl_t *ctl,
 
 /*****************************************************************************/
 
-
-//TODO: question: I think we should add if(queue_state == prepare_leaf) return;
 void srcfunc_sca_sun(ctl_t *ctl,
 		     atm_t *atm,
 		     aero_t *aero,
@@ -914,7 +915,9 @@ void srcfunc_sca_sun(ctl_t *ctl,
 		     double *src_sca,
          queue_t *q) {
 
-  los_t *los;
+  pos_t *los;
+  int np;
+  double tsurf;
   
   obs_t *obs;
   
@@ -922,9 +925,9 @@ void srcfunc_sca_sun(ctl_t *ctl,
     sza_beam, sza_cor, theta[NTHETA], theta2, x0[3], x1[3];
   
   int i, i2, id, idx, itheta;
-  
+ 
   /* Allocate... */
-  ALLOC(los, los_t, 1);
+  los = (pos_t*) malloc((NLOS) * sizeof(pos_t));
   ALLOC(obs, obs_t, 1);
 
   /* Set scattering phase function angles... */
@@ -941,45 +944,52 @@ void srcfunc_sca_sun(ctl_t *ctl,
   obs->nr=1;
   cart2geo(x, &obs->obsz[0], &obs->obslon[0], &obs->obslat[0]);
   suncoord(sec, obs->obslon[0], obs->obslat[0], &azi, &sza);
+  obs->time[0] = sec; // this was missing! 
   
   /* Find true elevation angle of Sun... */
   sza_cor=sza;
   for(i2=0; i2<10; i2++) {
-      
+
     /* Set observation geometry... */
     for(i=0; i<3; i++) {
       ek[i]
-	=sin(sza_cor*M_PI/180)*sin(azi*M_PI/180)*lx[i]
-	+sin(sza_cor*M_PI/180)*cos(azi*M_PI/180)*ly[i]
-	+cos(sza_cor*M_PI/180)*lz[i];
+        =sin(sza_cor*M_PI/180)*sin(azi*M_PI/180)*lx[i]
+        +sin(sza_cor*M_PI/180)*cos(azi*M_PI/180)*ly[i]
+        +cos(sza_cor*M_PI/180)*lz[i];
       x1[i]=x[i]+10*ek[i];
     }
     cart2geo(x1, &obs->vpz[0], &obs->vplon[0], &obs->vplat[0]);
-    
+
     /* Get zenith angle at end of beam... */
-    raytrace(ctl, atm, obs, aero, los, 0);
-    if(los->np<2)
+    np = raytrace_from_jr_common(ctl, atm, obs, aero, 0, los, &tsurf, 0); // without ignoring scattering
+
+    if(np<2)
       break;
-    geo2cart(los->z[los->np-2], los->lon[los->np-2], los->lat[los->np-2], x0);
-    geo2cart(los->z[los->np-1], los->lon[los->np-1], los->lat[los->np-1], x1);
+    geo2cart(los[np-2].z, los[np-2].lon, los[np-2].lat, x0);
+    geo2cart(los[np-1].z, los[np-1].lon, los[np-1].lat, x1);
     for(i=0; i<3; i++)
       dout[i]=x1[i]-x0[i];
     sza_beam=ANGLE(x, dout)*180/M_PI;
-    
+
     /* Test for convergence... */
     if(fabs(sza_beam-sza)<0.01)
       break;
-    
+
     /* Adapt geometric solar zenith angle (0.61803 golden ratio)... */
     sza_cor-=0.61803*(sza_beam-sza);
     sza_cor=GSL_MIN(GSL_MAX(sza_cor, 0), 180);
   }
-  
+ 
   /* Check that LOS doesn't hit the ground... */
-  if(los->tsurf<0) {
-    
+  if(tsurf<0) {
     /* Compute path transmittance... */
     formod_pencil(ctl, atm, obs, aero, 0, 0, q);
+    
+    // this was also missing!
+    if (Queue_Prepare == ctl->queue_state) { /* prepare work queue items only */
+      free(los);
+      return;
+    }
     
     /* Get phase function position... */
     theta2=ANGLE(ek, dx);

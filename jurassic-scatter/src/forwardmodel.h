@@ -3,7 +3,6 @@
 
 #include "jurassic.h"
 #include "scatter.h"
-#include "lineofsight.h"
 #include "atmosphere.h"
 #include "continua.h"
 #include "misc.h"

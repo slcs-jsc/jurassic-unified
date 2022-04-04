@@ -123,35 +123,39 @@
         } // while
         return ilo;
     } // locate_tbl_id
-    
+
+  // this function has been changed because the jurassic-gpu version did not work 
+  // correctly in edge cases, for example, when time and all atm->time[i] were the same
 	__host__ __device__ __ext_inline__
     void locate_atm(atm_t const *atm, double const time, size_t *atmIdx, int *atmNp) {
         assert(atm);
-        // Find lower bound of time stamp
-//         printf("# %s (line %d) atm->np=%d\n", __func__, __LINE__, atm->np);
-        int lo = 0, hi = atm->np - 1;
-        int i;
-        while(hi > lo + 1) {
-            i = (lo + hi)/2;
-//             printf("# %s %d < %d %d\n", __func__, hi, lo, i);
-            if(atm->time[i] < time) lo = i; else hi = i;
-        } // while
-        int const lower = (0 == lo) ? lo : hi;
-        *atmIdx = (unsigned)lower;
+        double const EPS = 1e-5;
 
-        // Find upper bound
-        lo = lower;
-        hi = atm->np - 1;
-        while(hi > lo + 1) {
-            i = (lo + hi)/2;
-//             printf("# %s %d > %d %d\n", __func__, hi, lo, i);
-            if(atm->time[i] > time) hi = i; else lo = i;
-        } // while
-        int const upper = (hi == atm->np - 1) ? atm->np : hi;
-        *atmNp = upper - lower;
-        
-//         printf("# %s [%d, %d)\n\n", __func__, lower, upper);
-    } // locate_atm
+        // Find lower bound of time stamp:
+        //  the lowest x such that atm->time[x] > time - EPS
+        int lo = 0, hi = atm->np - 1;
+        int mid;
+        while(lo < hi) {
+          mid = (lo + hi) / 2;
+          if(atm->time[mid] > time - EPS)
+            hi = mid;
+          else
+            lo = mid + 1;
+        }
+        *atmIdx = (unsigned)lo; // lo is lower bound
+
+        // Find upper bound:
+        //  the largest x such that atm->time[x] < time + EPS
+        lo = *atmIdx, hi = atm->np - 1;
+        while(lo < hi) {
+          mid = (lo + hi + 1) / 2;
+          if(atm->time[mid] < time + EPS)
+            lo = mid;
+          else
+            hi = mid - 1;
+        }
+        *atmNp = lo - *atmIdx + 1; // lo is upper bound, *atmNp is the interval length
+    } // new_locate_atm
 
 	__host__ __device__ __ext_inline__
     double get_eps(trans_table_t const *tbl, int const ig, int const id, int const ip, int const it, double const u) {
@@ -758,32 +762,6 @@
         } // ip
     } // hydrostatic_1d
 
-
-  __host__ __device__ __ext_inline__
-  void convert_los_to_pos_core(pos_t *pos, los_t const *los, int ip) {
-    pos->z   = los->z[ip];
-    pos->lon = los->lon[ip];
-    pos->lat = los->lat[ip];
-    pos->p   = los->p[ip];
-    pos->t   = los->t[ip];
-
-    for(int i = 0; i < NG; i++)
-      pos->q[i] = los->q[ip][i];
-
-    for(int i = 0; i < NW; i++)
-      pos->k[i] = los->k[ip][i];
-
-    pos->aeroi = (-999 == los->aeroi[ip] ? 0 : los->aeroi[ip]);
-
-    pos->aerofac = los->aerofac[ip];
-
-    pos->ds = los->ds[ip];
-
-    for(int i = 0; i < NG; i++)
-      pos->u[i] = los->u[ip][i];
-  }
-
-
   // ----------- functions for the new raytracer -----------
 
   __host__ __device__ __ext_inline__
@@ -1035,10 +1013,15 @@
     obs->tplon[ir] = obs->vplon[ir];
     obs->tplat[ir] = obs->vplat[ir];
     size_t atmIdx=0; int atmNp=0;
+    /* the folowing two lines were jurassic-scatter replaced with:
+        zmin=gsl_stats_min(atm->z, 1, (size_t)atm->np);
+        zmax=gsl_stats_max(atm->z, 1, (size_t)atm->np);
+       and they are not exactly the same so a problem could arise 
+       in the case where the time is not the same for all observations */
     locate_atm(atm, obs->time[ir], &atmIdx, &atmNp);
     altitude_range_nn(atm, atmIdx, atmNp, &zmin, &zmax);
-    if(obs->obsz[ir] < zmin)        return 0;																		// Check observer altitude
-    if(obs->vpz[ir] > zmax - 0.001) return 0;																		// Check view point altitude
+    if(obs->obsz[ir] < zmin) return 0;      																		// Check observer altitude
+    if(obs->vpz[ir] > zmax - 0.001) return 0; 																	// Check view point altitude
     jur_geo2cart(obs->obsz[ir], obs->obslon[ir], obs->obslat[ir], xobs);				// Cart. coordinates of observer
     jur_geo2cart(obs->vpz[ir],	obs->vplon[ir],  obs->vplat[ir],	xvp);					// and view point
     UNROLL
