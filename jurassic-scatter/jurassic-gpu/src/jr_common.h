@@ -692,9 +692,7 @@
 			} // i
 		} // np
 		++np;
-#ifndef __NVCC__
-    if (NLOS <= np) ERRMSG("Too many LOS points!");
-#endif
+    assert(np < NLOS && "Too many LOS points!");
 
 		// Get tangent point (before changing segment lengths!)
 		jur_tangent_point(los, np, z_low_idx, &obs->tpz[ir], &obs->tplon[ir], &obs->tplat[ir]);
@@ -883,11 +881,8 @@
       }  
     }
 
-  #ifndef __NVCC__
-    if(jl >= 8 * NLMAX) ERRMSG("You should increase NLMAX!");
-  #endif
+    assert(jl < 8 * NLMAX && "You should increase NLMAX!");
 
-    //qsort(alti, jl, sizeof(double), cmp); 
     naive_sort(alti, jl);
 
     altimax = max_value_in_array(alti, jl);
@@ -910,17 +905,13 @@
         for (il=0; il<jl;il++){ /* loop over cloud edges */
           /* von oben */
           if(los[prev_pos_index].z > alti[il] && los[NLOS - np + ip].z < alti[il]){
-          #ifndef __NVCC__
-            if(los_aero_np >= NLOS - np + ip) ERRMSG("Too many LOS points!");
-          #endif
+            assert(los_aero_np < NLOS - np + ip && "Too many LOS points!");
             pos_scatter_jur_intersection_point(ctl, atm, &alti[il], los, NLOS - np + ip, los, los_aero_np, atmIdx, atmNp);
             los_aero_np++; 
           }
           /* von unten */
           if(los[prev_pos_index].z < alti[jl-il-1] && los[NLOS - np + ip].z > alti[jl-il-1]){
-          #ifndef __NVCC__
-            if(los_aero_np >= NLOS - np + ip) ERRMSG("Too many LOS points!");
-          #endif
+            assert(los_aero_np < NLOS - np + ip && "Too many LOS points!");
             pos_scatter_jur_intersection_point(ctl, atm, &alti[jl-il-1], los, NLOS - np + ip, los, los_aero_np, atmIdx, atmNp);
             los_aero_np++;
           }
@@ -929,15 +920,11 @@
       copy_pos(&los[NLOS - np + ip], &los[los_aero_np]);
       prev_pos_index = los_aero_np;
 
-    #ifndef __NVCC__
-      if(los_aero_np >= NLOS - np + ip) ERRMSG("Too many LOS points!");
-    #endif
+    assert(los_aero_np < NLOS - np + ip && "Too many LOS points!");
 
       /* Increment and check number of new LOS points */
       los_aero_np++;
-    #ifndef __NVCC__
-      if(los_aero_np > NLOS) ERRMSG("Too many LOS points!");
-    #endif
+      assert(los_aero_np < NLOS && "Too many LOS points!");
     }
 
     /* Compute segment length following trapezoidal rule */
@@ -1127,9 +1114,7 @@
       } // i
     } // np
     ++np;
-  #ifndef __NVCC__
-    if (NLOS <= np) ERRMSG("Too many LOS points!");
-  #endif
+    assert(np < NLOS && "Too many LOS points!");
 
     // FIXME: added..
     if(!ignore_scattering) {
