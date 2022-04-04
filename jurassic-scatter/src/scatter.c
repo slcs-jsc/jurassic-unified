@@ -656,7 +656,7 @@ void srcfunc_sca(ctl_t *ctl,
   
   /* Compute scattering of thermal radiation... */
   if(ctl->ip==1)
-    srcfunc_sca_1d(ctl, atm, aero, sec, x, dx, il, src_sca, scattering, q); // #7
+    srcfunc_sca_1d(ctl, atm, aero, sec, x, dx, il, src_sca, scattering, q); 
   else
     srcfunc_sca_3d(ctl, atm, aero, sec, x, dx, il, src_sca, scattering, q);
   
@@ -742,7 +742,7 @@ void srcfunc_sca_1d(ctl_t *ctl,
     cart2geo(xv, &obs2->vpz[ir], &obs2->vplon[ir], &obs2->vplat[ir]);
     obs2->time[ir] = sec; 
     /* Get pencil beam radiance... */
-    formod_pencil(ctl, atm, obs2, aero, scattering-1, ir, q); // #6
+    formod_pencil(ctl, atm, obs2, aero, scattering-1, ir, q); 
   }
   if (Queue_Prepare == ctl->queue_state) return; /* prepare work queue items only */
   
