@@ -18,3 +18,12 @@ int raytrace_from_jr_common(ctl_t *ctl, atm_t *atm, obs_t *obs, aero_t *aero, in
                             pos_t los[], double *tsurf, int const ignore_scattering) {
   return call_traceray(ctl, atm, obs, aero, ir, los, tsurf, ignore_scattering);
 }
+
+trans_table_t* get_tbl_from_jr_common(ctl_t const *ctl) {
+  return call_get_tbl(ctl);
+}
+
+double src_planck_core_from_jr_common(trans_table_t const *tbl, double const t, int const id) {
+  return call_src_planck_core(tbl, t, id);
+}
+

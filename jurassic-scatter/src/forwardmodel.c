@@ -433,6 +433,7 @@ void formod_pencil(ctl_t *ctl,
   static int init=0;
 
   static tbl_t *tbl;
+  static trans_table_t *trans_tbl;
 
   pos_t *los;
   int np = 0;
@@ -495,6 +496,10 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
   if(!init) {
     init=1;
     tbl = scatter_get_tbl(ctl);
+
+    // bug that I had:
+    // https://stackoverflow.com/questions/8552684/pointer-return-value-changes-after-function-call
+    trans_tbl = get_tbl_from_jr_common(ctl); 
   }
 
   /* Initialize... */
@@ -516,7 +521,13 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
     formod_continua(ctl, los, ip, beta_ctm);
 
     /* Compute Planck function... */
-    srcfunc_planck(ctl, los[ip].t, src_planck);
+    // srcfunc_planck(ctl, los[ip].t, src_planck);
+
+    /* new Compute Planck function... */
+    for(id = 0; id < ctl->nd; id++) {
+      src_planck[id] = src_planck_core_from_jr_common(trans_tbl, los[ip].t, id);
+    }
+
 } /* Cx */
 
     /* Compute radiative transfer with scattering source... */
@@ -599,7 +610,13 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
 if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
   /* Add surface... */
   if(tsurf>0) {
-    srcfunc_planck(ctl, tsurf, src_planck);
+    // srcfunc_planck(ctl, tsurf, src_planck);
+
+    /* new Compute Planck function... */
+    for(id = 0; id < ctl->nd; id++) {
+      src_planck[id] = src_planck_core_from_jr_common(trans_tbl, los[ip].t, id);
+    }
+
     for(id=0; id<ctl->nd; id++)
       obs->rad[ir][id]+=src_planck[id]*obs->tau[ir][id]; //CHANGED
   }

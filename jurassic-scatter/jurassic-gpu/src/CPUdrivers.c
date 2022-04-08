@@ -255,3 +255,13 @@ int call_traceray(ctl_t *ctl, atm_t *atm, obs_t *obs, aero_t *aero, int const ir
                             pos_t los[], double *tsurf, int const ignore_scattering) {
   return pos_scatter_traceray(ctl, atm, obs, aero, ir, los, tsurf, ignore_scattering);
 }
+
+__host__
+  double call_src_planck_core(trans_table_t const *tbl, double const t, int const id) {
+      return src_planck_core(tbl, t, id);
+}
+
+__host__
+trans_table_t* call_get_tbl(ctl_t const *ctl) {
+  return get_tbl(ctl);
+}
