@@ -1,0 +1,357 @@
+The forward model of JURASSIC consists of the following steps:
+  * initialize atmospheric pressure levels according to hydrostatic equations,
+  * find the line-of-sight through the atmosphere using a raytrace algorithm: RT
+  * compute the segment emissivities according to the EGA method,
+  * evaluate the Planck source function,
+  * evaluate the emission continua of the trace gases,
+  * integrate radiance and transmission along the path: integ
+
+----------------------------
+
+JURASSIC-scatter:
+  in formod_pencil(...): <-- in forwardmodel.c
+    /* Loop over LOS points... */
+    for(ip=0; ip<np; ip++) {
+      if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
+          /* Get trace gas transmittance... */
+          intpol_tbl(ctl, tbl, los, ip, tau_path, tau_gas);
+
+          /* Get continuum absorption... */
+          formod_continua(ctl, los, ip, beta_ctm);
+
+          /* Compute Planck function... */
+          srcfunc_planck(ctl, los[ip].t, src_planck);
+      } /* Cx */
+      ...
+    }
+
+JURASSIC-GPU: (actually, from CPUdrivers.c) 
+  __host__
+  void apply_kernels_CPU(trans_table_t const *tbl, ctl_t const *ctl, obs_t *obs,
+        pos_t const (*restrict los)[NLOS], int const np[], 
+        int const ig_co2, int const ig_h2o, char const fourbit,
+        double const (*restrict aero_beta)[ND]) {
+    for(int ir = 0; ir < obs->nr; ir++) { // loop over independent rays
+      double tau_path[ND][NG]; // private for each ray
+      for(int id = 0; id < ND; id++) { // loop over detectors
+        obs->rad[ir][id] = 0.0;
+        obs->tau[ir][id] = 1.0;
+        for(int ig = 0; ig < NG; ig++) { // loop over gases
+          tau_path[id][ig] = 1.0;
+        } // ig
+      } //  id
+      for(int ip = 0; ip < np[ir]; ++ip) { // loop over line-of-sight points
+        for(int id = 0; id < ctl->nd; id++) { // loop over detector channels
+          // compute extinction coefficient
+          double const beta_ds = continua_core_fourbit(fourbit, ctl, &(los[ir][ip]), ig_co2, ig_h2o, id);
+          double const aero_ds = los[ir][ip].aerofac * aero_beta[los[ir][ip].aeroi][id] * los[ir][ip].ds;
+          // compute transmission with the EGA method
+          double const tau_gas = apply_ega_core(tbl, &(los[ir][ip]), tau_path[id], ctl->ng, id);
+          // compute the source term
+          double const planck = src_planck_core(tbl, los[ir][ip].t, id);
+          // perform integration
+          new_obs_core(obs, ir, id, beta_ds + aero_ds, planck, tau_gas);
+        } // id --> could be vectorized over detector channels
+      } // ip --> non-parallelisable due to loup carried dependency
+    } // ir --> OpenMP parallel over rays
+  } // apply_kernels_CPU
+
+----------------------------
+
+  1. continua:
+    JURASSIC-scatter:
+      /* Get continuum absorption... */
+      formod_continua(ctl, los, ip, beta_ctm); <-- in forwardmodel.c
+      void formod_continua(ctl_t *ctl, pos_t los[], int ip, double *beta) {...}
+        in  arguments: *ctl, los[], ip
+        out arguments: *beta (an array of length ctl->nd)
+        functions which it is calling: ctmco2, ctmh2o, ctmn2, ctmo2; <-- in continua.c
+                                      if(ctl->ctm_co2),...
+    JURASSIC-GPU:
+      // compute extinction coefficient
+      double const beta_ds = continua_core_fourbit(fourbit, ctl, &(los[ir][ip]), ig_co2, ig_h2o, id);
+      double const aero_ds = los[ir][ip].aerofac * aero_beta[los[ir][ip].aeroi][id] * los[ir][ip].ds;
+      __host__ __device__ __ext_inline__ <-- in CPUdrivers.c
+      double continua_core_fourbit(char const fourbit, ctl_t const *ctl, pos_t const *los, 
+                                int const ig_co2, int const ig_h2o, int const id);
+        in CPU drivers there are no templates!
+        in and out argumets: obvious!
+        functions which it is calling:
+          if(CO2) beta_ds += continua_ctmco2(ctl->nu[id], p, t, los->u[ig_co2]),... <-- in jr_common.h
+
+  ------------
+
+  2. EGA:
+    JURASSIC-scatter:
+      /* Get trace gas transmittance... */
+      intpol_tbl(ctl, tbl, los, ip, tau_path, tau_gas);
+      void intpol_tbl(ctl_t *ctl, tbl_t *tbl, pos_t los[], int ip, double tau_path[NGMAX][NDMAX], double tau_seg[NDMAX]);
+        in  arguments: *ctl, *tbl, los[]
+        out arguments: tau_path[], tau_seg[][] 
+        functions which it is calling:
+          locate <-- in misc.c
+          intpol_tbl_u, intpol_tbl_eps <-- in forwardmodel.c
+          functions which they is calling:
+            locate_tbl <-- in forwardmodel.c
+
+    JURASSIC-GPU:
+      // compute transmission with the EGA method
+      double const tau_gas = apply_ega_core(tbl, &(los[ir][ip]), tau_path[id], ctl->ng, id);
+      __host__ __device__ __ext_inline__         <-- jr_common.h
+      double apply_ega_core(trans_table_t const *tbl, pos_t const *los, double (*ptr tau_path), int const ng, int const id);
+        in and out arguments: obvious!
+        functions which it is calling:
+          if (ig < ng) eps = ega_eps(tbl, tau_path[ig], los->t, los->u[ig], los->p, ig, id);
+            from this function a lot of different functions are called!
+
+  ------------
+
+  3. Planck:
+    JURASSIC-scatter:
+      /* Compute Planck function... */
+      srcfunc_planck(ctl, los[ip].t, src_planck); <-- in forwardmodel.c
+      void srcfunc_planck(ctl_t *ctl, double t, double *src) {...}
+        in  arguments: *ctl, t
+        out arguments: *src (an array of length ctl->nd)
+        functions which it is calling:
+          read_shape(..) (once, static variables) <-- in forwardmodel.c
+          locate(temp, nplanck, t), for determing index in temperature array <-- in misc.c
+          planck(..) <-- in forwardmodel.c
+      +in JURASSIC-scatter it is called in 2 places, not just in "the main kernel" 
+
+    JURASSIC-GPU:
+      // compute the source term
+      double const planck = src_planck_core(tbl, los[ir][ip].t, id); <-- in jr_common.h
+        // Black body radiation //////////////////////////////////////////////////////
+        __host__ __device__ __ext_inline__
+          double src_planck_core(trans_table_t const *tbl, double const t, int const id) {
+              int const it = locate_st(tbl->st, TBLNS, t);
+              return lip(tbl->st[it], tbl->sr[it][id], tbl->st[it + 1], tbl->sr[it + 1][id], t);
+          } // src_planck_core
+
+  ------------
+
+  4. Integration:
+    JURASSIC-scatter:
+    ?
+
+    JURASSIC-GPU:
+      // perform integration
+      new_obs_core(obs, ir, id, beta_ds + aero_ds, planck, tau_gas);
+        // Update observation struct ///////////////////////////////////////////////// <-- in jr_common.h
+        __host__ __device__ __ext_inline__
+          void new_obs_core(obs_t *obs, int const ir, int const id, double const beta_ds, double const src, double const tau_gas) {
+              if (tau_gas > 1e-50) {
+                  double const eps = 1. - tau_gas*exp(-beta_ds);
+                  obs->rad[ir][id] += src*eps*obs->tau[ir][id];
+                  obs->tau[ir][id] *= (1. - eps); // update bar tau
+              } // if
+          } // new_obs_core
+
+----------------------------
+
+differences:
+  1. intpol_tbl(..), formod_continua(..) and srcfunc_planck(..) from
+     JURASSIC-scatter don't take id as an argument, but do the 
+     computation for each id from 0 to ctl->nd
+   ON THE OTHER HAND,
+     in apply_kernels_CPU from JURASSIC-GPU the corresponding functions
+     take id as an argument
+
+----------------------------
+
+void formod_pencil(ctl_t *ctl,
+                   atm_t *atm,
+                   obs_t *obs,
+                   aero_t *aero,
+                   int scattering,
+                   int ir,
+                   queue_t *q) {
+
+  static int init=0;
+
+  static tbl_t *tbl;
+
+  pos_t *los;
+  int np = 0;
+  double tsurf;
+  los = NULL; // because it has to be initialized 
+  obs_t *obs2;
+
+  double beta_ctm[NDMAX], beta_ext_tot, dx[3], eps, src_all, src_planck[NDMAX],
+  src_sca[NDMAX], tau_path[NGMAX][NDMAX], tau_gas[NDMAX], x[3], x0[3], x1[3];
+
+  int i, id, ip, ip0, ip1;
+
+  int const Queue_Prepare_Leaf = Queue_Prepare << 1;
+  int const Queue_Execute_Leaf = Queue_Execute << 1;
+  int const Queue_Collect_Leaf = Queue_Collect << 1;
+#ifdef WORK_QUEUE
+  int const queue_mode = ctl->queue_state << (0 == scattering);
+#else
+  int const queue_mode = Queue_Inactive; /* Queue_Inactive == -1 */
+#endif
+
+#ifdef  FORMOD_DEBUG
+  printf("# %s(..., %p, aero, scattering=%d, ir=%d) queue_mode = %d;\n", __func__, (void*)obs, scattering, ir, queue_mode);
+#endif 
+
+  // ok!
+  if ((Queue_Collect|Queue_Prepare) & queue_mode) { /* CPp */
+    /* Allocate... */
+    los = (pos_t*) malloc((NLOS) * sizeof(pos_t));
+
+    /* Raytracing... */
+    np = raytrace_from_jr_common(ctl, atm, obs, aero, ir, los, &tsurf, 0); // without ignoring scattering
+  } /* CPp */
+
+  // ok!
+  if (Queue_Prepare_Leaf == queue_mode) { /* ==p */
+    i = push_queue(q, (void*)obs, ir); /* push input and pointer to output */
+    if (i < 0) ERRMSG("Too many queue items!"); /* failed */
+    return;
+  } /* ==p */
+
+  // ok!
+  if (Queue_Collect_Leaf == queue_mode) { /* ==c */
+    pop_queue(q, (void*)&obs2, &ir); /* pop result */
+    /* Copy results... */
+    for(id=0; id<ctl->nd; id++) {
+      obs->rad[ir][id] = obs2->rad[ir][id]; //CHANGED
+      obs->tau[ir][id] = obs2->tau[ir][id]; //CAHNGED
+    } /* id */
+    //free(los);
+    if(obs2->nr - 1 == ir) free(obs2);
+    return;
+  } /* ==c */
+
+  // ok!
+  if (Queue_Execute_Leaf == queue_mode) { /* ==x */
+    get_queue_item(q, (void*)&obs, &ir, ir); /* get input */
+    los = (pos_t*) malloc((NLOS) * sizeof(pos_t));
+    np = raytrace_from_jr_common(ctl, atm, obs, aero, ir, los, &tsurf, 0); // without ignoring scattering
+  } /* ==x */
+
+  // TODO: table from JURASSIC-GPU should be read, but just once for the both projects!
+  if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
+    /* Read tables... */
+    if(!init) {
+      init=1;
+      tbl = scatter_get_tbl(ctl);
+    }
+
+    /* Initialize... */
+    for(id=0; id<ctl->nd; id++) {
+      obs->rad[ir][id]=0; //CHANGED
+      obs->tau[ir][id]=1; //CHANGED
+    }
+  } /* Cx */
+
+
+  /* Loop over LOS points... */
+  for(ip=0; ip<np; ip++) {
+
+    if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
+      /* Get trace gas transmittance... */
+      intpol_tbl(ctl, tbl, los, ip, tau_path, tau_gas);
+
+      /* Get continuum absorption... */
+      formod_continua(ctl, los, ip, beta_ctm);
+
+      /* Compute Planck function... */
+      srcfunc_planck(ctl, los[ip].t, src_planck);
+    } /* Cx */
+
+    /* Compute radiative transfer with scattering source... */
+    if(scattering>0 && los[ip].aerofac>0) {
+
+      if ((Queue_Collect|Queue_Prepare) & queue_mode) { /* CP */
+        /* Compute scattering source term... */
+        geo2cart(los[ip].z, los[ip].lon, los[ip].lat, x);
+        ip0=(ip>0 ? ip-1 : ip);
+        ip1=(ip<np ? ip+1 : ip);
+        geo2cart(los[ip0].z, los[ip0].lon, los[ip0].lat, x0);
+        geo2cart(los[ip1].z, los[ip1].lon, los[ip1].lat, x1);
+        for(i=0; i<3; i++)
+          dx[i]=x1[i]-x0[i];
+
+        srcfunc_sca(ctl,atm,aero,obs->time[ir],x,dx,los[ip].aeroi,src_sca,scattering, q);
+      } /* CP */
+
+      if ((Queue_Collect) & queue_mode) { /* C */
+        /* Loop over channels... */
+        for(id=0; id<ctl->nd; id++)
+          if(tau_gas[id]>0) {
+
+            /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+            /* Get gas and aerosol/cloud extinctions... */
+            beta_ext_tot = (-1.)*log(tau_gas[id])/los[ip].ds + beta_ctm[id] +
+              los[ip].aerofac*aero->beta_e[los[ip].aeroi][id];
+
+            /* enthält tau_gas bereits k????????? */
+
+            /* Get segment emissivity */
+            eps = 1-exp(-1*beta_ext_tot*los[ip].ds);
+
+            /* Compute weighted segment source */
+            src_all=((beta_ext_tot - los[ip].aerofac*aero->beta_s[los[ip].aeroi][id]) *
+                src_planck[id] +
+                los[ip].aerofac*aero->beta_s[los[ip].aeroi][id]*src_sca[id]) /
+              beta_ext_tot;
+
+            /* Compute radiance: path extinction * segment emissivity * segment source */
+            obs->rad[ir][id] += obs->tau[ir][id]*eps*src_all; //CHANGED
+
+            /* Compute path transmittance... */
+            obs->tau[ir][id] *= exp(-1.*beta_ext_tot*los[ip].ds); //CAHNGED
+          }
+      } /* C */
+    }
+
+    /* Compute radiative transfer without scattering source... */
+    else {
+
+      if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
+        /* Loop over channels... */
+        for(id=0; id<ctl->nd; id++)
+          if(tau_gas[id]>0) {
+
+            /* Get segment emissivity... */
+            if (ctl->sca_n==0 || los[ip].aerofac==0 ) {
+              eps=1-tau_gas[id]*exp(-1. * beta_ctm[id] * los[ip].ds);
+            }
+            else if (strcmp(ctl->sca_ext, "beta_a") == 0) {
+
+              eps=1-tau_gas[id]*exp(-1. * (beta_ctm[id] + los[ip].aerofac*
+                    aero->beta_a[los[ip].aeroi][id])*los[ip].ds);
+            } else {
+              eps=1-tau_gas[id]*exp(-1. * (beta_ctm[id] + los[ip].aerofac*
+                    aero->beta_e[los[ip].aeroi][id])*los[ip].ds);
+            }
+
+            /* Compute radiance... */
+            obs->rad[ir][id]+=src_planck[id]*eps*obs->tau[ir][id]; //CHANGED
+
+            /* Compute path transmittance... */
+            obs->tau[ir][id]*=(1-eps); //CAHNGED
+          }
+      }
+    } /* Cx */
+  }
+
+  if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
+    /* Add surface... */
+    if(tsurf>0) {
+      srcfunc_planck(ctl, tsurf, src_planck);
+      for(id=0; id<ctl->nd; id++)
+        obs->rad[ir][id]+=src_planck[id]*obs->tau[ir][id]; //CHANGED
+    }
+
+  } /* Cx */
+
+
+  if ((Queue_Collect|Queue_Execute_Leaf|Queue_Prepare) & queue_mode) { 
+    /* Free... */
+    free(los);
+  }
+}
