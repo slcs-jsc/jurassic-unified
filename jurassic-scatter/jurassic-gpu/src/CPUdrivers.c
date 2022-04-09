@@ -23,19 +23,26 @@
 		} // ir
 	} // surface_terms_CPU
 
-	/*__host__
-	double multi_continua_CPU(char const fourbit, ctl_t const *ctl, 
-        pos_t const *los, int const ig_co2, int const ig_h2o, int const id) {
-        continua_core_non_temp(fourbit, ctl, los, ig_co2, ig_h2o, id);
-	} // multi_continua_CPU */
-
   __host__ __device__ __ext_inline__
-  double continua_core_fourbit(char const fourbit, ctl_t const *ctl, pos_t const *los, 
-                               int const ig_co2, int const ig_h2o, int const id) {
-      char const CO2 = 8 & fourbit; // 1 << 3 
-      char const H2O = 4 & fourbit; // 1 << 2
-      char const N2 = 2 & fourbit;  // 1 << 1
-      char const O2 = 1 & fourbit;  // 1 << 0
+  double continua_core_CPU(ctl_t const *ctl, pos_t const *los, int const id) {
+      static int init = 0;
+      static int CO2, H2O, N2, O2, ig_co2, ig_h2o;
+      if(!init) {
+#ifdef _OPENMP
+        #pragma omp critical
+#endif
+        if(!init) {
+          ig_co2 = -999, ig_h2o = -999;
+          if((ctl->ctm_h2o) && (-999 == ig_h2o)) ig_h2o = jur_find_emitter(ctl, "H2O");
+          if((ctl->ctm_co2) && (-999 == ig_co2)) ig_co2 = jur_find_emitter(ctl, "CO2");
+          CO2 = (1 == ctl->ctm_co2) && (ig_co2 >= 0);
+          H2O = (1 == ctl->ctm_h2o) && (ig_h2o >= 0);
+          N2 = (1 == ctl->ctm_n2);
+          O2 = (1 == ctl->ctm_o2);
+          init = 1;
+        }
+      }
+
       double const p = los->p;
       double const t = los->t;
       double const ds = los->ds;
@@ -46,12 +53,11 @@
       if(N2)  beta_ds += continua_ctmn2(ctl->nu[id], p, t)*ds;  // n2 continuum
       if(O2)  beta_ds += continua_ctmo2(ctl->nu[id], p, t)*ds;  // o2 continuum
       return     beta_ds;
-  } // continua_core_fourbit
+  } // continua_core_CPU
 
 	__host__
 	void apply_kernels_CPU(trans_table_t const *tbl, ctl_t const *ctl, obs_t *obs, 
         pos_t const (*restrict los)[NLOS], int const np[], 
-        int const ig_co2, int const ig_h2o, char const fourbit,
         double const (*restrict aero_beta)[ND]) { // aero_beta is added
 
 #pragma omp parallel for
@@ -69,7 +75,7 @@
 				for(int id = 0; id < ctl->nd; id++) { // loop over detector channels
 
 					// compute extinction coefficient
-					double const beta_ds = continua_core_fourbit(fourbit, ctl, &(los[ir][ip]), ig_co2, ig_h2o, id);
+					double const beta_ds = continua_core_CPU(ctl, &(los[ir][ip]), id);
 					
           //Added:
           double const aero_ds = los[ir][ip].aerofac * aero_beta[los[ir][ip].aeroi][id] * los[ir][ip].ds;
@@ -141,18 +147,9 @@
 		int *np = (int*)malloc((obs->nr)*sizeof(int));
 		pos_t (*los)[NLOS] = (pos_t (*)[NLOS])malloc((obs->nr)*(NLOS)*sizeof(pos_t));
 
-		// gas absorption continua configuration
-		static int ig_co2 = -999, ig_h2o = -999;
+		static int ig_h2o = -999;
 		if((ctl->ctm_h2o) && (-999 == ig_h2o)) ig_h2o = jur_find_emitter(ctl, "H2O");
-		if((ctl->ctm_co2) && (-999 == ig_co2)) ig_co2 = jur_find_emitter(ctl, "CO2");
-		// binary switches for the four gases
-		char const fourbit = (char) (
-                  ( (1 == ctl->ctm_co2) && (ig_co2 >= 0) )*8   // CO2
-				+ ( (1 == ctl->ctm_h2o) && (ig_h2o >= 0) )*4   // H2O
-				+   (1 == ctl->ctm_n2)                    *2   // N2
-				+   (1 == ctl->ctm_o2)                    *1); // O2
 
- 
     hydrostatic1d_CPU(ctl, atm, obs->nr, ig_h2o); // in this call atm might get modified
     // if formod function was NOT called from jurassic-scatter project
     if(ctl->leaf_nr == -1) {
@@ -164,7 +161,7 @@
     // "beta_a" -> 'a', "beta_e" -> 'e'
     char const beta_type = ctl->sca_ext[5];
 
-    apply_kernels_CPU(tbl, ctl, obs, los, np, ig_co2, ig_h2o, fourbit,
+    apply_kernels_CPU(tbl, ctl, obs, los, np, 
                       (('a' == beta_type) ? aero->beta_a : aero->beta_e));
     surface_terms_CPU(tbl, obs, t_surf, ctl->nd);
 
