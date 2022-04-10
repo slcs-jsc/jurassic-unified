@@ -27,3 +27,7 @@ double src_planck_core_from_jr_common(trans_table_t const *tbl, double const t, 
   return call_src_planck_core(tbl, t, id);
 }
 
+double continua_core_CPU_from_CPUdrivers(ctl_t const *ctl, pos_t const *los, int const id) {
+  return continua_core_CPU(ctl, los, id); 
+}
+

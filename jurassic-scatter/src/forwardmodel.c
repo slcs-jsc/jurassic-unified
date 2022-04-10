@@ -518,11 +518,13 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
     intpol_tbl(ctl, tbl, los, ip, tau_path, tau_gas);
 
     /* Get continuum absorption... */
-    formod_continua(ctl, los, ip, beta_ctm);
+    // formod_continua(ctl, los, ip, beta_ctm);
+    /* new Get continuum absorption... */
+    for(id = 0; id < ctl->nd; id++)
+      beta_ctm[id] = continua_core_CPU_from_CPUdrivers(ctl, &los[ip], id) / los[ip].ds;
 
     /* Compute Planck function... */
     // srcfunc_planck(ctl, los[ip].t, src_planck);
-
     /* new Compute Planck function... */
     for(id = 0; id < ctl->nd; id++) {
       src_planck[id] = src_planck_core_from_jr_common(trans_tbl, los[ip].t, id);

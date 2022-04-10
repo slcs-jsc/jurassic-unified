@@ -18,4 +18,8 @@ trans_table_t* get_tbl_from_jr_common(ctl_t const *ctl);
 double call_src_planck_core(trans_table_t const *tbl, double const t, int const id); 
 double src_planck_core_from_jr_common(trans_table_t const *tbl, double const t, int const id); 
 
+
+double continua_core_CPU(ctl_t const *ctl, pos_t const *los, int const id);
+double continua_core_CPU_from_CPUdrivers(ctl_t const *ctl, pos_t const *los, int const id);
+
 #endif
