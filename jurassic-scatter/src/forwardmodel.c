@@ -441,10 +441,11 @@ void formod_pencil(ctl_t *ctl,
   los = NULL; // because it has to be initialized 
   obs_t *obs2;
   
+  // tau_path[NGMAX][NDMAX] --> tau_path[NDMAX][NGMAX], because of jurassic-gpu
   double beta_ctm[NDMAX], beta_ext_tot, dx[3], eps, src_all, src_planck[NDMAX],
-    src_sca[NDMAX], tau_path[NGMAX][NDMAX], tau_gas[NDMAX], x[3], x0[3], x1[3];
+    src_sca[NDMAX], tau_path[NDMAX][NGMAX], tau_gas[NDMAX], x[3], x0[3], x1[3];
 
-  int i, id, ip, ip0, ip1;
+  int i, id, ip, ip0, ip1, ig;
 
   int const Queue_Prepare_Leaf = Queue_Prepare << 1;
   int const Queue_Execute_Leaf = Queue_Execute << 1;
@@ -496,6 +497,7 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
   if(!init) {
     init=1;
     tbl = scatter_get_tbl(ctl);
+    printf("%d\n", tbl->np[0][0]); // Have to do it, because of unused warning... 
 
     // bug that I had:
     // https://stackoverflow.com/questions/8552684/pointer-return-value-changes-after-function-call
@@ -504,8 +506,12 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
 
   /* Initialize... */
   for(id=0; id<ctl->nd; id++) {
-    obs->rad[ir][id]=0; //CHANGED
-    obs->tau[ir][id]=1; //CHANGED
+    obs->rad[ir][id]=0.0; //CHANGED
+    obs->tau[ir][id]=1.0; //CHANGED
+    // added for jurassic-gpu tau_gas
+    for(ig = 0; ig < NG; ig++) { // loop over gases
+      tau_path[id][ig] = 1.0;
+    } // ig
   }
 } /* Cx */
 
@@ -515,7 +521,10 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
 
 if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
     /* Get trace gas transmittance... */
-    intpol_tbl(ctl, tbl, los, ip, tau_path, tau_gas);
+    // intpol_tbl(ctl, tbl, los, ip, tau_path, tau_gas);
+    /* new Get trace gas transmittance... */
+    for(id = 0; id < ctl->nd; id++)
+      tau_gas[id] = apply_ega_core_from_jr_common(trans_tbl, &los[ip], tau_path[id], ctl->ng, id);
 
     /* Get continuum absorption... */
     // formod_continua(ctl, los, ip, beta_ctm);

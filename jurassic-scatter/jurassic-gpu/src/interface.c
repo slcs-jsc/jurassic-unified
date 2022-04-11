@@ -31,3 +31,6 @@ double continua_core_CPU_from_CPUdrivers(ctl_t const *ctl, pos_t const *los, int
   return continua_core_CPU(ctl, los, id); 
 }
 
+double apply_ega_core_from_jr_common(trans_table_t const *tbl, pos_t const *los, double (*ptr tau_path), int const ng, int const id) {
+  return apply_ega_core(tbl, los, tau_path, ng, id);
+}
