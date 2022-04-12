@@ -625,7 +625,7 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
 
     /* new Compute Planck function... */
     for(id = 0; id < ctl->nd; id++) {
-      src_planck[id] = src_planck_core_from_jr_common(trans_tbl, los[ip].t, id);
+      src_planck[id] = src_planck_core_from_jr_common(trans_tbl, tsurf, id);
     }
 
     for(id=0; id<ctl->nd; id++)
