@@ -13,6 +13,9 @@
 double brightness(double rad,
 		  double nu);
 
+void copy_obs_row(obs_t const *source, int rs, obs_t *dest, int rd);
+void advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs, int nr);
+
 /* Determine ray paths and compute radiative transfer. */
 void formod(ctl_t *ctl,
 	    atm_t *atm,

@@ -17,27 +17,6 @@ double brightness(double rad,
 
 /*****************************************************************************/
 
-void debug_obs(ctl_t *ctl, obs_t *obs, int id);
-void debug_obs(ctl_t *ctl, obs_t *obs, int id) {
-  printf("DEBUG #%d ", ctl->MPIglobrank);
-  printf("%lf ", obs->time[id]);
-  printf("%lf ", obs->obsz[id]);
-  printf("%lf ", obs->obslon[id]);
-  printf("%lf ", obs->obslat[id]);
-  printf("%lf ", obs->vpz[id]);
-  printf("%lf ", obs->vplon[id]);
-  printf("%lf ", obs->vplat[id]);
-  printf("%lf ", obs->tpz[id]);
-  printf("%lf ", obs->tplon[id]);
-  printf("%lf ", obs->tplat[id]);
-  for(int i = 0; i < ctl->nd; i++)
-    printf("%lf ", obs->rad[id][i]);
-  for(int i = 0; i < ctl->nd; i++)
-    printf("%lf ", obs->tau[id][i]);
-  printf("\n");
-}
-
-void copy_obs_row(obs_t const *source, int rs, obs_t *dest, int rd);
 void copy_obs_row(obs_t const *source, int rs, obs_t *dest, int rd) {
   dest->time[rd] = source->time[rs];
   dest->obsz[rd] = source->obsz[rs];
@@ -55,7 +34,6 @@ void copy_obs_row(obs_t const *source, int rs, obs_t *dest, int rd) {
   }
 }
 
-void advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs, int nr);
 void advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs, int nr) {
 
   int *pref_sizes;
