@@ -75,23 +75,17 @@ LDFLAGS = $(LIBDIR) -lgsl -lgslcblas -lm -lstdc++ -lcudart -lutil
 all: $(EXC)
 	rm -f *~
 
-$(EXC): %: %.c  atmosphere.o continua.o control.o forwardmodel.o lineofsight.o misc.o retrievalmodel.o workqueue.o scatter.o Makefile
-	$(CC) $(CFLAGS) -o $@ $< atmosphere.o continua.o control.o forwardmodel.o lineofsight.o misc.o retrievalmodel.o workqueue.o scatter.o  $(LDFLAGS)
+$(EXC): %: %.c  atmosphere.o control.o forwardmodel.o misc.o retrievalmodel.o workqueue.o scatter.o Makefile
+	$(CC) $(CFLAGS) -o $@ $< atmosphere.o control.o forwardmodel.o misc.o retrievalmodel.o workqueue.o scatter.o  $(LDFLAGS)
 
 atmosphere.o: atmosphere.c 
 	$(CC) $(CFLAGS) -c atmosphere.c
-
-continua.o: continua.c 
-	$(CC) $(CFLAGS) -c continua.c
 
 control.o: control.c
 	$(CC) $(CFLAGS) -c control.c
 
 forwardmodel.o: forwardmodel.c 
 	$(CC) $(CFLAGS) -c forwardmodel.c
-
-lineofsight.o: lineofsight.c 
-	$(CC) $(CFLAGS) -c lineofsight.c
 
 misc.o: misc.c 
 	$(CC) $(CFLAGS) -c misc.c
