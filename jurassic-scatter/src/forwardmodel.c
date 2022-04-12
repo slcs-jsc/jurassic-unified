@@ -319,40 +319,40 @@ void formod(ctl_t *ctl,
 
 /*****************************************************************************/
 
-void formod_continua(ctl_t *ctl,
-         pos_t los[],
-		     int ip,
-		     double *beta) {
-  
-  int id;
-  
-  /* Add extinction... */
-  for(id=0; id<ctl->nd; id++)
-    beta[id]=los[ip].k[ctl->window[id]];
-  
-  /* Add CO2 continuum... */
-  if(ctl->ctm_co2)
-    for(id=0; id<ctl->nd; id++)
-      beta[id]+=ctmco2(ctl, ctl->nu[id], los[ip].p,
-		       los[ip].t, los[ip].u)/los[ip].ds;
-  
-  /* Add H2O continuum... */
-  if(ctl->ctm_h2o)
-    for(id=0; id<ctl->nd; id++)
-      beta[id]+=ctmh2o(ctl, ctl->nu[id], los[ip].p, los[ip].t,
-		       los[ip].q, los[ip].u)/los[ip].ds;
-  
-  /* Add N2 continuum... */
-  if(ctl->ctm_n2)
-    for(id=0; id<ctl->nd; id++)
-      beta[id]+=ctmn2(ctl->nu[id], los[ip].p, los[ip].t);
-
-  /* Add O2 continuum... */
-  if(ctl->ctm_o2)
-    for(id=0; id<ctl->nd; id++)
-      beta[id]+=ctmo2(ctl->nu[id], los[ip].p, los[ip].t);
-}
-
+ // removing formod_continua
+ // void formod_continua(ctl_t *ctl,
+ //         pos_t los[],
+ //         int ip,
+ //         double *beta) {
+ //   
+ //   int id;
+ //   
+ //   /* Add extinction... */
+ //   for(id=0; id<ctl->nd; id++)
+ //     beta[id]=los[ip].k[ctl->window[id]];
+ //   
+ //   /* Add CO2 continuum... */
+ //   if(ctl->ctm_co2)
+ //     for(id=0; id<ctl->nd; id++)
+ //       beta[id]+=ctmco2(ctl, ctl->nu[id], los[ip].p,
+ //           los[ip].t, los[ip].u)/los[ip].ds;
+ //   
+ //   /* Add H2O continuum... */
+ //   if(ctl->ctm_h2o)
+ //     for(id=0; id<ctl->nd; id++)
+ //       beta[id]+=ctmh2o(ctl, ctl->nu[id], los[ip].p, los[ip].t,
+ //           los[ip].q, los[ip].u)/los[ip].ds;
+ //   
+ //   /* Add N2 continuum... */
+ //   if(ctl->ctm_n2)
+ //     for(id=0; id<ctl->nd; id++)
+ //       beta[id]+=ctmn2(ctl->nu[id], los[ip].p, los[ip].t);
+ //
+ //   /* Add O2 continuum... */
+ //   if(ctl->ctm_o2)
+ //     for(id=0; id<ctl->nd; id++)
+ //       beta[id]+=ctmo2(ctl->nu[id], los[ip].p, los[ip].t);
+ // }
 /*****************************************************************************/
 
 void formod_fov(ctl_t *ctl,

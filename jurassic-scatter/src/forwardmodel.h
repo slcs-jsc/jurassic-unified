@@ -4,7 +4,7 @@
 #include "jurassic.h"
 #include "scatter.h"
 #include "atmosphere.h"
-#include "continua.h"
+// #include "continua.h"
 #include "misc.h"
 
 // tbl_t* scatter_get_tbl(ctl_t *ctl); 
@@ -20,10 +20,10 @@ void formod(ctl_t *ctl,
 	    aero_t *aero);
 
 /* Compute absorption coefficient of continua. */
-void formod_continua(ctl_t *ctl,
-         pos_t los[],
-		     int ip,
-		     double *beta);
+//void formod_continua(ctl_t *ctl,
+//         pos_t los[],
+//		     int ip,
+//		     double *beta);
 
 /* Apply field of view convolution. */
 void formod_fov(ctl_t *ctl,
