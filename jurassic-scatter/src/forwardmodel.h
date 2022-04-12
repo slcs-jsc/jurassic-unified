@@ -39,33 +39,33 @@ void formod_pencil(ctl_t *ctl,
        queue_t *q);
 
 /* Get transmittance from look-up tables. */
-void intpol_tbl(ctl_t *ctl,
-		tbl_t *tbl,
-    pos_t los[],
-		int ip,
-		double tau_path[NGMAX][NDMAX],
-		double tau_seg[NDMAX]);
+//void intpol_tbl(ctl_t *ctl,
+//		tbl_t *tbl,
+//    pos_t los[],
+//		int ip,
+//		double tau_path[NGMAX][NDMAX],
+//		double tau_seg[NDMAX]);
 
 /* Interpolate emissivity from look-up tables. */
-double intpol_tbl_eps(tbl_t *tbl,
-		      int ig,
-		      int id,
-		      int ip,
-		      int it,
-		      double u);
+//double intpol_tbl_eps(tbl_t *tbl,
+//		      int ig,
+//		      int id,
+//		      int ip,
+//		      int it,
+//		      double u);
 
 /* Interpolate column density from look-up tables. */
-double intpol_tbl_u(tbl_t *tbl,
-		    int ig,
-		    int id,
-		    int ip,
-		    int it,
-		    double eps);
+//double intpol_tbl_u(tbl_t *tbl,
+//		    int ig,
+//		    int id,
+//		    int ip,
+//		    int it,
+//		    double eps);
 
 /* Find array index in float array. */
-int locate_tbl(float *xx,
-	       int n,
-	       double x);
+//int locate_tbl(float *xx,
+//	       int n,
+//	       double x);
 
 /* Compute Planck function. */
 double planck(double t,

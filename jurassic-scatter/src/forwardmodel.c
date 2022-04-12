@@ -646,163 +646,167 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
 
 /*****************************************************************************/
 
-void intpol_tbl(ctl_t *ctl,
-		tbl_t *tbl,
-    pos_t los[],
-		int ip,
-		double tau_path[NGMAX][NDMAX],
-		double tau_seg[NDMAX]) {
-  
-  double eps, eps00, eps01, eps10, eps11, u;
-  
-  int id, ig, ipr, it0, it1;
-  
-  /* Initialize... */
-  if(ip<=0)
-    for(ig=0; ig<ctl->ng; ig++)
-      for(id=0; id<ctl->nd; id++)
-	tau_path[ig][id]=1;
-  
-  /* Loop over channels... */
-  for(id=0; id<ctl->nd; id++) {
-    
-    /* Initialize... */
-    tau_seg[id]=1;
-    
-    /* Loop over emitters.... */
-    for(ig=0; ig<ctl->ng; ig++) {
-      
-      /* Check size of table (pressure)... */
-      if(tbl->np[ig][id]<2)
-	eps=0;
-      
-      /* Check transmittance... */
-      else if(tau_path[ig][id]<1e-9)
-	eps=1;
-      
-      /* Interpolate... */
-      else {
-	
-	/* Determine pressure and temperature indices... */
-	ipr=locate(tbl->p[ig][id], tbl->np[ig][id], los[ip].p);
-	it0=locate(tbl->t[ig][id][ipr], tbl->nt[ig][id][ipr], los[ip].t);
-	it1=locate(tbl->t[ig][id][ipr+1], tbl->nt[ig][id][ipr+1], los[ip].t);
-	
-	/* Check size of table (temperature and column density)... */
-	if(tbl->nt[ig][id][ipr]<2 || tbl->nt[ig][id][ipr+1]<2
-	   || tbl->nu[ig][id][ipr][it0]<2 || tbl->nu[ig][id][ipr][it0+1]<2
-	   || tbl->nu[ig][id][ipr+1][it1]<2 || tbl->nu[ig][id][ipr+1][it1+1]<2)
-	  eps=0;
-	
-	else {
-	  
-	  /* Get emissivities of extended path... */
-	  u=intpol_tbl_u(tbl, ig, id, ipr, it0, 1-tau_path[ig][id]);
-	  eps00=intpol_tbl_eps(tbl, ig, id, ipr, it0, u+los[ip].u[ig]);
-	  eps00=GSL_MAX(GSL_MIN(eps00, 1), 0);
-	  
-	  u=intpol_tbl_u(tbl, ig, id, ipr, it0+1, 1-tau_path[ig][id]);
-	  eps01=intpol_tbl_eps(tbl, ig, id, ipr, it0+1, u+los[ip].u[ig]);
-	  eps01=GSL_MAX(GSL_MIN(eps01, 1), 0);
-	  
-	  u=intpol_tbl_u(tbl, ig, id, ipr+1, it1, 1-tau_path[ig][id]);
-	  eps10=intpol_tbl_eps(tbl, ig, id, ipr+1, it1, u+los[ip].u[ig]);
-	  eps10=GSL_MAX(GSL_MIN(eps10, 1), 0);
-	  
-	  u=intpol_tbl_u(tbl, ig, id, ipr+1, it1+1, 1-tau_path[ig][id]);
-	  eps11=intpol_tbl_eps(tbl, ig, id, ipr+1, it1+1, u+los[ip].u[ig]);
-	  eps11=GSL_MAX(GSL_MIN(eps11, 1), 0);
-	  
-	  /* Interpolate with respect to temperature... */
-	  eps00=LIN(tbl->t[ig][id][ipr][it0], eps00,
-		    tbl->t[ig][id][ipr][it0+1], eps01, los[ip].t);
-	  eps00=GSL_MAX(GSL_MIN(eps00, 1), 0);
-	  
-	  eps11=LIN(tbl->t[ig][id][ipr+1][it1], eps10,
-		    tbl->t[ig][id][ipr+1][it1+1], eps11, los[ip].t);
-	  eps11=GSL_MAX(GSL_MIN(eps11, 1), 0);
-	  
-	  /* Interpolate with respect to pressure... */
-	  eps00=LIN(tbl->p[ig][id][ipr], eps00,
-		    tbl->p[ig][id][ipr+1], eps11, los[ip].p);
-	  eps00=GSL_MAX(GSL_MIN(eps00, 1), 0);
-	  
-	  /* Determine segment emissivity... */
-	  eps=1-(1-eps00)/tau_path[ig][id];
-	}
-      }
-      
-      /* Get transmittance of extended path... */
-      tau_path[ig][id]*=(1-eps);
-      
-      /* Get segment transmittance... */
-      tau_seg[id]*=(1-eps);
-    }
-  }
-}
+ // removing intpol_tbl
+ // void intpol_tbl(ctl_t *ctl,
+ //     tbl_t *tbl,
+ //     pos_t los[],
+ //     int ip,
+ //     double tau_path[NGMAX][NDMAX],
+ //     double tau_seg[NDMAX]) {
+ //   
+ //   double eps, eps00, eps01, eps10, eps11, u;
+ //   
+ //   int id, ig, ipr, it0, it1;
+ //   
+ //   /* Initialize... */
+ //   if(ip<=0)
+ //     for(ig=0; ig<ctl->ng; ig++)
+ //       for(id=0; id<ctl->nd; id++)
+ //   tau_path[ig][id]=1;
+ //   
+ //   /* Loop over channels... */
+ //   for(id=0; id<ctl->nd; id++) {
+ //     
+ //     /* Initialize... */
+ //     tau_seg[id]=1;
+ //     
+ //     /* Loop over emitters.... */
+ //     for(ig=0; ig<ctl->ng; ig++) {
+ //       
+ //       /* Check size of table (pressure)... */
+ //       if(tbl->np[ig][id]<2)
+ //   eps=0;
+ //       
+ //       /* Check transmittance... */
+ //       else if(tau_path[ig][id]<1e-9)
+ //   eps=1;
+ //       
+ //       /* Interpolate... */
+ //       else {
+ //   
+ //   /* Determine pressure and temperature indices... */
+ //   ipr=locate(tbl->p[ig][id], tbl->np[ig][id], los[ip].p);
+ //   it0=locate(tbl->t[ig][id][ipr], tbl->nt[ig][id][ipr], los[ip].t);
+ //   it1=locate(tbl->t[ig][id][ipr+1], tbl->nt[ig][id][ipr+1], los[ip].t);
+ //   
+ //   /* Check size of table (temperature and column density)... */
+ //   if(tbl->nt[ig][id][ipr]<2 || tbl->nt[ig][id][ipr+1]<2
+ //      || tbl->nu[ig][id][ipr][it0]<2 || tbl->nu[ig][id][ipr][it0+1]<2
+ //      || tbl->nu[ig][id][ipr+1][it1]<2 || tbl->nu[ig][id][ipr+1][it1+1]<2)
+ //     eps=0;
+ //   
+ //   else {
+ //     
+ //     /* Get emissivities of extended path... */
+ //     u=intpol_tbl_u(tbl, ig, id, ipr, it0, 1-tau_path[ig][id]);
+ //     eps00=intpol_tbl_eps(tbl, ig, id, ipr, it0, u+los[ip].u[ig]);
+ //     eps00=GSL_MAX(GSL_MIN(eps00, 1), 0);
+ //     
+ //     u=intpol_tbl_u(tbl, ig, id, ipr, it0+1, 1-tau_path[ig][id]);
+ //     eps01=intpol_tbl_eps(tbl, ig, id, ipr, it0+1, u+los[ip].u[ig]);
+ //     eps01=GSL_MAX(GSL_MIN(eps01, 1), 0);
+ //     
+ //     u=intpol_tbl_u(tbl, ig, id, ipr+1, it1, 1-tau_path[ig][id]);
+ //     eps10=intpol_tbl_eps(tbl, ig, id, ipr+1, it1, u+los[ip].u[ig]);
+ //     eps10=GSL_MAX(GSL_MIN(eps10, 1), 0);
+ //     
+ //     u=intpol_tbl_u(tbl, ig, id, ipr+1, it1+1, 1-tau_path[ig][id]);
+ //     eps11=intpol_tbl_eps(tbl, ig, id, ipr+1, it1+1, u+los[ip].u[ig]);
+ //     eps11=GSL_MAX(GSL_MIN(eps11, 1), 0);
+ //     
+ //     /* Interpolate with respect to temperature... */
+ //     eps00=LIN(tbl->t[ig][id][ipr][it0], eps00,
+ //         tbl->t[ig][id][ipr][it0+1], eps01, los[ip].t);
+ //     eps00=GSL_MAX(GSL_MIN(eps00, 1), 0);
+ //     
+ //     eps11=LIN(tbl->t[ig][id][ipr+1][it1], eps10,
+ //         tbl->t[ig][id][ipr+1][it1+1], eps11, los[ip].t);
+ //     eps11=GSL_MAX(GSL_MIN(eps11, 1), 0);
+ //     
+ //     /* Interpolate with respect to pressure... */
+ //     eps00=LIN(tbl->p[ig][id][ipr], eps00,
+ //         tbl->p[ig][id][ipr+1], eps11, los[ip].p);
+ //     eps00=GSL_MAX(GSL_MIN(eps00, 1), 0);
+ //     
+ //     /* Determine segment emissivity... */
+ //     eps=1-(1-eps00)/tau_path[ig][id];
+ //   }
+ //       }
+ //       
+ //       /* Get transmittance of extended path... */
+ //       tau_path[ig][id]*=(1-eps);
+ //       
+ //       /* Get segment transmittance... */
+ //       tau_seg[id]*=(1-eps);
+ //     }
+ //   }
+ // }
 
 /*****************************************************************************/
 
-double intpol_tbl_eps(tbl_t *tbl,
-		      int ig,
-		      int id,
-		      int ip,
-		      int it,
-		      double u) {
-  
-  int idx;
-  
-  /* Get index... */
-  idx=locate_tbl(tbl->u[ig][id][ip][it], tbl->nu[ig][id][ip][it], u);
-  
-  /* Interpolate... */
-  return
-    LIN(tbl->u[ig][id][ip][it][idx], tbl->eps[ig][id][ip][it][idx],
-	tbl->u[ig][id][ip][it][idx+1], tbl->eps[ig][id][ip][it][idx+1], u);
-}
+// removing intpol_tbl
+//double intpol_tbl_eps(tbl_t *tbl,
+//		      int ig,
+//		      int id,
+//		      int ip,
+//		      int it,
+//		      double u) {
+//  
+//  int idx;
+//  
+//  /* Get index... */
+//  idx=locate_tbl(tbl->u[ig][id][ip][it], tbl->nu[ig][id][ip][it], u);
+//  
+//  /* Interpolate... */
+//  return
+//    LIN(tbl->u[ig][id][ip][it][idx], tbl->eps[ig][id][ip][it][idx],
+//	tbl->u[ig][id][ip][it][idx+1], tbl->eps[ig][id][ip][it][idx+1], u);
+//}
 
 /*****************************************************************************/
 
-double intpol_tbl_u(tbl_t *tbl,
-		    int ig,
-		    int id,
-		    int ip,
-		    int it,
-		    double eps) {
-  
-  int idx;
-  
-  /* Get index... */
-  idx=locate_tbl(tbl->eps[ig][id][ip][it], tbl->nu[ig][id][ip][it], eps);
-  
-  /* Interpolate... */
-  return
-    LIN(tbl->eps[ig][id][ip][it][idx], tbl->u[ig][id][ip][it][idx],
-	tbl->eps[ig][id][ip][it][idx+1], tbl->u[ig][id][ip][it][idx+1], eps);
-}
+// removing intpol_tbl
+//double intpol_tbl_u(tbl_t *tbl,
+//		    int ig,
+//		    int id,
+//		    int ip,
+//		    int it,
+//		    double eps) {
+//  
+//  int idx;
+//  
+//  /* Get index... */
+//  idx=locate_tbl(tbl->eps[ig][id][ip][it], tbl->nu[ig][id][ip][it], eps);
+//  
+//  /* Interpolate... */
+//  return
+//    LIN(tbl->eps[ig][id][ip][it][idx], tbl->u[ig][id][ip][it][idx],
+//	tbl->eps[ig][id][ip][it][idx+1], tbl->u[ig][id][ip][it][idx+1], eps);
+//}
 
 /*****************************************************************************/
 
-int locate_tbl(float *xx,
-               int n,
-               double x) {
-  
-  int i, ilo, ihi;
-  
-  ilo=0;
-  ihi=n-1;
-  i=(ihi+ilo)>>1;
-  
-  while(ihi>ilo+1) {
-    i=(ihi+ilo)>>1;
-    if(xx[i]>x)
-      ihi=i;
-    else
-      ilo=i;
-  }
-  
-  return ilo;
-}
+// removing intpol_tbl
+//int locate_tbl(float *xx,
+//               int n,
+//               double x) {
+//  
+//  int i, ilo, ihi;
+//  
+//  ilo=0;
+//  ihi=n-1;
+//  i=(ihi+ilo)>>1;
+//  
+//  while(ihi>ilo+1) {
+//    i=(ihi+ilo)>>1;
+//    if(xx[i]>x)
+//      ihi=i;
+//    else
+//      ilo=i;
+//  }
+//  
+//  return ilo;
+//}
 
 /*****************************************************************************/
 
