@@ -128,19 +128,20 @@ void advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs, int nr)
   free(obs_packages);
 }
 
-tbl_t* scatter_get_tbl(ctl_t *ctl) {
-  static tbl_t *tbl = NULL;
-	if(!tbl) {
-    double tic = omp_get_wtime(); 
-    printf("Allocate memory for tables: %.4g MB\n",
-           (double)sizeof(tbl_t)/1024./1024.);
-    ALLOC(tbl, tbl_t, 1);
-    read_tbl(ctl, tbl);
-    double toc = omp_get_wtime();
-    printf("TIMER #%d jurassic-scatter FIRST and ONLY reading table time: %lf\n", ctl->MPIglobrank, toc - tic);
-  }
-  return tbl;
-}
+// removing tbl_t
+// tbl_t* scatter_get_tbl(ctl_t *ctl) {
+//  static tbl_t *tbl = NULL;
+//	if(!tbl) {
+//    double tic = omp_get_wtime(); 
+//    printf("Allocate memory for tables: %.4g MB\n",
+//           (double)sizeof(tbl_t)/1024./1024.);
+//    ALLOC(tbl, tbl_t, 1);
+//    read_tbl(ctl, tbl);
+//    double toc = omp_get_wtime();
+//    printf("TIMER #%d jurassic-scatter FIRST and ONLY reading table time: %lf\n", ctl->MPIglobrank, toc - tic);
+//  }
+//  return tbl;
+//} 
 
 
 void formod(ctl_t *ctl,
@@ -432,7 +433,8 @@ void formod_pencil(ctl_t *ctl,
 
   static int init=0;
 
-  static tbl_t *tbl;
+  // removing tbl_t
+  // static tbl_t *tbl;
   static trans_table_t *trans_tbl;
 
   pos_t *los;
@@ -496,8 +498,9 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
   /* Read tables... */
   if(!init) {
     init=1;
-    tbl = scatter_get_tbl(ctl);
-    printf("%d\n", tbl->np[0][0]); // Have to do it, because of unused warning... 
+    // removing tbl_t
+    // tbl = scatter_get_tbl(ctl);
+    // printf("%d\n", tbl->np[0][0]); // Have to do it, because of unused warning... 
 
     // bug that I had:
     // https://stackoverflow.com/questions/8552684/pointer-return-value-changes-after-function-call
@@ -844,136 +847,138 @@ void read_shape(const char *filename,
 
 /*****************************************************************************/
 
-void read_tbl(ctl_t *ctl,
-	      tbl_t *tbl) {
-  
-  FILE *in;
-  
-  char filename[2*LEN], line[LEN];
-  
-  double eps, eps_old, press, press_old, temp, temp_old, u, u_old;
-  
-  int id, ig, ip, it;
-  
-  /* Loop over trace gases and channels... */
-  for(ig=0; ig<ctl->ng; ig++)
-    for(id=0; id<ctl->nd; id++) {
-      
-      /* Set filename... */
-      sprintf(filename, "%s_%.4f_%s.bin",
-	      ctl->tblbase, ctl->nu[id], ctl->emitter[ig]);
-      
-      /* Try to open binary file... */
-      if((in=fopen(filename, "r"))) {
-	
-	/* Write info... */
-	/* printf("Read emissivity table: %s\n", filename); */
-	
-	/* Read data... */
-	FREAD(&tbl->np[ig][id], int, 1, in);
-	if(tbl->np[ig][id]>TBLNPMAX)
-	  ERRMSG("Too many pressure levels!");
-	FREAD(&tbl->p[ig][id], double, tbl->np[ig][id], in);
-	FREAD(tbl->nt[ig][id], int, tbl->np[ig][id], in);
-	for(ip=0; ip<tbl->np[ig][id]; ip++) {
-	  if(tbl->nt[ig][id][ip]>TBLNTMAX)
-	    ERRMSG("Too many temperatures!");
-	  FREAD(&tbl->t[ig][id][ip], double, tbl->nt[ig][id][ip], in);
-	  FREAD(tbl->nu[ig][id][ip], int, tbl->nt[ig][id][ip], in);
-	  for(it=0; it<tbl->nt[ig][id][ip]; it++) {
-	    FREAD(&tbl->u[ig][id][ip][it], float,
-		  GSL_MIN(tbl->nu[ig][id][ip][it], TBLNUMAX), in);
-	    FREAD(&tbl->eps[ig][id][ip][it], float,
-		  GSL_MIN(tbl->nu[ig][id][ip][it], TBLNUMAX), in);
-	  }
-	}
-	
-	/* Close file... */
-	fclose(in);
-      }
-      
-      /* Try to read ASCII file... */
-      else {
-	
-	/* Initialize... */
-	tbl->np[ig][id]=-1;
-	eps_old=-999;
-	press_old=-999;
-	temp_old=-999;
-	u_old=-999;
-	
-	/* Try to open file... */
-	sprintf(filename, "%s_%.4f_%s.tab",
-		ctl->tblbase, ctl->nu[id], ctl->emitter[ig]);
 
-	if(!(in=fopen(filename, "r"))) {
-	  printf("Missing emissivity table: %s\n", filename);
-	  continue;
-	}
-	printf("Read emissivity table: %s\n", filename);
-	
-	/* Read data... */
-	while(fgets(line, LEN, in)) {
-	  
-	  /* Parse line... */
-	  if(sscanf(line,"%lg %lg %lg %lg", &press, &temp, &u, &eps)!=4)
-	    continue;
-	  
-	  /* Determine pressure index... */
-	  if(press!=press_old) {
-	    press_old=press;
-	    if((++tbl->np[ig][id])>=TBLNPMAX)
-	      ERRMSG("Too many pressure levels!");
-	    tbl->nt[ig][id][tbl->np[ig][id]]=-1;
-	  }
-	  
-	  /* Determine temperature index... */
-	  if(temp!=temp_old) {
-	    temp_old=temp;
-	    if((++tbl->nt[ig][id][tbl->np[ig][id]])>=TBLNTMAX)
-	      ERRMSG("Too many temperatures!");
-	    tbl->nu[ig][id][tbl->np[ig][id]]
-	      [tbl->nt[ig][id][tbl->np[ig][id]]]=-1;
-	  }
-	  
-	  /* Determine column density index... */
-	  if((eps>eps_old && u>u_old) || tbl->nu[ig][id][tbl->np[ig][id]]
-	     [tbl->nt[ig][id][tbl->np[ig][id]]]<0) {
-	    eps_old=eps;
-	    u_old=u;
-	    if((++tbl->nu[ig][id][tbl->np[ig][id]]
-		[tbl->nt[ig][id][tbl->np[ig][id]]])>=TBLNUMAX) {
-	      tbl->nu[ig][id][tbl->np[ig][id]]
-		[tbl->nt[ig][id][tbl->np[ig][id]]]--;
-	      continue;
-	    }
-	  }
-	  
-	  /* Store data... */
-	  tbl->p[ig][id][tbl->np[ig][id]]=press;
-	  tbl->t[ig][id][tbl->np[ig][id]][tbl->nt[ig][id][tbl->np[ig][id]]]
-	    =temp;
-	  tbl->u[ig][id][tbl->np[ig][id]][tbl->nt[ig][id][tbl->np[ig][id]]]
-	    [tbl->nu[ig][id][tbl->np[ig][id]]
-	     [tbl->nt[ig][id][tbl->np[ig][id]]]]=(float)u;
-	  tbl->eps[ig][id][tbl->np[ig][id]][tbl->nt[ig][id][tbl->np[ig][id]]]
-	    [tbl->nu[ig][id][tbl->np[ig][id]]
-	     [tbl->nt[ig][id][tbl->np[ig][id]]]]=(float)eps;
-	}
-	
-	/* Increment counters... */
-	tbl->np[ig][id]++;
-	for(ip=0; ip<tbl->np[ig][id]; ip++) {
-	  tbl->nt[ig][id][ip]++;
-	  for(it=0; it<tbl->nt[ig][id][ip]; it++)
-	    tbl->nu[ig][id][ip][it]++;
-	}
-	
-	/* Close file... */
-	fclose(in);
-      }
-    }
-}
+// removing tbl_t
+// void read_tbl(ctl_t *ctl,
+//         tbl_t *tbl) {
+//   
+//   FILE *in;
+//   
+//   char filename[2*LEN], line[LEN];
+//   
+//   double eps, eps_old, press, press_old, temp, temp_old, u, u_old;
+//   
+//   int id, ig, ip, it;
+//   
+//   /* Loop over trace gases and channels... */
+//   for(ig=0; ig<ctl->ng; ig++)
+//     for(id=0; id<ctl->nd; id++) {
+//       
+//       /* Set filename... */
+//       sprintf(filename, "%s_%.4f_%s.bin",
+//         ctl->tblbase, ctl->nu[id], ctl->emitter[ig]);
+//       
+//       /* Try to open binary file... */
+//       if((in=fopen(filename, "r"))) {
+//   
+//   /* Write info... */
+//   /* printf("Read emissivity table: %s\n", filename); */
+//   
+//   /* Read data... */
+//   FREAD(&tbl->np[ig][id], int, 1, in);
+//   if(tbl->np[ig][id]>TBLNPMAX)
+//     ERRMSG("Too many pressure levels!");
+//   FREAD(&tbl->p[ig][id], double, tbl->np[ig][id], in);
+//   FREAD(tbl->nt[ig][id], int, tbl->np[ig][id], in);
+//   for(ip=0; ip<tbl->np[ig][id]; ip++) {
+//     if(tbl->nt[ig][id][ip]>TBLNTMAX)
+//       ERRMSG("Too many temperatures!");
+//     FREAD(&tbl->t[ig][id][ip], double, tbl->nt[ig][id][ip], in);
+//     FREAD(tbl->nu[ig][id][ip], int, tbl->nt[ig][id][ip], in);
+//     for(it=0; it<tbl->nt[ig][id][ip]; it++) {
+//       FREAD(&tbl->u[ig][id][ip][it], float,
+//       GSL_MIN(tbl->nu[ig][id][ip][it], TBLNUMAX), in);
+//       FREAD(&tbl->eps[ig][id][ip][it], float,
+//       GSL_MIN(tbl->nu[ig][id][ip][it], TBLNUMAX), in);
+//     }
+//   }
+//   
+//   /* Close file... */
+//   fclose(in);
+//       }
+//       
+//       /* Try to read ASCII file... */
+//       else {
+//   
+//   /* Initialize... */
+//   tbl->np[ig][id]=-1;
+//   eps_old=-999;
+//   press_old=-999;
+//   temp_old=-999;
+//   u_old=-999;
+//   
+//   /* Try to open file... */
+//   sprintf(filename, "%s_%.4f_%s.tab",
+//     ctl->tblbase, ctl->nu[id], ctl->emitter[ig]);
+//
+//   if(!(in=fopen(filename, "r"))) {
+//     printf("Missing emissivity table: %s\n", filename);
+//     continue;
+//   }
+//   printf("Read emissivity table: %s\n", filename);
+//   
+//   /* Read data... */
+//   while(fgets(line, LEN, in)) {
+//     
+//     /* Parse line... */
+//     if(sscanf(line,"%lg %lg %lg %lg", &press, &temp, &u, &eps)!=4)
+//       continue;
+//     
+//     /* Determine pressure index... */
+//     if(press!=press_old) {
+//       press_old=press;
+//       if((++tbl->np[ig][id])>=TBLNPMAX)
+//        ERRMSG("Too many pressure levels!");
+//      tbl->nt[ig][id][tbl->np[ig][id]]=-1;
+//    }
+//    
+//    /* Determine temperature index... */
+//    if(temp!=temp_old) {
+//      temp_old=temp;
+//      if((++tbl->nt[ig][id][tbl->np[ig][id]])>=TBLNTMAX)
+//        ERRMSG("Too many temperatures!");
+//      tbl->nu[ig][id][tbl->np[ig][id]]
+//        [tbl->nt[ig][id][tbl->np[ig][id]]]=-1;
+//    }
+//    
+//    /* Determine column density index... */
+//    if((eps>eps_old && u>u_old) || tbl->nu[ig][id][tbl->np[ig][id]]
+//      [tbl->nt[ig][id][tbl->np[ig][id]]]<0) {
+//      eps_old=eps;
+//      u_old=u;
+//      if((++tbl->nu[ig][id][tbl->np[ig][id]]
+//    [tbl->nt[ig][id][tbl->np[ig][id]]])>=TBLNUMAX) {
+//        tbl->nu[ig][id][tbl->np[ig][id]]
+//    [tbl->nt[ig][id][tbl->np[ig][id]]]--;
+//        continue;
+//      }
+//    }
+//    
+//    /* Store data... */
+//    tbl->p[ig][id][tbl->np[ig][id]]=press;
+//    tbl->t[ig][id][tbl->np[ig][id]][tbl->nt[ig][id][tbl->np[ig][id]]]
+//      =temp;
+//    tbl->u[ig][id][tbl->np[ig][id]][tbl->nt[ig][id][tbl->np[ig][id]]]
+//      [tbl->nu[ig][id][tbl->np[ig][id]]
+//      [tbl->nt[ig][id][tbl->np[ig][id]]]]=(float)u;
+//    tbl->eps[ig][id][tbl->np[ig][id]][tbl->nt[ig][id][tbl->np[ig][id]]]
+//      [tbl->nu[ig][id][tbl->np[ig][id]]
+//      [tbl->nt[ig][id][tbl->np[ig][id]]]]=(float)eps;
+//  }
+//  
+//  /* Increment counters... */
+//  tbl->np[ig][id]++;
+//  for(ip=0; ip<tbl->np[ig][id]; ip++) {
+//    tbl->nt[ig][id][ip]++;
+//    for(it=0; it<tbl->nt[ig][id][ip]; it++)
+//      tbl->nu[ig][id][ip][it]++;
+//  }
+//  
+//  /* Close file... */
+//  fclose(in);
+//      }
+//    }
+// }
 
 /*****************************************************************************/
 

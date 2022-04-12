@@ -28,8 +28,8 @@ void geo2cart(double z,
 	      double *x);
 
 /* Initialize look-up tables. */
-void init_tbl(ctl_t *ctl,
-	      tbl_t *tbl);
+// void init_tbl(ctl_t *ctl,
+//	      tbl_t *tbl);
 
 /* Find array index. */
 int locate(double *xx,  /* array */

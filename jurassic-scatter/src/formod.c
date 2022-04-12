@@ -79,8 +79,9 @@ int main(int argc, char *argv[]) {
   ctl.MPIlocalrank = node_local_rank;
 
   // Initialization of the tables
-  tbl_t *tbl = scatter_get_tbl(&ctl);
-  printf("%d\n", tbl->np[0][0]); // Have to do it, because of unused warning... 
+  // removing tbl_t
+  // tbl_t *tbl = scatter_get_tbl(&ctl);
+  // printf("%d\n", tbl->np[0][0]); // Have to do it, because of unused warning... 
   initialize_jurassic_gpu_table(&ctl);
 
   /* Single forward calculation... */

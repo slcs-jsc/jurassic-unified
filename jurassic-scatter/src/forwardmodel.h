@@ -7,7 +7,7 @@
 #include "continua.h"
 #include "misc.h"
 
-tbl_t* scatter_get_tbl(ctl_t *ctl); 
+// tbl_t* scatter_get_tbl(ctl_t *ctl); 
 
 /* Compute brightness temperature. */
 double brightness(double rad,
@@ -78,8 +78,8 @@ void read_shape(const char *filename,
 		int *n);
 
 /* Read emissivity look-up tables. */
-void read_tbl(ctl_t *ctl,
-	      tbl_t *tbl);
+//void read_tbl(ctl_t *ctl,
+//	      tbl_t *tbl);
 
 /* Compute Planck source function. */
 void srcfunc_planck(ctl_t *ctl,
