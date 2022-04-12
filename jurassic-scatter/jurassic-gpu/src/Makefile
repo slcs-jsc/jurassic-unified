@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 
 # Main executables...
-EXC = formod obs2spec brightness climatology jsec2time limb nadir planck time2jsec memoryinfo hash
+EXC = formod #obs2spec brightness climatology jsec2time limb nadir planck time2jsec memoryinfo hash
 
 # Library directories...
 LIBDIR =
