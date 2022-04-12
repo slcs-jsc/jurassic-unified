@@ -810,6 +810,7 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
 
 /*****************************************************************************/
 
+// needed for srcfunc_sca_sun from scatter.c
 double planck(double t,
 	      double nu) {
   
@@ -818,6 +819,7 @@ double planck(double t,
 
 /*****************************************************************************/
 
+// needed for formod_fov
 void read_shape(const char *filename,
 		double *x,
 		double *y,
@@ -986,55 +988,56 @@ void read_shape(const char *filename,
 
 /*****************************************************************************/
 
-void srcfunc_planck(ctl_t *ctl,
-		    double t,
-		    double *src) {
-  
-  static double f[NSHAPE], fsum, nu[NSHAPE], plancka[NDMAX][1201],
-    tmin=100, tmax=400, temp[1201];
-  
-  static int i, init=0, n, nplanck=1201;
-
-  char filename[2*LEN];
-  
-  int id, it;
-  
-  /* Initialize source function table... */
-  if(!init) {
-    init=1;
-    
-    /* Write info... */
-    printf("Initialize source function table...\n");
-    
-    /* Loop over channels... */
-    for(id=0; id<ctl->nd; id++) {
-      
-      /* Read filter function... */
-      sprintf(filename, "%s_%.4f.filt", ctl->tblbase, ctl->nu[id]);
-      read_shape(filename, nu, f, &n);
-      
-      /* Compute source function table... */
-      for(it=0; it<nplanck; it++) {
-	
-	/* Set temperature... */
-	temp[it]=LIN(0.0, tmin, nplanck-1.0, tmax, (double)it);
-	
-	/* Integrate Planck function... */
-	fsum=0;
-	plancka[id][it]=0;
-	for(i=0; i<n; i++) {
-	  fsum+=f[i];
-	  plancka[id][it]+=f[i]*planck(temp[it], nu[i]);
-	}
-	plancka[id][it]/=fsum;
-      }
-    }
-  }
-  
-  /* Determine index in temperature array... */
-  it=locate(temp, nplanck, t);
-  
-  /* Interpolate Planck function value... */
-  for(id=0; id<ctl->nd; id++)
-    src[id]=LIN(temp[it], plancka[id][it], temp[it+1], plancka[id][it+1], t);
-}
+ // removing planck
+ // void srcfunc_planck(ctl_t *ctl,
+ //         double t,
+ //         double *src) {
+ //   
+ //   static double f[NSHAPE], fsum, nu[NSHAPE], plancka[NDMAX][1201],
+ //     tmin=100, tmax=400, temp[1201];
+ //   
+ //   static int i, init=0, n, nplanck=1201;
+ //
+ //   char filename[2*LEN];
+ //   
+ //   int id, it;
+ //   
+ //   /* Initialize source function table... */
+ //   if(!init) {
+ //     init=1;
+ //     
+ //     /* Write info... */
+ //     printf("Initialize source function table...\n");
+ //     
+ //     /* Loop over channels... */
+ //     for(id=0; id<ctl->nd; id++) {
+ //       
+ //       /* Read filter function... */
+ //       sprintf(filename, "%s_%.4f.filt", ctl->tblbase, ctl->nu[id]);
+ //       read_shape(filename, nu, f, &n);
+ //       
+ //       /* Compute source function table... */
+ //       for(it=0; it<nplanck; it++) {
+ //   
+ //   /* Set temperature... */
+ //   temp[it]=LIN(0.0, tmin, nplanck-1.0, tmax, (double)it);
+ //   
+ //   /* Integrate Planck function... */
+ //   fsum=0;
+ //   plancka[id][it]=0;
+ //   for(i=0; i<n; i++) {
+ //     fsum+=f[i];
+ //     plancka[id][it]+=f[i]*planck(temp[it], nu[i]);
+ //   }
+ //   plancka[id][it]/=fsum;
+ //       }
+ //     }
+ //   }
+ //   
+ //   /* Determine index in temperature array... */
+ //   it=locate(temp, nplanck, t);
+ //   
+ //   /* Interpolate Planck function value... */
+ //   for(id=0; id<ctl->nd; id++)
+ //     src[id]=LIN(temp[it], plancka[id][it], temp[it+1], plancka[id][it+1], t);
+ // }

@@ -67,10 +67,12 @@ void formod_pencil(ctl_t *ctl,
 //	       int n,
 //	       double x);
 
+// needed for srcfunc_sca_sun from scatter.c
 /* Compute Planck function. */
 double planck(double t,
 	      double nu);
 
+// needed for formod_fov
 /* Read shape function. */
 void read_shape(const char *filename,
 		double *x,
@@ -82,8 +84,8 @@ void read_shape(const char *filename,
 //	      tbl_t *tbl);
 
 /* Compute Planck source function. */
-void srcfunc_planck(ctl_t *ctl,
-		    double t,
-		    double *src);
+//void srcfunc_planck(ctl_t *ctl,
+//		    double t,
+//		    double *src);
 
 #endif
