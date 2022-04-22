@@ -26,4 +26,6 @@ double jur_scan_ctl(int argc, char *argv[], char const *varname, int arridx, cha
 
 void jur_cart2geo(double const x[], double *alt, double *lon, double *lat);
 
+void jur_copy_obs(ctl_t const *const ctl, obs_t *obs_dest, obs_t const *const obs_src, int const init); 
+
 #endif

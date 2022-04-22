@@ -98,6 +98,7 @@ the refined list of files and functions which shold be changed:
       JURASSIC-GPU: (jurassic.c)
         void jur_copy_obs(ctl_t const *const ctl, obs_t *obs_dest, obs_t const *const obs_src, int const init);
       // we expect them to be the same!
+      // comparison: ok!
         
     --
 

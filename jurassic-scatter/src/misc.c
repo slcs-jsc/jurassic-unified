@@ -2,49 +2,6 @@
 
 /*****************************************************************************/
 
-void copy_obs(ctl_t *ctl,
-	      obs_t *obs_dest,
-	      obs_t *obs_src,
-	      int init) {
-  
-  int id, ir;
-  
-  size_t s;
-  
-  /* Data size... */
-  s=(size_t)obs_src->nr*sizeof(double);
-  
-  /* Copy data... */
-  obs_dest->nr=obs_src->nr;
-  memcpy(obs_dest->time, obs_src->time, s);
-  memcpy(obs_dest->obsz, obs_src->obsz, s);
-  memcpy(obs_dest->obslon, obs_src->obslon, s);
-  memcpy(obs_dest->obslat, obs_src->obslat, s);
-  memcpy(obs_dest->vpz, obs_src->vpz, s);
-  memcpy(obs_dest->vplon, obs_src->vplon, s);
-  memcpy(obs_dest->vplat, obs_src->vplat, s);
-  memcpy(obs_dest->tpz, obs_src->tpz, s);
-  memcpy(obs_dest->tplon, obs_src->tplon, s);
-  memcpy(obs_dest->tplat, obs_src->tplat, s);
-  size_t t;                                         //CHANGED
-  t=(size_t)ctl->nd*sizeof(double);                 //CHANGED
-  for(ir=0; ir<obs_src->nr; ir++) {                 //CHANGED
-    memcpy(obs_dest->rad[ir], obs_src->rad[ir], t); //CHANGED
-    memcpy(obs_dest->tau[ir], obs_src->tau[ir], t); //CHANGED
-  }
-  
-  /* Initialize... */
-  if(init)
-    for(ir=0; ir<obs_dest->nr; ir++)
-      for(id=0; id<ctl->nd; id++)
-        if(gsl_finite(obs_dest->rad[ir][id])) { //CHANGED
-          obs_dest->rad[ir][id]=0;              //CHANGED
-          obs_dest->tau[ir][id]=0;              //CHANGED
-        }
-}
-
-/*****************************************************************************/
-
 void geo2cart(double z, 
 	      double lon,
 	      double lat,

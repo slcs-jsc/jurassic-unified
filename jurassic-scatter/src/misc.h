@@ -9,12 +9,6 @@
    Functions...
    ------------------------------------------------------------ */
 
-/* Copy and initialize observation data. */
-void copy_obs(ctl_t *ctl,
-	      obs_t *obs_dest,
-	      obs_t *obs_src,
-	      int init);
-
 /* Convert geolocation to Cartesian coordinates. */
 void geo2cart(double z,
 	      double lon,

@@ -353,7 +353,7 @@ void formod_fov(ctl_t *ctl,
   }
   
   /* Copy observation data... */
-  copy_obs(ctl, &obs2, obs, 0);
+  jur_copy_obs(ctl, &obs2, obs, 0);
   
   /* Loop over ray paths... */
   for(ir=0; ir<obs->nr; ir++) {
