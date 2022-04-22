@@ -167,7 +167,7 @@ void call_formod(ctl_t *ctl,
   printf("TIMER #%d \n", ctl->MPIglobrank);
   printf("DEBUG #%d \n", ctl->MPIglobrank);
   /* Save radiance data... */
-  write_obs(wrkdir, radfile, ctl, &obs);
+  jur_write_obs(wrkdir, radfile, ctl, &obs);
   
   /* Compute contributions... */
   if(task[0]=='c' || task[0]=='C') {
@@ -198,7 +198,7 @@ void call_formod(ctl_t *ctl,
       
       /* Save radiance data... */
       sprintf(filename, "%s.%s", radfile, ctl->emitter[ig]);
-	write_obs(wrkdir, filename, ctl, &obs);
+	jur_write_obs(wrkdir, filename, ctl, &obs);
     }
     
     /* Copy atmospheric data... */
@@ -214,6 +214,6 @@ void call_formod(ctl_t *ctl,
     
     /* Save radiance data... */
     sprintf(filename, "%s.EXTINCT", radfile);
-    write_obs(wrkdir, filename, ctl, &obs);
+    jur_write_obs(wrkdir, filename, ctl, &obs);
   }
 }
