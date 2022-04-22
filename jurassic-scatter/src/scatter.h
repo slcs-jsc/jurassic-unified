@@ -5,7 +5,6 @@
 
 #include "jurassic.h"
 #include "forwardmodel.h"
-#include "misc.h"
 
 /* ------------------------------------------------------------
    Functions...

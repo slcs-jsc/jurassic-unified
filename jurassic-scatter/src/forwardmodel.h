@@ -4,10 +4,6 @@
 #include "jurassic.h"
 #include "scatter.h"
 #include "atmosphere.h"
-// #include "continua.h"
-#include "misc.h"
-
-// tbl_t* scatter_get_tbl(ctl_t *ctl); 
 
 /* Compute brightness temperature. */
 double brightness(double rad,
