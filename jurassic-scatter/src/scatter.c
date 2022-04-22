@@ -738,8 +738,8 @@ void srcfunc_sca_1d(ctl_t *ctl,
     
     /* Set observation geometry... */
     obs2->nr=nalpha;
-    cart2geo(x, &obs2->obsz[ir], &obs2->obslon[ir], &obs2->obslat[ir]);
-    cart2geo(xv, &obs2->vpz[ir], &obs2->vplon[ir], &obs2->vplat[ir]);
+    jur_cart2geo(x, &obs2->obsz[ir], &obs2->obslon[ir], &obs2->obslat[ir]);
+    jur_cart2geo(xv, &obs2->vpz[ir], &obs2->vplon[ir], &obs2->vplat[ir]);
     obs2->time[ir] = sec; 
     /* Get pencil beam radiance... */
     formod_pencil(ctl, atm, obs2, aero, scattering-1, ir, q); 
@@ -867,8 +867,8 @@ void srcfunc_sca_3d(ctl_t *ctl,
       
       /* Set observation geometry... */
       obs2->nr=1;
-      cart2geo(x, &obs2->obsz[0], &obs2->obslon[0], &obs2->obslat[0]);
-      cart2geo(xv, &obs2->vpz[0], &obs2->vplon[0], &obs2->vplat[0]);
+      jur_cart2geo(x, &obs2->obsz[0], &obs2->obslon[0], &obs2->obslat[0]);
+      jur_cart2geo(xv, &obs2->vpz[0], &obs2->vplon[0], &obs2->vplat[0]);
       obs2->time[0] = sec; 
       
       /* Get incident radiation... */
@@ -942,7 +942,7 @@ void srcfunc_sca_sun(ctl_t *ctl,
   
   /* Get geometric coordinates of the Sun... */
   obs->nr=1;
-  cart2geo(x, &obs->obsz[0], &obs->obslon[0], &obs->obslat[0]);
+  jur_cart2geo(x, &obs->obsz[0], &obs->obslon[0], &obs->obslat[0]);
   suncoord(sec, obs->obslon[0], obs->obslat[0], &azi, &sza);
   obs->time[0] = sec; // this was missing! 
   
@@ -958,7 +958,7 @@ void srcfunc_sca_sun(ctl_t *ctl,
         +cos(sza_cor*M_PI/180)*lz[i];
       x1[i]=x[i]+10*ek[i];
     }
-    cart2geo(x1, &obs->vpz[0], &obs->vplon[0], &obs->vplat[0]);
+    jur_cart2geo(x1, &obs->vpz[0], &obs->vplon[0], &obs->vplat[0]);
 
     /* Get zenith angle at end of beam... */
     np = pos_scatter_traceray(ctl, atm, obs, aero, 0, los, &tsurf, 0); // without ignoring scattering

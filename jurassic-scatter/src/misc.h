@@ -9,12 +9,6 @@
    Functions...
    ------------------------------------------------------------ */
 
-/* Convert Cartesian coordinates to geolocation. */
-void cart2geo(double *x,
-	      double *z,
-	      double *lon,
-	      double *lat);
-
 /* Copy and initialize observation data. */
 void copy_obs(ctl_t *ctl,
 	      obs_t *obs_dest,

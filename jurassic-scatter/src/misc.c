@@ -2,21 +2,6 @@
 
 /*****************************************************************************/
 
-void cart2geo(double *x,
-	      double *z,
-	      double *lon,
-	      double *lat) {
-  
-  double radius;
-  
-  radius=NORM(x);
-  *lat=asin(x[2]/radius)*180/M_PI;
-  *lon=atan2(x[1], x[0])*180/M_PI;
-  *z=radius-RE;
-}
-
-/*****************************************************************************/
-
 void copy_obs(ctl_t *ctl,
 	      obs_t *obs_dest,
 	      obs_t *obs_src,
