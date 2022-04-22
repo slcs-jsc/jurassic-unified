@@ -30,4 +30,6 @@ void jur_copy_obs(ctl_t const *const ctl, obs_t *obs_dest, obs_t const *const ob
 
 void jur_geo2cart(double const alt, double const lon, double const lat, double x[]);
 
+int jur_locate(double const *ptr xx, int const n, double const x); 
+
 #endif

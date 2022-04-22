@@ -458,7 +458,7 @@ void opt_prop_mie_log(ctl_t *ctl,
     
     /* Interpolate... */
     for(id=0; id<ctl->nd; id++) {
-      idx=locate(nu, npts, ctl->nu[id]);
+      idx=jur_locate(nu, npts, ctl->nu[id]);
       n_real[id]=LIN(nu[idx], nr[idx], nu[idx+1], nr[idx+1], ctl->nu[id]);
       n_imag[id]=LIN(nu[idx], ni[idx], nu[idx+1], ni[idx+1], ctl->nu[id]);
     }
@@ -563,7 +563,7 @@ void opt_prop_external(ctl_t *ctl,
 
     /* Find closest match in wavenumber for each spectral point */
     for(id=0; id<ctl->nd; id++){
-      im=locate(nu, npts, ctl->nu[id]);
+      im=jur_locate(nu, npts, ctl->nu[id]);
       if(im != npts && fabs(nu[im] - ctl->nu[id]) > fabs(nu[im+1] - ctl->nu[id]))
       /* if(im != npts && (nu[im] - ctl->nu[id]) > (nu[im+1] - ctl->nu[id])) */
 	im=im+1;
@@ -775,13 +775,13 @@ void srcfunc_sca_1d(ctl_t *ctl,
 	  +cos(theta2)*sz[i];
 
       /* Get phase function index */
-      idp=locate(theta, NTHETA, theta2);
+      idp=jur_locate(theta, NTHETA, theta2);
 
       /* Get zenith angle... */
       alpha2=ANGLE(-1.*lz, ek);
 
       /* Get source ray angle index */
-      idx=locate(alpha, nalpha, alpha2);
+      idx=jur_locate(alpha, nalpha, alpha2);
 	
       /* Loop over channels... */
       for(id=0; id<ctl->nd; id++) {
@@ -875,7 +875,7 @@ void srcfunc_sca_3d(ctl_t *ctl,
       formod_pencil(ctl, atm, obs2, aero, scattering-1, 0, q);
       
       /* Get phase function index */
-      idx=locate(theta, NTHETA, theta2);
+      idx=jur_locate(theta, NTHETA, theta2);
 
       /* Loop over channels... */
       for(id=0; id<ctl->nd; id++) {
@@ -993,7 +993,7 @@ void srcfunc_sca_sun(ctl_t *ctl,
     
     /* Get phase function position... */
     theta2=ANGLE(ek, dx);
-    idx=locate(theta, NTHETA, theta2);
+    idx=jur_locate(theta, NTHETA, theta2);
 
     /* Loop over channels... */
     for(id=0; id<ctl->nd; id++) {

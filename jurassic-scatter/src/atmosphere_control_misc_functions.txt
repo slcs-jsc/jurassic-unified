@@ -118,6 +118,7 @@ the refined list of files and functions which shold be changed:
       JURASSIC-GPU: (jr_common.h)
 	      int jur_locate(double const *ptr xx, int const n, double const x); 
       // we expect them to be the same!
+      // comparison: ok!
     
     --
 

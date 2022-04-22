@@ -380,7 +380,7 @@ void formod_fov(ctl_t *ctl,
     }
     for(i=0; i<n; i++) {
       zfov=obs->tpz[ir]+dz[i];
-      idx=locate(z, nz, zfov);
+      idx=jur_locate(z, nz, zfov);
       for(id=0; id<ctl->nd; id++) {
         obs->rad[ir][id]+=w[i] //CHANGED
           *LIN(z[idx], rad[id][idx], 
@@ -662,9 +662,9 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
  //       else {
  //   
  //   /* Determine pressure and temperature indices... */
- //   ipr=locate(tbl->p[ig][id], tbl->np[ig][id], los[ip].p);
- //   it0=locate(tbl->t[ig][id][ipr], tbl->nt[ig][id][ipr], los[ip].t);
- //   it1=locate(tbl->t[ig][id][ipr+1], tbl->nt[ig][id][ipr+1], los[ip].t);
+ //   ipr=jur_locate(tbl->p[ig][id], tbl->np[ig][id], los[ip].p);
+ //   it0=jur_locate(tbl->t[ig][id][ipr], tbl->nt[ig][id][ipr], los[ip].t);
+ //   it1=jur_locate(tbl->t[ig][id][ipr+1], tbl->nt[ig][id][ipr+1], los[ip].t);
  //   
  //   /* Check size of table (temperature and column density)... */
  //   if(tbl->nt[ig][id][ipr]<2 || tbl->nt[ig][id][ipr+1]<2
@@ -1012,7 +1012,7 @@ void read_shape(const char *filename,
  //   }
  //   
  //   /* Determine index in temperature array... */
- //   it=locate(temp, nplanck, t);
+ //   it=jur_locate(temp, nplanck, t);
  //   
  //   /* Interpolate Planck function value... */
  //   for(id=0; id<ctl->nd; id++)

@@ -1,9 +1,7 @@
 #include "control.h"
 
-#ifndef __host__
-  #define __host__
-  #include "interface.h"
-#endif
+#define __host__
+#include "interface.h"
 
 /* Module to read and handle all input parameters. */
 

@@ -163,37 +163,6 @@
 // }
 
 /*****************************************************************************/
-int locate(double *xx,
-     int n,
-     double x) {
-  
-  int i, ilo, ihi;
-  
-  ilo=0;
-  ihi=n-1;
-  i=(ihi+ilo)>>1;
-  
-  if(xx[i]<xx[i+1])
-    while(ihi>ilo+1) {
-      i=(ihi+ilo)>>1;
-      if(xx[i]>x)
-	ihi=i;
-      else
-	ilo=i;
-    }
-  else
-    while(ihi>ilo+1) {
-      i=(ihi+ilo)>>1;
-      if(xx[i]<=x)
-	ihi=i;
-      else
-	ilo=i;
-    }
-  
-  return ilo;
-}
-
-/*****************************************************************************/
 
 void read_obs(const char *dirname,
 	      const char *filename,

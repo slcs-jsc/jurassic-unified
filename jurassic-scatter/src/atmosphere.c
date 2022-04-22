@@ -1,9 +1,7 @@
 #include "atmosphere.h"
 
-#ifndef __host__
-  #define __host__
-  #include "interface.h"
-#endif
+#define __host__
+#include "interface.h"
 
 /*****************************************************************************/
 
@@ -313,7 +311,7 @@ void intpol_atm_1d(ctl_t *ctl,
   int ig, ip, iw;
   
   /* Get array index... */
-  ip=idx0+locate(&atm->z[idx0], n, z0);
+  ip=idx0+jur_locate(&atm->z[idx0], n, z0);
   
   /* Interpolate... */
   *p=EXP(atm->z[ip], atm->p[ip], atm->z[ip+1], atm->p[ip+1], z0);
