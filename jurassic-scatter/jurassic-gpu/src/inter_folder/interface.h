@@ -32,4 +32,6 @@ void jur_geo2cart(double const alt, double const lon, double const lat, double x
 
 int jur_locate(double const *ptr xx, int const n, double const x); 
 
+void jur_read_obs(char const *dirname, char const *filename, ctl_t *ctl, obs_t *obs);
+
 #endif

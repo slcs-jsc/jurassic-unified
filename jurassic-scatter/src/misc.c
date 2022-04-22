@@ -164,64 +164,6 @@
 
 /*****************************************************************************/
 
-void read_obs(const char *dirname,
-	      const char *filename,
-	      ctl_t *ctl,
-	      obs_t *obs) {
-  
-  FILE *in;
-  
-  char file[LEN], line[LEN], *tok;
-  
-  int id;
-  
-  /* Init... */
-  obs->nr=0;
-  
-  /* Set filename... */
-  if(dirname!=NULL)
-    sprintf(file, "%s/%s", dirname, filename);
-  else
-    sprintf(file, "%s", filename);
-  
-  /* Write info... */
-  printf("Read observation data: %s\n", file);
-  
-  /* Open file... */
-  if(!(in=fopen(file, "r")))
-    ERRMSG("Cannot open file!");
-  
-  /* Read data... */
-  while(fgets(line, LEN, in)) {
-    
-    /* Read data... */
-    TOK(line, tok, "%lg", obs->time[obs->nr]);
-    TOK(NULL, tok, "%lg", obs->obsz[obs->nr]);
-    TOK(NULL, tok, "%lg", obs->obslon[obs->nr]);
-    TOK(NULL, tok, "%lg", obs->obslat[obs->nr]);
-    TOK(NULL, tok, "%lg", obs->vpz[obs->nr]);
-    TOK(NULL, tok, "%lg", obs->vplon[obs->nr]);
-    TOK(NULL, tok, "%lg", obs->vplat[obs->nr]);
-    TOK(NULL, tok, "%lg", obs->tpz[obs->nr]);
-    TOK(NULL, tok, "%lg", obs->tplon[obs->nr]);
-    TOK(NULL, tok, "%lg", obs->tplat[obs->nr]);
-    for(id=0; id<ctl->nd; id++)
-      TOK(NULL, tok, "%lg", obs->rad[obs->nr][id]); //CHANGED
-    for(id=0; id<ctl->nd; id++)
-      TOK(NULL, tok, "%lg", obs->tau[obs->nr][id]); //CHANGED
-    
-    /* Increment counter... */
-    if((++obs->nr)>NRMAX)
-      ERRMSG("Too many rays!");
-  }
-  
-  /* Close file... */
-  fclose(in);
-  
-  /* Check number of points... */
-  if(obs->nr<1)
-    ERRMSG("Could not read any data!");
-}
 
 /*****************************************************************************/
 

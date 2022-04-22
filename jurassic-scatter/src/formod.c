@@ -143,7 +143,7 @@ void call_formod(ctl_t *ctl,
   int ig, ig2, ip, iw;
   
   /* Read observation geometry... */
-  read_obs(wrkdir, obsfile, ctl, &obs);
+  jur_read_obs(wrkdir, obsfile, ctl, &obs);
   
   /* Read atmospheric data... */
   jur_read_atm(wrkdir, atmfile, ctl, &atm);

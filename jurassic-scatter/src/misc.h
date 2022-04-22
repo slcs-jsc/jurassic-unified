@@ -13,13 +13,6 @@
 // void init_tbl(ctl_t *ctl,
 //	      tbl_t *tbl);
 
-/* Read observation data. */
-/* Reads observations e.g for retrieval */
-void read_obs(const char *dirname,
-	      const char *filename,
-	      ctl_t *ctl,
-	      obs_t *obs);
-
 /* Write observation data. */
 void write_obs(const char *dirname,
 	       const char *filename,

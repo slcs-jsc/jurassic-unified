@@ -128,6 +128,7 @@ the refined list of files and functions which shold be changed:
       JURASSIC-GPU: (jurassic.c)
         void jur_read_obs(char const *dirname, char const *filename, ctl_t *ctl, obs_t *obs);
       // we expect them to be the same!
+      // comparison: ok!
     
     --
 
