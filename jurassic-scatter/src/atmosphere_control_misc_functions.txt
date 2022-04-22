@@ -1,0 +1,379 @@
+atmosphere.h / atmosphere.c:
+  atm2x           -> retrievalmodel.c    
+  atm2x_help       
+  copy_atm        -> retrievalmodel.c 
+  find_emitter    
+  gravity       
+  hydrostatic     -> forwardmodel.c   
+  hydrostatic_1d
+  intpol_atm      -> from lineofsight.h, not important any more
+  intpol_atm_geo      -||-
+  intpol_atm_1d       -||-
+  intpol_atm_2d       -||-
+  intpol_atm_3d       -||-
+  read_atm        -> formod.c & retrieval.c 
+  write_atm       -> retrievalmodel.c 
+
+control.h:
+  read_ctl        -> formod.c & retrieval.c
+  scan_ctl        -> formod.c & retrievalmodel.c
+
+misc.h:
+  cart2geo        -> scatter.c
+  copy_obs        -> forwardmodel.c & retrievalmodel.c 
+  geo2cart        -> atmosphere.c, forwardmodel.c, scatter.c, retrievalmodel.c
+  locate          -> atmosphere.c, forwardmodel.c, scatter.c, retrievalmodel.c
+  read_obs        -> formod.c & retrieval.c
+  write_obs       -> formod.c & retrievalmodel.c 
+
+=> only atmosphere:atm2x(..), atmosphere:atm2x_help(..) and
+   atmosphere:write_atm(..) functions are used in retrieval.c/retrievalmodel.c
+   and not used in other files
+
+---------------------------
+
+at this step I won't change retrieval.c and retrievalmodel.c files, because
+testing enviroment is not trivial for them, so here is
+the refined list of files and functions which shold be changed:
+
+  atmosphere.h / atmosphere.c:
+    hydrostatic     -> forwardmodel.c   
+      JURASSIC-scatter:
+        void hydrostatic(ctl_t *ctl, atm_t *atm);
+      JURASSIC-GPU: (jr_common.h)
+        void hydrostatic_1d_h2o(ctl_t const *ctl, atm_t *atm, int const ip0, int const ip1, int const ig_h2o);
+      // TODO: find differences!
+        
+    --
+
+    read_atm        -> formod.c
+      JURASSIC-scatter:
+        void read_atm(const char *dirname, const char *filename, ctl_t *ctl, atm_t *atm);
+      JURASSIC-GPU: (jurassic.c)
+        void jur_read_atm(char const *dirname, char const *filename, ctl_t *ctl, atm_t *atm);
+      // we expect them to be the same!
+
+---
+
+  control.h:
+    read_ctl        -> formod.c
+      JURASSIC-scatter:
+        void read_ctl(int argc, char *argv[], ctl_t *ctl);
+      JURASSIC-GPU: (jurassic.c)
+        void jur_read_ctl(int argc, char *argv[], ctl_t *ctl);
+      // TODO: scatter has some variables which are not part of GPU! 
+
+    --
+
+    scan_ctl        -> formod.c
+      JURASSIC-scatter:
+        double scan_ctl(int argc, char *argv[], const char *varname, int arridx, const char *defvalue, char *value);
+      JURASSIC-GPU: (jurassic.c)
+        double jur_scan_ctl(int argc, char *argv[], char const *varname, int arridx, char const *defvalue, char *value);
+      // we expect them to be the same!
+
+---
+
+  misc.h:
+    cart2geo        -> scatter.c
+      JURASSIC-scatter:
+        void cart2geo(double *x, double *z, double *lon, double *lat);
+      JURASSIC-GPU: (jr_common.h)
+	      void jur_cart2geo(double const x[], double *alt, double *lon, double *lat);
+      // we expect them to be the same!
+        
+    --
+
+    copy_obs        -> forwardmodel.c 
+      JURASSIC-scatter:
+        void copy_obs(ctl_t *ctl, obs_t *obs_dest, obs_t *obs_src, int init);
+      JURASSIC-GPU: (jurassic.c)
+        void jur_copy_obs(ctl_t const *const ctl, obs_t *obs_dest, obs_t const *const obs_src, int const init);
+      // we expect them to be the same!
+        
+    --
+
+    geo2cart        -> atmosphere.c, forwardmodel.c, scatter.c
+      JURASSIC-scatter:
+        void geo2cart(double z, double lon, double lat, double *x);
+      JURASSIC-GPU: (jr_common.h)
+	      void jur_geo2cart(double const alt, double const lon, double const lat, double x[]);
+      // we expect them to be the same!
+
+    --
+
+    locate          -> atmosphere.c, forwardmodel.c, scatter.c
+      JURASSIC-scatter:
+        int locate(double *xx, int n, double x);
+      JURASSIC-GPU: (jr_common.h)
+	      int jur_locate(double const *ptr xx, int const n, double const x); 
+      // we expect them to be the same!
+    
+    --
+
+    read_obs        -> formod.c
+      JURASSIC-scatter:
+        void read_obs(const char *dirname, const char *filename, ctl_t *ctl, obs_t *obs);
+      JURASSIC-GPU: (jurassic.c)
+        void jur_read_obs(char const *dirname, char const *filename, ctl_t *ctl, obs_t *obs);
+      // we expect them to be the same!
+    
+    --
+
+    write_obs       -> formod.c 
+      JURASSIC-scatter:
+        void write_obs(const char *dirname, const char *filename, ctl_t *ctl, obs_t *obs);
+      JURASSIC-GPU: (jurassic.c)
+        void jur_write_obs(char const *dirname, char const *filename, ctl_t *ctl, obs_t *obs);
+      // we expect them to be the same!
+        
+----
+
+  3 functions which are used only by retrieval.c/retrievalmodel.c:
+    atmosphere.h:
+      atm2x         -> retrievalmodel.c    
+        JURASSIC-scatter:
+          size_t atm2x(ctl_t *ctl, atm_t *atm, aero_t *aero, gsl_vector *x, int *iqa, int *ipa);
+        JURASSIC-GPU: (jurassic.c)
+          size_t jur_atm2x(ctl_t const *const ctl, atm_t const *const atm, gsl_vector *x, int *iqa, int *ipa); 
+        // we expect them to be the same!
+
+      --
+      copy_atm      -> retrievalmodel.c 
+        JURASSIC-scatter:
+          void copy_atm(ctl_t *ctl, atm_t *atm_dest, atm_t *atm_src, int init);
+        JURASSIC-GPU: (jurassic.c)
+          void jur_copy_atm(ctl_t const *const ctl, atm_t * atm_dest, atm_t const *const atm_src, int const init); 
+        // we expect them to be the same!
+
+      --
+      write_atm     -> retrievalmodel.c 
+        JURASSIC-scatter:
+          void write_atm(const char *dirname, const char *filename, ctl_t *ctl, atm_t *atm);
+        JURASSIC-GPU: (jurassic.c)
+          void jur_write_atm(char const *dirname, char const *filename, ctl_t *ctl, atm_t *atm); 
+        // we expect them to be the same!
+
+---------------------------
+
+functions that are definitely not the same in JURASSIC-scatter and JURASSIC-GPU
+projects: hydrostatic & read_ctl 
+
+  hydrostatic     -> forwardmodel.c   
+    JURASSIC-scatter:
+      void hydrostatic(ctl_t *ctl, atm_t *atm);
+    JURASSIC-GPU: (jr_common.h)
+        void hydrostatic_1d_h2o(ctl_t const *ctl, atm_t *atm, int const ip0, int const ip1, int const ig_h2o);
+      also in JURASSIC-GPU: (jurassic.c)
+        void jur_hydrostatic(ctl_t const *const ctl, atm_t *atm); 
+    // TODO: find differences!
+    => 
+      add this to forwardmodel.c
+        static int ig_h2o = -999;
+        if((ctl->ctm_h2o) && (-999 == ig_h2o)) ig_h2o = jur_find_emitter(ctl, "H2O");
+
+        hydrostatic1d_CPU(ctl, atm, obs->nr, ig_h2o); // in this call atm might get modified
+
+--
+
+  read_ctl        -> formod.c
+      void read_ctl(int argc,
+              char *argv[],
+              ctl_t *ctl) {
+        
+        int id, ig, iw;
+        
+        /* Write info... */
+        printf("\nJURASSIC - Version with Scattering\n"
+        "Executable: %s\nControl parameters: %s\n", argv[0], argv[1]);
+        vs.
+        printf("\nJuelich Rapid Spectral Simulation Code (JURASSIC)\n"
+            "(executable: %s | compiled: %s, %s)\n\n", argv[0], __DATE__, __TIME__);
+      #ifdef SHOW_GIT_KEY
+        printf("# JURASSIC git commit " xstr(SHOW_GIT_KEY) "\n\n");
+      #endif
+        
+        /* Emitters... */
+        ctl->ng=(int)scan_ctl(argc, argv, "NG", -1, "0", NULL);
+        if(ctl->ng<0 || ctl->ng>NGMAX)
+          ERRMSG("Set 0 <= NG <= MAX!");
+        for(ig=0; ig<ctl->ng; ig++)
+          scan_ctl(argc, argv, "EMITTER", ig, "", ctl->emitter[ig]);
+        vs.
+        ctl->ng = (int) jur_scan_ctl(argc, argv, "NG", -1, "0", NULL);
+        if(ctl->ng < 0 || ctl->ng > NG) ERRMSG("Set 0 <= NG <= " xstr(NG) " (max. defined in jurassic.h)");
+        for(int ig = 0; ig < ctl->ng; ig++) {
+              jur_scan_ctl(argc, argv, "EMITTER", ig, "", ctl->emitter[ig]);
+          } // ig
+        // Radiance channels
+        ctl->nd = (int) jur_scan_ctl(argc, argv, "ND", -1, "0", NULL);
+        if(ctl->nd < 0 || ctl->nd > ND) ERRMSG("Set 0 <= ND <= " xstr(ND) " (max. defined in jurassic.h)");
+        for(int id = 0; id < ctl->nd; id++) {
+              ctl->nu[id] = jur_scan_ctl(argc, argv, "NU", id, "", NULL);
+          } // id
+
+        
+        /* Radiance channels... */
+        ctl->nd=(int)scan_ctl(argc, argv, "ND", -1, "0", NULL);
+        if(ctl->nd<0 || ctl->nd>NDMAX)
+          ERRMSG("Set 0 <= ND <= MAX!");
+        for(id=0; id<ctl->nd; id++)
+          ctl->nu[id]=scan_ctl(argc, argv, "NU", id, "", NULL);
+        vs.
+        ctl->nd = (int) jur_scan_ctl(argc, argv, "ND", -1, "0", NULL);
+        if(ctl->nd < 0 || ctl->nd > ND) ERRMSG("Set 0 <= ND <= " xstr(ND) " (max. defined in jurassic.h)");
+        for(int id = 0; id < ctl->nd; id++) {
+              ctl->nu[id] = jur_scan_ctl(argc, argv, "NU", id, "", NULL);
+          } // id
+
+        /* Spectral windows... */
+        ctl->nw=(int)scan_ctl(argc, argv, "NW", -1, "1", NULL);
+        if(ctl->nw<0 || ctl->nw>NWMAX)
+          ERRMSG("Set 0 <= NW <= NWMAX!");
+        for(id=0; id<ctl->nd; id++)
+          ctl->window[id]=(int)scan_ctl(argc, argv, "WINDOW", id, "0", NULL);
+        vs.
+        ctl->nw = (int) jur_scan_ctl(argc, argv, "NW", -1, "1", NULL);
+        if(ctl->nw < 0 || ctl->nw > NW) ERRMSG("Set 0 <= NW <= " xstr(NW) " (max. defined in jurassic.h)");
+        for(int id = 0; id < ctl->nd; id++) {
+              ctl->window[id] = (int) jur_scan_ctl(argc, argv, "WINDOW", id, "0", NULL);
+          } // id
+        
+        /* Emissivity look-up tables... */
+        scan_ctl(argc, argv, "TBLBASE", -1, "-", ctl->tblbase);
+        vs.
+        jur_scan_ctl(argc, argv, "TBLBASE", -1, "-", ctl->tblbase);
+        
+        /* Hydrostatic equilibrium... */
+        ctl->hydz=scan_ctl(argc, argv, "HYDZ", -1, "-999", NULL);
+        vs.
+        ctl->hydz = jur_scan_ctl(argc, argv, "HYDZ", -1, "-999", NULL);
+        
+        /* Continua... */
+        ctl->ctm_co2=(int)scan_ctl(argc, argv, "CTM_CO2", -1, "1", NULL);
+        ctl->ctm_h2o=(int)scan_ctl(argc, argv, "CTM_H2O", -1, "1", NULL);
+        ctl->ctm_n2=(int)scan_ctl(argc, argv, "CTM_N2", -1, "1", NULL);
+        ctl->ctm_o2=(int)scan_ctl(argc, argv, "CTM_O2", -1, "1", NULL);
+        vs.
+        ctl->ctm_co2 = (int) jur_scan_ctl(argc, argv, "CTM_CO2", -1, "1", NULL);
+        ctl->ctm_h2o = (int) jur_scan_ctl(argc, argv, "CTM_H2O", -1, "1", NULL);
+        ctl->ctm_n2 = (int) jur_scan_ctl(argc, argv, "CTM_N2", -1, "1", NULL);
+        ctl->ctm_o2 = (int) jur_scan_ctl(argc, argv, "CTM_O2", -1, "1", NULL);
+        if (1) { // not in scatter
+          // automatic control of gases: CTM_...
+          int in_co2 = 0, in_h2o = 0, in_n2 = 0, in_o2 = 0; // counters how many frequencies are in range
+          for(int id = 0; id < ctl->nd; id++) {
+            double const nu = ctl->nu[id]; // abbreviate
+            in_co2 += (nu <  4000); // xw = nu/2	+ 1; if(xw >= 1.0 && xw < 2001.0) non-zero
+            in_h2o += (nu < 20000); // xw = nu/10 + 1; if(xw >= 1.0 && xw < 2001.0) non-zero
+            in_n2  += (nu >= 2120 && nu <= 2605); // if(nu < 2120 || nu > 2605) return 0;
+            in_o2  += (nu >= 1360 && nu <= 1805); // if(nu < 1360 || nu > 1805) return 0;
+          }
+          if(0 == in_co2 && ctl->ctm_co2) { ctl->ctm_co2 = 0; printf("No frequency in CO2 range, automatically set CTM_CO2 = 0\n"); }
+          if(0 == in_h2o && ctl->ctm_h2o) { ctl->ctm_h2o = 0; printf("No frequency in H2O range, automatically set CTM_H20 = 0\n"); }
+          if(0 == in_n2  && ctl->ctm_n2)	{ ctl->ctm_n2  = 0; printf("No frequency in N2 range, automatically set CTM_N2 = 0\n"); }
+          if(0 == in_o2  && ctl->ctm_o2)	{ ctl->ctm_o2  = 0; printf("No frequency in O2 range, automatically set CTM_O2 = 0\n"); }
+        }
+        
+        /* Scattering on Aerosol/Clouds ... */ // not in GPU
+        ctl->sca_n=(int)scan_ctl(argc, argv, "SCA_N", -1, "0", NULL);
+        if(ctl->sca_n<0 || ctl->sca_n>SCAMOD)
+          ERRMSG("Set 0 <= SCA_NMOD <= MAX!");
+        ctl->sca_mult=(int)scan_ctl(argc, argv, "SCA_MULT", -1, "1", NULL);
+        scan_ctl(argc, argv, "SCA_EXT", -1, "beta_a", ctl->sca_ext);
+        if(ctl->sca_n>0 && ctl->sca_mult==0 && 
+          !strcasecmp(ctl->sca_ext, "beta_e") && 
+          !strcasecmp(ctl->sca_ext, "beta_a"))
+          ERRMSG("Please set extinction to beta_a or beta_e.");
+        vs.
+        nothing
+
+        /* Interpolation of atmospheric data... */
+        ctl->ip=(int)scan_ctl(argc, argv, "IP", -1, "1", NULL);
+        ctl->cz=scan_ctl(argc, argv, "CZ", -1, "0", NULL);
+        ctl->cx=scan_ctl(argc, argv, "CX", -1, "0", NULL);
+        vs.
+        ctl->ip = (int) jur_scan_ctl(argc, argv, "IP", -1, "1", NULL);
+        ctl->cz = jur_scan_ctl(argc, argv, "CZ", -1, "0", NULL);
+        ctl->cx = jur_scan_ctl(argc, argv, "CX", -1, "0", NULL);
+
+        
+        /* Ray-tracing... */
+        ctl->refrac=(int)scan_ctl(argc, argv, "REFRAC", -1, "1", NULL);
+        ctl->rayds=scan_ctl(argc, argv, "RAYDS", -1, "10", NULL);
+        ctl->raydz=scan_ctl(argc, argv, "RAYDZ", -1, "1", NULL);
+        ctl->transs=scan_ctl(argc, argv, "TRANSS", -1, "0.02", NULL);
+        vs.
+        ctl->refrac = (int) jur_scan_ctl(argc, argv, "REFRAC", -1, "1", NULL);
+        ctl->rayds = jur_scan_ctl(argc, argv, "RAYDS", -1, "10", NULL);
+        ctl->raydz = jur_scan_ctl(argc, argv, "RAYDZ", -1, "0.5", NULL);
+        
+        /* Field of view... */
+        scan_ctl(argc, argv, "FOV", -1, "-", ctl->fov);
+        vs.
+        jur_scan_ctl(argc, argv, "FOV", -1, "-", ctl->fov);
+        
+        /* Retrieval interface... */
+        ctl->retp_zmin=scan_ctl(argc, argv, "RETP_ZMIN", -1, "-999", NULL);
+        ctl->retp_zmax=scan_ctl(argc, argv, "RETP_ZMAX", -1, "-999", NULL);
+        ctl->rett_zmin=scan_ctl(argc, argv, "RETT_ZMIN", -1, "-999", NULL);
+        ctl->rett_zmax=scan_ctl(argc, argv, "RETT_ZMAX", -1, "-999", NULL);
+        for(ig=0; ig<ctl->ng; ig++) {
+          ctl->retq_zmin[ig]=scan_ctl(argc, argv, "RETQ_ZMIN", ig, "-999", NULL);
+          ctl->retq_zmax[ig]=scan_ctl(argc, argv, "RETQ_ZMAX", ig, "-999", NULL);
+        }
+        for(iw=0; iw<ctl->nw; iw++) {
+          ctl->retk_zmin[iw]=scan_ctl(argc, argv, "RETK_ZMIN", iw, "-999", NULL);
+          ctl->retk_zmax[iw]=scan_ctl(argc, argv, "RETK_ZMAX", iw, "-999", NULL);
+        }
+        ctl->retnn=(int)scan_ctl(argc, argv, "RETNN", -1, "0", NULL); // not in GPU
+        ctl->retrr=(int)scan_ctl(argc, argv, "RETRR", -1, "0", NULL); // not in GPU
+        ctl->retss=(int)scan_ctl(argc, argv, "RETSS", -1, "0", NULL); // not in GPU
+
+        ctl->retnn_zmin=(int)scan_ctl(argc, argv, "RETNN_ZMIN", -1, "-999", NULL); // not in GPU
+        ctl->retnn_zmax=(int)scan_ctl(argc, argv, "RETNN_ZMAX", -1, "-999", NULL); // not in GPU
+        vs.
+        ctl->retp_zmin = jur_scan_ctl(argc, argv, "RETP_ZMIN", -1, "-999", NULL);
+        ctl->retp_zmax = jur_scan_ctl(argc, argv, "RETP_ZMAX", -1, "-999", NULL);
+        ctl->rett_zmin = jur_scan_ctl(argc, argv, "RETT_ZMIN", -1, "-999", NULL);
+        ctl->rett_zmax = jur_scan_ctl(argc, argv, "RETT_ZMAX", -1, "-999", NULL);
+        for(int ig = 0; ig < ctl->ng; ig++) {
+          ctl->retq_zmin[ig] = jur_scan_ctl(argc, argv, "RETQ_ZMIN", ig, "-999", NULL);
+          ctl->retq_zmax[ig] = jur_scan_ctl(argc, argv, "RETQ_ZMAX", ig, "-999", NULL);
+        }
+        for(int iw = 0; iw < ctl->nw; iw++) {
+          ctl->retk_zmin[iw] = jur_scan_ctl(argc, argv, "RETK_ZMIN", iw, "-999", NULL);
+          ctl->retk_zmax[iw] = jur_scan_ctl(argc, argv, "RETK_ZMAX", iw, "-999", NULL);
+        }
+
+        /* Output flags... */
+        ctl->write_bbt=(int)scan_ctl(argc, argv, "WRITE_BBT", -1, "0", NULL);
+        ctl->write_matrix=(int)scan_ctl(argc, argv, "WRITE_MATRIX", -1, "0", NULL);
+        vs.
+        ctl->write_bbt = (int) jur_scan_ctl(argc, argv, "WRITE_BBT", -1, "0", NULL);
+        ctl->write_matrix = (int) jur_scan_ctl(argc, argv, "WRITE_MATRIX", -1, "0", NULL);
+        
+        //Added:
+        /* Number of leaf rays ... */
+        ctl->leaf_nr=(int)scan_ctl(argc, argv, "MAX_QUEUE", -1, "0", NULL); // new in scatter, warning: GPU has "-1"
+        
+        ctl->useGPU = (int) jur_scan_ctl(argc, argv, "USEGPU", -1, "0", NULL);
+      #ifndef hasGPU // not in scatter 
+        if (ctl->useGPU > 0) {
+          ERRMSG("Requested USEGPU = 1 (always) but compiled without -D hasGPU");
+        } else if (ctl->useGPU < 0) {
+          fprintf(stderr, "\n\nRequested USEGPU = %d but compiled without CUDA, default to CPU\n\n", ctl->useGPU);
+          ctl->useGPU = 0;
+        }
+      #endif
+              
+        ctl->checkmode = (int) jur_scan_ctl(argc, argv, "CHECKMODE", -1, "0", NULL); // not in scatter
+        printf("CHECKMODE = %d (%s)\n", ctl->checkmode, 
+            (0 == ctl->checkmode)?"run":((ctl->checkmode > 0)?"skip":"obs"));
+              
+        ctl->read_binary  = (int) jur_scan_ctl(argc, argv, "READ_BINARY", -1, "-1", NULL); // not in scatter
+        ctl->write_binary = (int) jur_scan_ctl(argc, argv, "WRITE_BINARY", -1, "1", NULL); // not in scatter
+
+        ctl->gpu_nbytes_shared_memory = (int) jur_scan_ctl(argc, argv, "GPU_SHARED_MEMORY", -1, "0", NULL); // not in scatter
+          
+      }
