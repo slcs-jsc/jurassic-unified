@@ -2,21 +2,6 @@
 
 /*****************************************************************************/
 
-void geo2cart(double z, 
-	      double lon,
-	      double lat,
-	      double *x) {
-  
-  double radius;
-  
-  radius=z+RE;
-  x[0]=radius*cos(lat/180*M_PI)*cos(lon/180*M_PI);
-  x[1]=radius*cos(lat/180*M_PI)*sin(lon/180*M_PI);
-  x[2]=radius*sin(lat/180*M_PI);
-}
-
-/*****************************************************************************/
-
 // removing tbl_t
 // void init_tbl(ctl_t *ctl,
 //         tbl_t *tbl) {

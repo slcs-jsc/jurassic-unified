@@ -108,6 +108,7 @@ the refined list of files and functions which shold be changed:
       JURASSIC-GPU: (jr_common.h)
 	      void jur_geo2cart(double const alt, double const lon, double const lat, double x[]);
       // we expect them to be the same!
+      // comparison: ok! 
 
     --
 

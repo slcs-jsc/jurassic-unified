@@ -965,8 +965,8 @@ void srcfunc_sca_sun(ctl_t *ctl,
 
     if(np<2)
       break;
-    geo2cart(los[np-2].z, los[np-2].lon, los[np-2].lat, x0);
-    geo2cart(los[np-1].z, los[np-1].lon, los[np-1].lat, x1);
+    jur_geo2cart(los[np-2].z, los[np-2].lon, los[np-2].lat, x0);
+    jur_geo2cart(los[np-1].z, los[np-1].lon, los[np-1].lat, x1);
     for(i=0; i<3; i++)
       dout[i]=x1[i]-x0[i];
     sza_beam=ANGLE(x, dout)*180/M_PI;

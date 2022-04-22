@@ -28,4 +28,6 @@ void jur_cart2geo(double const x[], double *alt, double *lon, double *lat);
 
 void jur_copy_obs(ctl_t const *const ctl, obs_t *obs_dest, obs_t const *const obs_src, int const init); 
 
+void jur_geo2cart(double const alt, double const lon, double const lat, double x[]);
+
 #endif

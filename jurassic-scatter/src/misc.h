@@ -9,12 +9,6 @@
    Functions...
    ------------------------------------------------------------ */
 
-/* Convert geolocation to Cartesian coordinates. */
-void geo2cart(double z,
-	      double lon,
-	      double lat,
-	      double *x);
-
 /* Initialize look-up tables. */
 // void init_tbl(ctl_t *ctl,
 //	      tbl_t *tbl);

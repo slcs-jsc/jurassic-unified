@@ -526,11 +526,11 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
 
 if ((Queue_Collect|Queue_Prepare) & queue_mode) { /* CP */
       /* Compute scattering source term... */
-      geo2cart(los[ip].z, los[ip].lon, los[ip].lat, x);
+      jur_geo2cart(los[ip].z, los[ip].lon, los[ip].lat, x);
       ip0=(ip>0 ? ip-1 : ip);
       ip1=(ip<np ? ip+1 : ip);
-      geo2cart(los[ip0].z, los[ip0].lon, los[ip0].lat, x0);
-      geo2cart(los[ip1].z, los[ip1].lon, los[ip1].lat, x1);
+      jur_geo2cart(los[ip0].z, los[ip0].lon, los[ip0].lat, x0);
+      jur_geo2cart(los[ip1].z, los[ip1].lon, los[ip1].lat, x1);
       for(i=0; i<3; i++)
         dx[i]=x1[i]-x0[i];
 

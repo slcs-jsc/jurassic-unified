@@ -1,5 +1,10 @@
 #include "atmosphere.h"
 
+#ifndef __host__
+  #define __host__
+  #include "interface.h"
+#endif
+
 /*****************************************************************************/
 
 size_t atm2x(ctl_t *ctl,
@@ -353,7 +358,7 @@ void intpol_atm_2d(ctl_t *ctl,
 	nz[nx-1]=0;
 	lon1=atm->lon[ip];
 	lat1=atm->lat[ip];
-	geo2cart(0, lon1, lat1, x1[nx-1]);
+	jur_geo2cart(0, lon1, lat1, x1[nx-1]);
 	idx[nx-1]=ip;
       }
       nz[nx-1]++;
@@ -366,7 +371,7 @@ void intpol_atm_2d(ctl_t *ctl,
   }
   
   /* Get Cartesian coordinates... */
-  geo2cart(0, lon0, lat0, x0);
+  jur_geo2cart(0, lon0, lat0, x0);
   
   /* Find next neighbours... */
   for(ix=0; ix<nx; ix++) {
@@ -432,7 +437,7 @@ void intpol_atm_3d(ctl_t *ctl,
   if(!atm->init) {
     atm->init=1;
     for(ip=0; ip<atm->np; ip++)
-      geo2cart(0, atm->lon[ip], atm->lat[ip], x1[ip]);
+      jur_geo2cart(0, atm->lon[ip], atm->lat[ip], x1[ip]);
   }
   
   /* Initialize.. */
@@ -455,7 +460,7 @@ void intpol_atm_3d(ctl_t *ctl,
       continue;
     
     /* Get horizontal distance... */
-    geo2cart(0, lon0, lat0, x0);
+    jur_geo2cart(0, lon0, lat0, x0);
     dx2=DIST2(x0, x1[ip]);
     if(dx2>gsl_pow_2(ctl->cx))
       continue;
