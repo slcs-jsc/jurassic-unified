@@ -37,7 +37,7 @@ testing enviroment is not trivial for them, so here is
 the refined list of files and functions which shold be changed:
 
   atmosphere.h / atmosphere.c:
-    hydrostatic     -> forwardmodel.c   
+    hydrostatic     -> forwardmodel.c // TODO! 
       JURASSIC-scatter:
         void hydrostatic(ctl_t *ctl, atm_t *atm);
       JURASSIC-GPU: (jr_common.h)
@@ -52,6 +52,9 @@ the refined list of files and functions which shold be changed:
       JURASSIC-GPU: (jurassic.c)
         void jur_read_atm(char const *dirname, char const *filename, ctl_t *ctl, atm_t *atm);
       // we expect them to be the same!
+      // comparison: 
+        GPU version uses TOK_FIVE_ARGS instead of TOK, it should be the same
+        +
 
 ---
 

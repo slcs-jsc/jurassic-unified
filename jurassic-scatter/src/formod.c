@@ -146,7 +146,7 @@ void call_formod(ctl_t *ctl,
   read_obs(wrkdir, obsfile, ctl, &obs);
   
   /* Read atmospheric data... */
-  read_atm(wrkdir, atmfile, ctl, &atm);
+  jur_read_atm(wrkdir, atmfile, ctl, &atm);
   
   /* Read aerosol and cloud data */
   if(aerofile[0]!='-' && ctl->sca_n>0) {

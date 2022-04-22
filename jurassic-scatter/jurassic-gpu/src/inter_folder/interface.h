@@ -20,4 +20,6 @@ double continua_core_CPU(ctl_t const *ctl, pos_t const *los, int const id);
 
 double apply_ega_core(trans_table_t const *tbl, pos_t const *los, double (*ptr tau_path), int const ng, int const id); 
 
+void jur_read_atm(char const *dirname, char const *filename, ctl_t *ctl, atm_t *atm); 
+
 #endif
