@@ -67,13 +67,13 @@ int main(int argc, char *argv[]) {
   read_ctl(argc, argv, &ctl);
   
   /* Get task... */
-  scan_ctl(argc, argv, "TASK", -1, "-", task);
+  jur_scan_ctl(argc, argv, "TASK", -1, "-", task);
   
   /* Get dirlist... */
-  scan_ctl(argc, argv, "DIRLIST", -1, "-", dirlist);
+  jur_scan_ctl(argc, argv, "DIRLIST", -1, "-", dirlist);
 
   /* Get aero... */
-  scan_ctl(argc, argv, "AEROFILE", -1, "-", aerofile);
+  jur_scan_ctl(argc, argv, "AEROFILE", -1, "-", aerofile);
  
   ctl.MPIglobrank = myrank;
   ctl.MPIlocalrank = node_local_rank;

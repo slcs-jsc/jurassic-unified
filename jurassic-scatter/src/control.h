@@ -14,13 +14,4 @@ void read_ctl(int argc,
 	      char *argv[],
 	      ctl_t *ctl);
 
-/* Search control parameter file for variable entry. */
-double scan_ctl(int argc,
-		char *argv[],
-		const char *varname,
-		int arridx,
-		const char *defvalue,
-		char *value);
-
-
 #endif

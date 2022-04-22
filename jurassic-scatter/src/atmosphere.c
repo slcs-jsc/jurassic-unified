@@ -482,63 +482,6 @@ void intpol_atm_3d(ctl_t *ctl,
     k[iw]/=wsum;
 }
 
-/*****************************************************************************/
-
-//void read_atm(const char *dirname,
-//	      const char *filename,
-//	      ctl_t *ctl,
-//	      atm_t *atm) {
-//  
-//  FILE *in;
-//  
-//  char file[LEN], line[LEN], *tok;
-//  
-//  int ig, iw;
-//  
-//  /* Init... */
-//  atm->init=0;
-//  atm->np=0;
-//  
-//  /* Set filename... */
-//  if(dirname!=NULL)
-//    sprintf(file, "%s/%s", dirname, filename);
-//  else
-//    sprintf(file, "%s", filename);
-//  
-//  /* Write info... */
-//  printf("Read atmospheric data: %s\n", file);
-//  
-//  /* Open file... */
-//  if(!(in=fopen(file, "r")))
-//    ERRMSG("Cannot open file!");
-//  
-//  /* Read data... */
-//  while(fgets(line, LEN, in)) {
-//    
-//    /* Read data... */
-//    TOK(line, tok, "%lg", atm->time[atm->np]);
-//    TOK(NULL, tok, "%lg", atm->z[atm->np]);
-//    TOK(NULL, tok, "%lg", atm->lon[atm->np]);
-//    TOK(NULL, tok, "%lg", atm->lat[atm->np]);
-//    TOK(NULL, tok, "%lg", atm->p[atm->np]);
-//    TOK(NULL, tok, "%lg", atm->t[atm->np]);
-//    for(ig=0; ig<ctl->ng; ig++)
-//      TOK(NULL, tok, "%lg", atm->q[ig][atm->np]);
-//    for(iw=0; iw<ctl->nw; iw++)
-//      TOK(NULL, tok, "%lg", atm->k[iw][atm->np]);
-//   
-//    /* Increment data point counter... */
-//    if((++atm->np)>NPMAX)
-//      ERRMSG("Too many data points!");
-//  }
-//  
-//  /* Close file... */
-//  fclose(in);
-//  
-//  /* Check number of points... */
-//  if(atm->np<1)
-//    ERRMSG("Could not read any data!");
-//}
 
 /*****************************************************************************/
 

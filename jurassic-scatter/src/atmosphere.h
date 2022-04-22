@@ -101,12 +101,6 @@ void intpol_atm_3d(ctl_t *ctl,
 		   double *q,
 		   double *k);
 
-/* Read atmospheric data. */
-//void read_atm(const char *dirname,
-//	      const char *filename,
-//	      ctl_t *ctl,
-//	      atm_t *atm);
-
 /* Write atmospheric data. */
 void write_atm(const char *dirname,
 	       const char *filename,

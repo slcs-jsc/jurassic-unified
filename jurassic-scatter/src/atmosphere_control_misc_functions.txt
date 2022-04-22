@@ -74,6 +74,9 @@ the refined list of files and functions which shold be changed:
       JURASSIC-GPU: (jurassic.c)
         double jur_scan_ctl(int argc, char *argv[], char const *varname, int arridx, char const *defvalue, char *value);
       // we expect them to be the same!
+      // comparison:
+        msg[2*LEN] vs. msg[LEN], but the functionality should be the same
+        +
 
 ---
 

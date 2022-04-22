@@ -22,4 +22,6 @@ double apply_ega_core(trans_table_t const *tbl, pos_t const *los, double (*ptr t
 
 void jur_read_atm(char const *dirname, char const *filename, ctl_t *ctl, atm_t *atm); 
 
+double jur_scan_ctl(int argc, char *argv[], char const *varname, int arridx, char const *defvalue, char *value);
+
 #endif
