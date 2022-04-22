@@ -79,10 +79,8 @@ int main(int argc, char *argv[]) {
   ctl.MPIlocalrank = node_local_rank;
 
   // Initialization of the tables
-  // removing tbl_t
-  // tbl_t *tbl = scatter_get_tbl(&ctl);
-  // printf("%d\n", tbl->np[0][0]); // Have to do it, because of unused warning... 
-  initialize_jurassic_gpu_table(&ctl);
+  printf("DEBUG #%d call table_initializaiton..\n", ctl.MPIglobrank);
+  jur_table_initialization(&ctl); 
 
   /* Single forward calculation... */
   if(dirlist[0]=='-') {

@@ -961,7 +961,7 @@ void srcfunc_sca_sun(ctl_t *ctl,
     cart2geo(x1, &obs->vpz[0], &obs->vplon[0], &obs->vplat[0]);
 
     /* Get zenith angle at end of beam... */
-    np = raytrace_from_jr_common(ctl, atm, obs, aero, 0, los, &tsurf, 0); // without ignoring scattering
+    np = pos_scatter_traceray(ctl, atm, obs, aero, 0, los, &tsurf, 0); // without ignoring scattering
 
     if(np<2)
       break;

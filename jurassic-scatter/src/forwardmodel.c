@@ -80,8 +80,7 @@ void advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs, int nr)
     printf("%d ", obs_packages[i].nr);
   printf("\n");
   tic = omp_get_wtime();
-  printf("%d %d\n", atm->np, aero->nl);
-  formod_multiple_packages(ctl, atm, aero, number_of_packages, obs_packages); 
+	jur_formod(ctl, atm, obs_packages, aero, number_of_packages);
   toc = omp_get_wtime();
   printf("TIMER #%d Execute: formod_multiple_packages time: %lf\n", ctl->MPIglobrank, toc - tic);
 
@@ -445,7 +444,7 @@ if ((Queue_Collect|Queue_Prepare) & queue_mode) { /* CPp */
   los = (pos_t*) malloc((NLOS) * sizeof(pos_t));
 
   /* Raytracing... */
-  np = raytrace_from_jr_common(ctl, atm, obs, aero, ir, los, &tsurf, 0); // without ignoring scattering
+  np = pos_scatter_traceray(ctl, atm, obs, aero, ir, los, &tsurf, 0); // without ignoring scattering
 } /* CPp */
 
 if (Queue_Prepare_Leaf == queue_mode) { /* ==p */
@@ -469,7 +468,7 @@ if (Queue_Collect_Leaf == queue_mode) { /* ==c */
 if (Queue_Execute_Leaf == queue_mode) { /* ==x */
   get_queue_item(q, (void*)&obs, &ir, ir); /* get input */
   los = (pos_t*) malloc((NLOS) * sizeof(pos_t));
-  np = raytrace_from_jr_common(ctl, atm, obs, aero, ir, los, &tsurf, 0); // without ignoring scattering
+  np = pos_scatter_traceray(ctl, atm, obs, aero, ir, los, &tsurf, 0); // without ignoring scattering
 } /* ==x */
 
 if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
@@ -482,7 +481,7 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
 
     // bug that I had:
     // https://stackoverflow.com/questions/8552684/pointer-return-value-changes-after-function-call
-    trans_tbl = get_tbl_from_jr_common(ctl); 
+    trans_tbl = get_tbl(ctl); 
   }
 
   /* Initialize... */
@@ -505,19 +504,19 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
     // intpol_tbl(ctl, tbl, los, ip, tau_path, tau_gas);
     /* new Get trace gas transmittance... */
     for(id = 0; id < ctl->nd; id++)
-      tau_gas[id] = apply_ega_core_from_jr_common(trans_tbl, &los[ip], tau_path[id], ctl->ng, id);
+      tau_gas[id] = apply_ega_core(trans_tbl, &los[ip], tau_path[id], ctl->ng, id);
 
     /* Get continuum absorption... */
     // formod_continua(ctl, los, ip, beta_ctm);
     /* new Get continuum absorption... */
     for(id = 0; id < ctl->nd; id++)
-      beta_ctm[id] = continua_core_CPU_from_CPUdrivers(ctl, &los[ip], id) / los[ip].ds;
+      beta_ctm[id] = continua_core_CPU(ctl, &los[ip], id) / los[ip].ds;
 
     /* Compute Planck function... */
     // srcfunc_planck(ctl, los[ip].t, src_planck);
     /* new Compute Planck function... */
     for(id = 0; id < ctl->nd; id++) {
-      src_planck[id] = src_planck_core_from_jr_common(trans_tbl, los[ip].t, id);
+      src_planck[id] = src_planck_core(trans_tbl, los[ip].t, id);
     }
 
 } /* Cx */
@@ -606,7 +605,7 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
 
     /* new Compute Planck function... */
     for(id = 0; id < ctl->nd; id++) {
-      src_planck[id] = src_planck_core_from_jr_common(trans_tbl, tsurf, id);
+      src_planck[id] = src_planck_core(trans_tbl, tsurf, id);
     }
 
     for(id=0; id<ctl->nd; id++)

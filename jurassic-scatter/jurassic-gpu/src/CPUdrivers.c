@@ -207,6 +207,7 @@
 
 	__host__
 	void jur_formod(ctl_t const *ctl, atm_t *atm, obs_t *obs, aero_t const *aero, int n) {
+        printf("DEBUG #%d jur_formod: number of packages.. %d\n", ctl->MPIglobrank, n);
         if (ctl->checkmode) {
             static int nr_last_time = -999;
             if (obs->nr != nr_last_time) {
@@ -245,20 +246,4 @@ void jur_table_initialization(ctl_t *ctl) {
   }
   double toc = omp_get_wtime();
   printf("TIMER #%d jurassic-gpu table initialization time: %lf\n", ctl->MPIglobrank, toc - tic);
-}
-
-__host__
-int call_traceray(ctl_t *ctl, atm_t *atm, obs_t *obs, aero_t *aero, int const ir, 
-                            pos_t los[], double *tsurf, int const ignore_scattering) {
-  return pos_scatter_traceray(ctl, atm, obs, aero, ir, los, tsurf, ignore_scattering);
-}
-
-__host__
-  double call_src_planck_core(trans_table_t const *tbl, double const t, int const id) {
-      return src_planck_core(tbl, t, id);
-}
-
-__host__
-trans_table_t* call_get_tbl(ctl_t const *ctl) {
-  return get_tbl(ctl);
 }
