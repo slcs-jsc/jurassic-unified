@@ -36,4 +36,8 @@ void jur_read_obs(char const *dirname, char const *filename, ctl_t *ctl, obs_t *
 
 void jur_write_obs(char const *dirname, char const *filename, ctl_t *ctl, obs_t *obs); 
 
+void hydrostatic1d_CPU(ctl_t const *ctl, atm_t *atm, int const nr, int const ig_h2o); 
+
+int jur_find_emitter(ctl_t const *ctl, char const *emitter); 
+
 #endif

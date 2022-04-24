@@ -41,7 +41,7 @@ the refined list of files and functions which shold be changed:
       JURASSIC-scatter:
         void hydrostatic(ctl_t *ctl, atm_t *atm);
       JURASSIC-GPU: (jr_common.h)
-        void hydrostatic_1d_h2o(ctl_t const *ctl, atm_t *atm, int const ip0, int const ip1, int const ig_h2o);
+	      void hydrostatic1d_CPU(ctl_t const *ctl, atm_t *atm, int const nr, int const ig_h2o);
       // TODO: find differences!
         
     --
@@ -175,8 +175,8 @@ projects: hydrostatic & read_ctl
   hydrostatic     -> forwardmodel.c   
     JURASSIC-scatter:
       void hydrostatic(ctl_t *ctl, atm_t *atm);
-    JURASSIC-GPU: (jr_common.h)
-        void hydrostatic_1d_h2o(ctl_t const *ctl, atm_t *atm, int const ip0, int const ip1, int const ig_h2o);
+    JURASSIC-GPU: (CPUdrivers.c)
+      void hydrostatic1d_CPU(ctl_t const *ctl, atm_t *atm, int const nr, int const ig_h2o); 
       also in JURASSIC-GPU: (jurassic.c)
         void jur_hydrostatic(ctl_t const *const ctl, atm_t *atm); 
     // TODO: find differences!
@@ -186,7 +186,9 @@ projects: hydrostatic & read_ctl
         if((ctl->ctm_h2o) && (-999 == ig_h2o)) ig_h2o = jur_find_emitter(ctl, "H2O");
 
         hydrostatic1d_CPU(ctl, atm, obs->nr, ig_h2o); // in this call atm might get modified
-
+      // comparison: ok!
+      // WARNING: ctl->ctm_h2o is at the moment not exectly the same as in jurassic-GPU
+      // because of different read_ctl function 
 --
 
   read_ctl        -> formod.c

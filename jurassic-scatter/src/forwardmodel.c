@@ -139,7 +139,12 @@ void formod(ctl_t *ctl,
       mask[id][ir]=!gsl_finite(obs->rad[ir][id]); //CHANGED
   
   /* Hydrostatic equilibrium... */
-  hydrostatic(ctl, atm);
+  // WARNING: ctl->ctm_h2o is at the moment not exectly the same as in jurassic-GPU
+  // because of different read_ctl function 
+  static int ig_h2o = -999;
+  if((ctl->ctm_h2o) && (-999 == ig_h2o)) ig_h2o = jur_find_emitter(ctl, "H2O");
+
+  hydrostatic1d_CPU(ctl, atm, obs->nr, ig_h2o); // in this call atm might get modified
   
   /* Particles: Calculate optical properties in retrieval */
   if(ctl->retnn || ctl->retrr || ctl->retss) {

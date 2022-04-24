@@ -42,15 +42,6 @@ int find_emitter(ctl_t *ctl,
 double gravity(double z, 
 	       double lat);
 
-/* Set hydrostatic equilibrium. */
-void hydrostatic(ctl_t *ctl,
-		 atm_t *atm);
-
-/* Set hydrostatic equilibrium for individual profile. */
-void hydrostatic_1d(ctl_t *ctl,
-		    atm_t *atm,
-		    int ip0,
-		    int ip1);
 /* Interpolate complete atmospheric data set. */
 void intpol_atm(ctl_t *ctl,
 		atm_t *atm_dest,
