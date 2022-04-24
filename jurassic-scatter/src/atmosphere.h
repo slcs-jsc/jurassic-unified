@@ -47,50 +47,6 @@ void intpol_atm(ctl_t *ctl,
 		atm_t *atm_dest,
 		atm_t *atm_src);
 
-/* Interpolate atmospheric data for given geolocation. */
-void intpol_atm_geo(ctl_t *ctl,
-		    atm_t *atm,
-		    double z0,
-		    double lon0,
-		    double lat0,
-		    double *p,
-		    double *t,
-		    double *q,
-		    double *k);
-
-/* Interpolate 1D atmospheric data (vertical profile). */
-void intpol_atm_1d(ctl_t *ctl,
-		   atm_t *atm,
-		   int idx0,
-		   int n,
-		   double z0,
-		   double *p,
-		   double *t,
-		   double *q,
-		   double *k);
-
-/* Interpolate 2D atmospheric data (satellite track). */
-void intpol_atm_2d(ctl_t *ctl,
-		   atm_t *atm,
-		   double z0,
-		   double lon0,
-		   double lat0,
-		   double *p,
-		   double *t,
-		   double *q,
-		   double *k);
-
-/* Interpolate 3D atmospheric data (Lagrangian grid). */
-void intpol_atm_3d(ctl_t *ctl,
-		   atm_t *atm,
-		   double z0,
-		   double lon0,
-		   double lat0,
-		   double *p,
-		   double *t,
-		   double *q,
-		   double *k);
-
 /* Write atmospheric data. */
 void write_atm(const char *dirname,
 	       const char *filename,
