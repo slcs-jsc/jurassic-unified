@@ -42,11 +42,6 @@ int find_emitter(ctl_t *ctl,
 double gravity(double z, 
 	       double lat);
 
-/* Interpolate complete atmospheric data set. */
-void intpol_atm(ctl_t *ctl,
-		atm_t *atm_dest,
-		atm_t *atm_src);
-
 /* Write atmospheric data. */
 void write_atm(const char *dirname,
 	       const char *filename,
