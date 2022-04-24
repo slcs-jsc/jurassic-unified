@@ -28,10 +28,6 @@ void formod_pencil(ctl_t *ctl,
  		   int ir,
        queue_t *q);
 
-/* Compute Planck function. */
-double planck(double t,
-	      double nu);
-
 /* Read shape function. */
 void read_shape(const char *filename,
 		double *x,

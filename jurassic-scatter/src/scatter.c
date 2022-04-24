@@ -1003,8 +1003,7 @@ void srcfunc_sca_sun(ctl_t *ctl,
 		 theta[idx+1], aero->p[il][id][idx+1], theta2);
       
       /* Add solar radiance (6.764e-5 solid angle of the sun)... */
-      src_sca[id]+=6.764e-5*phase2
-	*planck(TSUN, ctl->nu[id])*obs->tau[0][id]; //CHANGED
+      src_sca[id] += 6.764e-5 * phase2 * jur_planck(TSUN, ctl->nu[id]) * obs->tau[0][id]; //CHANGED
     }
   }
 

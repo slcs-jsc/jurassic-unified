@@ -564,15 +564,6 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
 
 /*****************************************************************************/
 
-// needed for srcfunc_sca_sun from scatter.c
-double planck(double t,
-	      double nu) {
-  
-  return C1*gsl_pow_3(nu)/gsl_expm1(C2*nu/t);
-}
-
-/*****************************************************************************/
-
 void read_shape(const char *filename,
 		double *x,
 		double *y,

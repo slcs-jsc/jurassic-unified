@@ -42,4 +42,6 @@ int jur_find_emitter(ctl_t const *ctl, char const *emitter);
 
 double brightness_core(double const rad, double const nu);
 
+double jur_planck(double const t, double const nu);
+
 #endif
