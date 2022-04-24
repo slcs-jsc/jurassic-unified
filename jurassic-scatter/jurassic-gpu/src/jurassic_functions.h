@@ -54,11 +54,6 @@ void jur_atm2x_help(
 		int *ipa,
 		size_t * n);
 
-/*! Compute brightness temperature. */
-double jur_brightness(
-		double const rad,
-		double const nu) __deprecated__;
-
 /*! Convert Cartesian coordinates to geolocation. */
 // void cart2geo(
 // 		double const *x,

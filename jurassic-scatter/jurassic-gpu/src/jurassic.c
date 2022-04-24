@@ -207,10 +207,6 @@ int jur_find_emitter(ctl_t const *ctl, char const *emitter) {
 }
 
 //***************************************************************************
-inline double jur_brightness(double rad, double nu) { return C2*nu/gsl_log1p(C1*gsl_pow_3(nu)/rad); }
-
-
-//***************************************************************************
 void jur_formod_fov(ctl_t const *const ctl, obs_t *obs) {
 	static double dz[NSHAPE], w[NSHAPE];
 	static int init = 0, n;
