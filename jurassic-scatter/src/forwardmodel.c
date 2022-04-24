@@ -9,14 +9,6 @@
 
 /*****************************************************************************/
 
-double brightness(double rad,
-		  double nu) {
-  
-  return C2*nu/gsl_log1p(C1*gsl_pow_3(nu)/rad);
-}
-
-/*****************************************************************************/
-
 void copy_obs_row(obs_t const *source, int rs, obs_t *dest, int rd) {
   dest->time[rd] = source->time[rs];
   dest->obsz[rd] = source->obsz[rs];
@@ -278,8 +270,8 @@ void formod(ctl_t *ctl,
   if(ctl->write_bbt)
     for(ir=0; ir<obs->nr; ir++)
       for(id=0; id<ctl->nd; id++)
-	obs->rad[ir][id]=brightness(obs->rad[ir][id], ctl->nu[id]); //CHANGED
-  
+	      obs->rad[ir][id]=brightness_core(obs->rad[ir][id], ctl->nu[id]); //CHANGED
+
   /* Apply observation mask... */
   for(id=0; id<ctl->nd; id++)
     for(ir=0; ir<obs->nr; ir++)
