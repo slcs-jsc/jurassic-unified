@@ -34,10 +34,6 @@ void copy_atm(ctl_t *ctl,
 	      atm_t *atm_src,
 	      int init);
 
-/* Find index of an emitter. */
-int find_emitter(ctl_t *ctl,
-		 const char *emitter);
-
 /* Determine gravity of Earth. */
 double gravity(double z, 
 	       double lat);

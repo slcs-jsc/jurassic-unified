@@ -1,11 +1,11 @@
 atmosphere.h / atmosphere.c:
   atm2x           -> retrievalmodel.c    
-  atm2x_help       
+  atm2x_help      => used by atm2x 
   copy_atm        -> retrievalmodel.c 
-  find_emitter    
-  gravity       
+  find_emitter        => could be removed 
+  gravity             => could be removed
   hydrostatic     -> forwardmodel.c   
-  hydrostatic_1d
+  hydrostatic_1d  => used by hydrostatic
   intpol_atm      -> from lineofsight.h, not important any more
   intpol_atm_geo      -||-
   intpol_atm_1d       -||-

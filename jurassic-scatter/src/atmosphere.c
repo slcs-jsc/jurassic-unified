@@ -139,20 +139,6 @@ void copy_atm(ctl_t *ctl,
 
 /*****************************************************************************/
 
-int find_emitter(ctl_t *ctl,
-		 const char *emitter) {
-  
-  int ig;
-
-  for(ig=0; ig<ctl->ng; ig++)
-    if(strcasecmp(ctl->emitter[ig], emitter)==0)
-      return ig;
-  
-  return -1;
-}
-
-/*****************************************************************************/
-
 double gravity(double z, 
 	       double lat) {
   
