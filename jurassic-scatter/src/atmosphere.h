@@ -34,10 +34,6 @@ void copy_atm(ctl_t *ctl,
 	      atm_t *atm_src,
 	      int init);
 
-/* Determine gravity of Earth. */
-double gravity(double z, 
-	       double lat);
-
 /* Write atmospheric data. */
 void write_atm(const char *dirname,
 	       const char *filename,

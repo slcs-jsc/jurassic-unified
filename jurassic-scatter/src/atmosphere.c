@@ -139,16 +139,6 @@ void copy_atm(ctl_t *ctl,
 
 /*****************************************************************************/
 
-double gravity(double z, 
-	       double lat) {
-  
-  /* Compute gravity according to 1967 Geodetic Reference System... */
-  return 9.780318*(1+0.0053024*gsl_pow_2(sin(lat/180*M_PI))
-		   -0.0000058*gsl_pow_2(sin(2*lat/180*M_PI)))-3.086e-3*z;
-}
-
-/*****************************************************************************/
-
 void write_atm(const char *dirname,
 	       const char *filename,
 	       ctl_t *ctl,
