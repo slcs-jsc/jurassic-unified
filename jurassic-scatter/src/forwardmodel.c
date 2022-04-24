@@ -34,6 +34,8 @@ void copy_obs_row(obs_t const *source, int rs, obs_t *dest, int rd) {
   }
 }
 
+/*****************************************************************************/
+
 void advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs, int nr) {
 
   int *pref_sizes;
@@ -105,21 +107,7 @@ void advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs, int nr)
   free(obs_packages);
 }
 
-// removing tbl_t
-// tbl_t* scatter_get_tbl(ctl_t *ctl) {
-//  static tbl_t *tbl = NULL;
-//	if(!tbl) {
-//    double tic = omp_get_wtime(); 
-//    printf("Allocate memory for tables: %.4g MB\n",
-//           (double)sizeof(tbl_t)/1024./1024.);
-//    ALLOC(tbl, tbl_t, 1);
-//    read_tbl(ctl, tbl);
-//    double toc = omp_get_wtime();
-//    printf("TIMER #%d jurassic-scatter FIRST and ONLY reading table time: %lf\n", ctl->MPIglobrank, toc - tic);
-//  }
-//  return tbl;
-//} 
-
+/*****************************************************************************/
 
 void formod(ctl_t *ctl,
 	    atm_t *atm,
@@ -301,42 +289,6 @@ void formod(ctl_t *ctl,
 
 /*****************************************************************************/
 
- // removing formod_continua
- // void formod_continua(ctl_t *ctl,
- //         pos_t los[],
- //         int ip,
- //         double *beta) {
- //   
- //   int id;
- //   
- //   /* Add extinction... */
- //   for(id=0; id<ctl->nd; id++)
- //     beta[id]=los[ip].k[ctl->window[id]];
- //   
- //   /* Add CO2 continuum... */
- //   if(ctl->ctm_co2)
- //     for(id=0; id<ctl->nd; id++)
- //       beta[id]+=ctmco2(ctl, ctl->nu[id], los[ip].p,
- //           los[ip].t, los[ip].u)/los[ip].ds;
- //   
- //   /* Add H2O continuum... */
- //   if(ctl->ctm_h2o)
- //     for(id=0; id<ctl->nd; id++)
- //       beta[id]+=ctmh2o(ctl, ctl->nu[id], los[ip].p, los[ip].t,
- //           los[ip].q, los[ip].u)/los[ip].ds;
- //   
- //   /* Add N2 continuum... */
- //   if(ctl->ctm_n2)
- //     for(id=0; id<ctl->nd; id++)
- //       beta[id]+=ctmn2(ctl->nu[id], los[ip].p, los[ip].t);
- //
- //   /* Add O2 continuum... */
- //   if(ctl->ctm_o2)
- //     for(id=0; id<ctl->nd; id++)
- //       beta[id]+=ctmo2(ctl->nu[id], los[ip].p, los[ip].t);
- // }
-/*****************************************************************************/
-
 void formod_fov(ctl_t *ctl,
 		obs_t *obs) {
   
@@ -506,20 +458,14 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
 
 if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
     /* Get trace gas transmittance... */
-    // intpol_tbl(ctl, tbl, los, ip, tau_path, tau_gas);
-    /* new Get trace gas transmittance... */
     for(id = 0; id < ctl->nd; id++)
       tau_gas[id] = apply_ega_core(trans_tbl, &los[ip], tau_path[id], ctl->ng, id);
 
     /* Get continuum absorption... */
-    // formod_continua(ctl, los, ip, beta_ctm);
-    /* new Get continuum absorption... */
     for(id = 0; id < ctl->nd; id++)
       beta_ctm[id] = continua_core_CPU(ctl, &los[ip], id) / los[ip].ds;
 
     /* Compute Planck function... */
-    // srcfunc_planck(ctl, los[ip].t, src_planck);
-    /* new Compute Planck function... */
     for(id = 0; id < ctl->nd; id++) {
       src_planck[id] = src_planck_core(trans_tbl, los[ip].t, id);
     }
@@ -606,9 +552,7 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
 if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
   /* Add surface... */
   if(tsurf>0) {
-    // srcfunc_planck(ctl, tsurf, src_planck);
-
-    /* new Compute Planck function... */
+    /* Compute Planck function */
     for(id = 0; id < ctl->nd; id++) {
       src_planck[id] = src_planck_core(trans_tbl, tsurf, id);
     }
@@ -628,170 +572,6 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
 
 /*****************************************************************************/
 
- // removing intpol_tbl
- // void intpol_tbl(ctl_t *ctl,
- //     tbl_t *tbl,
- //     pos_t los[],
- //     int ip,
- //     double tau_path[NGMAX][NDMAX],
- //     double tau_seg[NDMAX]) {
- //   
- //   double eps, eps00, eps01, eps10, eps11, u;
- //   
- //   int id, ig, ipr, it0, it1;
- //   
- //   /* Initialize... */
- //   if(ip<=0)
- //     for(ig=0; ig<ctl->ng; ig++)
- //       for(id=0; id<ctl->nd; id++)
- //   tau_path[ig][id]=1;
- //   
- //   /* Loop over channels... */
- //   for(id=0; id<ctl->nd; id++) {
- //     
- //     /* Initialize... */
- //     tau_seg[id]=1;
- //     
- //     /* Loop over emitters.... */
- //     for(ig=0; ig<ctl->ng; ig++) {
- //       
- //       /* Check size of table (pressure)... */
- //       if(tbl->np[ig][id]<2)
- //   eps=0;
- //       
- //       /* Check transmittance... */
- //       else if(tau_path[ig][id]<1e-9)
- //   eps=1;
- //       
- //       /* Interpolate... */
- //       else {
- //   
- //   /* Determine pressure and temperature indices... */
- //   ipr=jur_locate(tbl->p[ig][id], tbl->np[ig][id], los[ip].p);
- //   it0=jur_locate(tbl->t[ig][id][ipr], tbl->nt[ig][id][ipr], los[ip].t);
- //   it1=jur_locate(tbl->t[ig][id][ipr+1], tbl->nt[ig][id][ipr+1], los[ip].t);
- //   
- //   /* Check size of table (temperature and column density)... */
- //   if(tbl->nt[ig][id][ipr]<2 || tbl->nt[ig][id][ipr+1]<2
- //      || tbl->nu[ig][id][ipr][it0]<2 || tbl->nu[ig][id][ipr][it0+1]<2
- //      || tbl->nu[ig][id][ipr+1][it1]<2 || tbl->nu[ig][id][ipr+1][it1+1]<2)
- //     eps=0;
- //   
- //   else {
- //     
- //     /* Get emissivities of extended path... */
- //     u=intpol_tbl_u(tbl, ig, id, ipr, it0, 1-tau_path[ig][id]);
- //     eps00=intpol_tbl_eps(tbl, ig, id, ipr, it0, u+los[ip].u[ig]);
- //     eps00=GSL_MAX(GSL_MIN(eps00, 1), 0);
- //     
- //     u=intpol_tbl_u(tbl, ig, id, ipr, it0+1, 1-tau_path[ig][id]);
- //     eps01=intpol_tbl_eps(tbl, ig, id, ipr, it0+1, u+los[ip].u[ig]);
- //     eps01=GSL_MAX(GSL_MIN(eps01, 1), 0);
- //     
- //     u=intpol_tbl_u(tbl, ig, id, ipr+1, it1, 1-tau_path[ig][id]);
- //     eps10=intpol_tbl_eps(tbl, ig, id, ipr+1, it1, u+los[ip].u[ig]);
- //     eps10=GSL_MAX(GSL_MIN(eps10, 1), 0);
- //     
- //     u=intpol_tbl_u(tbl, ig, id, ipr+1, it1+1, 1-tau_path[ig][id]);
- //     eps11=intpol_tbl_eps(tbl, ig, id, ipr+1, it1+1, u+los[ip].u[ig]);
- //     eps11=GSL_MAX(GSL_MIN(eps11, 1), 0);
- //     
- //     /* Interpolate with respect to temperature... */
- //     eps00=LIN(tbl->t[ig][id][ipr][it0], eps00,
- //         tbl->t[ig][id][ipr][it0+1], eps01, los[ip].t);
- //     eps00=GSL_MAX(GSL_MIN(eps00, 1), 0);
- //     
- //     eps11=LIN(tbl->t[ig][id][ipr+1][it1], eps10,
- //         tbl->t[ig][id][ipr+1][it1+1], eps11, los[ip].t);
- //     eps11=GSL_MAX(GSL_MIN(eps11, 1), 0);
- //     
- //     /* Interpolate with respect to pressure... */
- //     eps00=LIN(tbl->p[ig][id][ipr], eps00,
- //         tbl->p[ig][id][ipr+1], eps11, los[ip].p);
- //     eps00=GSL_MAX(GSL_MIN(eps00, 1), 0);
- //     
- //     /* Determine segment emissivity... */
- //     eps=1-(1-eps00)/tau_path[ig][id];
- //   }
- //       }
- //       
- //       /* Get transmittance of extended path... */
- //       tau_path[ig][id]*=(1-eps);
- //       
- //       /* Get segment transmittance... */
- //       tau_seg[id]*=(1-eps);
- //     }
- //   }
- // }
-
-/*****************************************************************************/
-
-// removing intpol_tbl
-//double intpol_tbl_eps(tbl_t *tbl,
-//		      int ig,
-//		      int id,
-//		      int ip,
-//		      int it,
-//		      double u) {
-//  
-//  int idx;
-//  
-//  /* Get index... */
-//  idx=locate_tbl(tbl->u[ig][id][ip][it], tbl->nu[ig][id][ip][it], u);
-//  
-//  /* Interpolate... */
-//  return
-//    LIN(tbl->u[ig][id][ip][it][idx], tbl->eps[ig][id][ip][it][idx],
-//	tbl->u[ig][id][ip][it][idx+1], tbl->eps[ig][id][ip][it][idx+1], u);
-//}
-
-/*****************************************************************************/
-
-// removing intpol_tbl
-//double intpol_tbl_u(tbl_t *tbl,
-//		    int ig,
-//		    int id,
-//		    int ip,
-//		    int it,
-//		    double eps) {
-//  
-//  int idx;
-//  
-//  /* Get index... */
-//  idx=locate_tbl(tbl->eps[ig][id][ip][it], tbl->nu[ig][id][ip][it], eps);
-//  
-//  /* Interpolate... */
-//  return
-//    LIN(tbl->eps[ig][id][ip][it][idx], tbl->u[ig][id][ip][it][idx],
-//	tbl->eps[ig][id][ip][it][idx+1], tbl->u[ig][id][ip][it][idx+1], eps);
-//}
-
-/*****************************************************************************/
-
-// removing intpol_tbl
-//int locate_tbl(float *xx,
-//               int n,
-//               double x) {
-//  
-//  int i, ilo, ihi;
-//  
-//  ilo=0;
-//  ihi=n-1;
-//  i=(ihi+ilo)>>1;
-//  
-//  while(ihi>ilo+1) {
-//    i=(ihi+ilo)>>1;
-//    if(xx[i]>x)
-//      ihi=i;
-//    else
-//      ilo=i;
-//  }
-//  
-//  return ilo;
-//}
-
-/*****************************************************************************/
-
 // needed for srcfunc_sca_sun from scatter.c
 double planck(double t,
 	      double nu) {
@@ -801,7 +581,6 @@ double planck(double t,
 
 /*****************************************************************************/
 
-// needed for formod_fov
 void read_shape(const char *filename,
 		double *x,
 		double *y,
@@ -833,193 +612,3 @@ void read_shape(const char *filename,
   fclose(in);
 }
 
-/*****************************************************************************/
-
-
-// removing tbl_t
-// void read_tbl(ctl_t *ctl,
-//         tbl_t *tbl) {
-//   
-//   FILE *in;
-//   
-//   char filename[2*LEN], line[LEN];
-//   
-//   double eps, eps_old, press, press_old, temp, temp_old, u, u_old;
-//   
-//   int id, ig, ip, it;
-//   
-//   /* Loop over trace gases and channels... */
-//   for(ig=0; ig<ctl->ng; ig++)
-//     for(id=0; id<ctl->nd; id++) {
-//       
-//       /* Set filename... */
-//       sprintf(filename, "%s_%.4f_%s.bin",
-//         ctl->tblbase, ctl->nu[id], ctl->emitter[ig]);
-//       
-//       /* Try to open binary file... */
-//       if((in=fopen(filename, "r"))) {
-//   
-//   /* Write info... */
-//   /* printf("Read emissivity table: %s\n", filename); */
-//   
-//   /* Read data... */
-//   FREAD(&tbl->np[ig][id], int, 1, in);
-//   if(tbl->np[ig][id]>TBLNPMAX)
-//     ERRMSG("Too many pressure levels!");
-//   FREAD(&tbl->p[ig][id], double, tbl->np[ig][id], in);
-//   FREAD(tbl->nt[ig][id], int, tbl->np[ig][id], in);
-//   for(ip=0; ip<tbl->np[ig][id]; ip++) {
-//     if(tbl->nt[ig][id][ip]>TBLNTMAX)
-//       ERRMSG("Too many temperatures!");
-//     FREAD(&tbl->t[ig][id][ip], double, tbl->nt[ig][id][ip], in);
-//     FREAD(tbl->nu[ig][id][ip], int, tbl->nt[ig][id][ip], in);
-//     for(it=0; it<tbl->nt[ig][id][ip]; it++) {
-//       FREAD(&tbl->u[ig][id][ip][it], float,
-//       GSL_MIN(tbl->nu[ig][id][ip][it], TBLNUMAX), in);
-//       FREAD(&tbl->eps[ig][id][ip][it], float,
-//       GSL_MIN(tbl->nu[ig][id][ip][it], TBLNUMAX), in);
-//     }
-//   }
-//   
-//   /* Close file... */
-//   fclose(in);
-//       }
-//       
-//       /* Try to read ASCII file... */
-//       else {
-//   
-//   /* Initialize... */
-//   tbl->np[ig][id]=-1;
-//   eps_old=-999;
-//   press_old=-999;
-//   temp_old=-999;
-//   u_old=-999;
-//   
-//   /* Try to open file... */
-//   sprintf(filename, "%s_%.4f_%s.tab",
-//     ctl->tblbase, ctl->nu[id], ctl->emitter[ig]);
-//
-//   if(!(in=fopen(filename, "r"))) {
-//     printf("Missing emissivity table: %s\n", filename);
-//     continue;
-//   }
-//   printf("Read emissivity table: %s\n", filename);
-//   
-//   /* Read data... */
-//   while(fgets(line, LEN, in)) {
-//     
-//     /* Parse line... */
-//     if(sscanf(line,"%lg %lg %lg %lg", &press, &temp, &u, &eps)!=4)
-//       continue;
-//     
-//     /* Determine pressure index... */
-//     if(press!=press_old) {
-//       press_old=press;
-//       if((++tbl->np[ig][id])>=TBLNPMAX)
-//        ERRMSG("Too many pressure levels!");
-//      tbl->nt[ig][id][tbl->np[ig][id]]=-1;
-//    }
-//    
-//    /* Determine temperature index... */
-//    if(temp!=temp_old) {
-//      temp_old=temp;
-//      if((++tbl->nt[ig][id][tbl->np[ig][id]])>=TBLNTMAX)
-//        ERRMSG("Too many temperatures!");
-//      tbl->nu[ig][id][tbl->np[ig][id]]
-//        [tbl->nt[ig][id][tbl->np[ig][id]]]=-1;
-//    }
-//    
-//    /* Determine column density index... */
-//    if((eps>eps_old && u>u_old) || tbl->nu[ig][id][tbl->np[ig][id]]
-//      [tbl->nt[ig][id][tbl->np[ig][id]]]<0) {
-//      eps_old=eps;
-//      u_old=u;
-//      if((++tbl->nu[ig][id][tbl->np[ig][id]]
-//    [tbl->nt[ig][id][tbl->np[ig][id]]])>=TBLNUMAX) {
-//        tbl->nu[ig][id][tbl->np[ig][id]]
-//    [tbl->nt[ig][id][tbl->np[ig][id]]]--;
-//        continue;
-//      }
-//    }
-//    
-//    /* Store data... */
-//    tbl->p[ig][id][tbl->np[ig][id]]=press;
-//    tbl->t[ig][id][tbl->np[ig][id]][tbl->nt[ig][id][tbl->np[ig][id]]]
-//      =temp;
-//    tbl->u[ig][id][tbl->np[ig][id]][tbl->nt[ig][id][tbl->np[ig][id]]]
-//      [tbl->nu[ig][id][tbl->np[ig][id]]
-//      [tbl->nt[ig][id][tbl->np[ig][id]]]]=(float)u;
-//    tbl->eps[ig][id][tbl->np[ig][id]][tbl->nt[ig][id][tbl->np[ig][id]]]
-//      [tbl->nu[ig][id][tbl->np[ig][id]]
-//      [tbl->nt[ig][id][tbl->np[ig][id]]]]=(float)eps;
-//  }
-//  
-//  /* Increment counters... */
-//  tbl->np[ig][id]++;
-//  for(ip=0; ip<tbl->np[ig][id]; ip++) {
-//    tbl->nt[ig][id][ip]++;
-//    for(it=0; it<tbl->nt[ig][id][ip]; it++)
-//      tbl->nu[ig][id][ip][it]++;
-//  }
-//  
-//  /* Close file... */
-//  fclose(in);
-//      }
-//    }
-// }
-
-/*****************************************************************************/
-
- // removing planck
- // void srcfunc_planck(ctl_t *ctl,
- //         double t,
- //         double *src) {
- //   
- //   static double f[NSHAPE], fsum, nu[NSHAPE], plancka[NDMAX][1201],
- //     tmin=100, tmax=400, temp[1201];
- //   
- //   static int i, init=0, n, nplanck=1201;
- //
- //   char filename[2*LEN];
- //   
- //   int id, it;
- //   
- //   /* Initialize source function table... */
- //   if(!init) {
- //     init=1;
- //     
- //     /* Write info... */
- //     printf("Initialize source function table...\n");
- //     
- //     /* Loop over channels... */
- //     for(id=0; id<ctl->nd; id++) {
- //       
- //       /* Read filter function... */
- //       sprintf(filename, "%s_%.4f.filt", ctl->tblbase, ctl->nu[id]);
- //       read_shape(filename, nu, f, &n);
- //       
- //       /* Compute source function table... */
- //       for(it=0; it<nplanck; it++) {
- //   
- //   /* Set temperature... */
- //   temp[it]=LIN(0.0, tmin, nplanck-1.0, tmax, (double)it);
- //   
- //   /* Integrate Planck function... */
- //   fsum=0;
- //   plancka[id][it]=0;
- //   for(i=0; i<n; i++) {
- //     fsum+=f[i];
- //     plancka[id][it]+=f[i]*planck(temp[it], nu[i]);
- //   }
- //   plancka[id][it]/=fsum;
- //       }
- //     }
- //   }
- //   
- //   /* Determine index in temperature array... */
- //   it=jur_locate(temp, nplanck, t);
- //   
- //   /* Interpolate Planck function value... */
- //   for(id=0; id<ctl->nd; id++)
- //     src[id]=LIN(temp[it], plancka[id][it], temp[it+1], plancka[id][it+1], t);
- // }
