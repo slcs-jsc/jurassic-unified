@@ -409,8 +409,10 @@ if (Queue_Collect_Leaf == queue_mode) { /* ==c */
     obs->rad[ir][id] = obs2->rad[ir][id]; //CHANGED
     obs->tau[ir][id] = obs2->tau[ir][id]; //CAHNGED
   } /* id */
-  //free(los);
-  if(obs2->nr - 1 == ir) free(obs2);
+
+  // free obs2 only in simulations with scattering
+  // in clear-air case obs2 equals obs!
+  if(ctl->sca_mult > 0 && obs2->nr - 1 == ir) free(obs2);
   return;
 } /* ==c */
 

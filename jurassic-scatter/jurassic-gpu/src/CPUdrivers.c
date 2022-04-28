@@ -78,7 +78,9 @@
 					double const beta_ds = continua_core_CPU(ctl, &(los[ir][ip]), id);
 					
           //Added:
-          double const aero_ds = los[ir][ip].aerofac * aero_beta[los[ir][ip].aeroi][id] * los[ir][ip].ds;
+          double aero_ds = 0;
+          if(NULL != aero_beta)
+            los[ir][ip].aerofac * aero_beta[los[ir][ip].aeroi][id] * los[ir][ip].ds;
           
           // compute transmission with the EGA method
 					double const tau_gas = apply_ega_core(tbl, &(los[ir][ip]), tau_path[id], ctl->ng, id);
@@ -152,17 +154,17 @@
 
     hydrostatic1d_CPU(ctl, atm, obs->nr, ig_h2o); // in this call atm might get modified
     // if formod function was NOT called from jurassic-scatter project
-    if(ctl->leaf_nr == -1) {
-      raytrace_rays_CPU(ctl, atm, obs, los, t_surf, np);
-    } else {  
+    if(NULL != aero) {
       get_los_and_convert_los_t_to_pos_t_CPU(los, np, t_surf, ctl, atm, obs, aero);
+    } else {  
+      raytrace_rays_CPU(ctl, atm, obs, los, t_surf, np);
     }
 
     // "beta_a" -> 'a', "beta_e" -> 'e'
     char const beta_type = ctl->sca_ext[5];
 
     apply_kernels_CPU(tbl, ctl, obs, los, np, 
-                      (('a' == beta_type) ? aero->beta_a : aero->beta_e));
+                      NULL == aero ? NULL : ('a' == beta_type ? aero->beta_a : aero->beta_e));
     surface_terms_CPU(tbl, obs, t_surf, ctl->nd);
 
 		free(los);
