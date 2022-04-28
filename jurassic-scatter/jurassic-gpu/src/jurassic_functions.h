@@ -115,9 +115,7 @@ int jur_find_emitter(
 /*! Determine ray paths and compute radiative transfer. */
 void jur_formod(ctl_t const *ctl, 
     atm_t *atm, 
-    obs_t *obs, 
-    aero_t const *aero, 
-    int n);
+    obs_t *obs); 
 
 /*! Compute radiative transfer for a pencil beam. */
 void fr_formod_pencil(
@@ -429,3 +427,10 @@ void jur_shell(const char*, const char*);
 
 // Added:
 void jur_table_initialization(ctl_t *ctl);  
+
+// Added:
+void jur_formod_multiple_packages(ctl_t const *ctl, 
+    atm_t *atm, 
+    obs_t *obs, 
+    int n,
+    aero_t const *aero);

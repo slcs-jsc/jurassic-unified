@@ -74,7 +74,7 @@ void advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs, int nr)
     printf("%d ", obs_packages[i].nr);
   printf("\n");
   tic = omp_get_wtime();
-	jur_formod(ctl, atm, obs_packages, aero, number_of_packages);
+	jur_formod_multiple_packages(ctl, atm, obs_packages, number_of_packages, aero);
   toc = omp_get_wtime();
   printf("TIMER #%d Execute: formod_multiple_packages time: %lf\n", ctl->MPIglobrank, toc - tic);
 

@@ -206,7 +206,7 @@
 #endif
 
 	__host__
-	void jur_formod(ctl_t const *ctl, atm_t *atm, obs_t *obs, aero_t const *aero, int n) {
+	void jur_formod_multiple_packages(ctl_t const *ctl, atm_t *atm, obs_t *obs, int n, aero_t const *aero) {
         printf("DEBUG #%d jur_formod: number of packages.. %d\n", ctl->MPIglobrank, n);
         if (ctl->checkmode) {
             static int nr_last_time = -999;
@@ -226,6 +226,12 @@
             }
         } // useGPU
     } // formod
+
+void jur_formod(ctl_t const *ctl, 
+    atm_t *atm, 
+    obs_t *obs) {
+      jur_formod_multiple_packages(ctl, atm, obs, 1, NULL);
+    }
 
 //we could use the same trick as above but it's not necessary
 __host__
