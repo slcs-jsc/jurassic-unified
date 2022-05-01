@@ -742,7 +742,7 @@ void srcfunc_sca_1d(ctl_t *ctl,
     jur_cart2geo(xv, &obs2->vpz[ir], &obs2->vplon[ir], &obs2->vplat[ir]);
     obs2->time[ir] = sec; 
     /* Get pencil beam radiance... */
-    formod_pencil(ctl, atm, obs2, aero, scattering-1, ir, q); 
+    jur_sca_formod_pencil(ctl, atm, obs2, aero, scattering-1, ir, q); 
   }
   if (Queue_Prepare == ctl->queue_state) return; /* prepare work queue items only */
   
@@ -872,7 +872,7 @@ void srcfunc_sca_3d(ctl_t *ctl,
       obs2->time[0] = sec; 
       
       /* Get incident radiation... */
-      formod_pencil(ctl, atm, obs2, aero, scattering-1, 0, q);
+      jur_sca_formod_pencil(ctl, atm, obs2, aero, scattering-1, 0, q);
       
       /* Get phase function index */
       idx=jur_locate(theta, NTHETA, theta2);
@@ -983,7 +983,7 @@ void srcfunc_sca_sun(ctl_t *ctl,
   /* Check that LOS doesn't hit the ground... */
   if(tsurf<0) {
     /* Compute path transmittance... */
-    formod_pencil(ctl, atm, obs, aero, 0, 0, q);
+    jur_sca_formod_pencil(ctl, atm, obs, aero, 0, 0, q);
     
     // this was also missing!
     if (Queue_Prepare == ctl->queue_state) { /* prepare work queue items only */

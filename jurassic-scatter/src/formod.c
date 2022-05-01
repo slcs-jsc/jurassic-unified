@@ -160,7 +160,7 @@ void call_formod(ctl_t *ctl,
   
   double tic = omp_get_wtime(); 
   /* Call forward model... */
-  formod(ctl, &atm, &obs, &aero);
+  jur_sca_formod(ctl, &atm, &obs, &aero);
   
   double toc = omp_get_wtime(); 
   printf("TIMER #%d Total time for test %s: %lf\n", ctl->MPIglobrank, wrkdir, toc - tic);
@@ -194,7 +194,7 @@ void call_formod(ctl_t *ctl,
 	    atm2.q[ig2][ip]=0;
       
       /* Call forward model... */
-      formod(ctl, &atm2, &obs, &aero);
+      jur_sca_formod(ctl, &atm2, &obs, &aero);
       
       /* Save radiance data... */
       sprintf(filename, "%s.%s", radfile, ctl->emitter[ig]);
@@ -210,7 +210,7 @@ void call_formod(ctl_t *ctl,
 	atm2.q[ig][ip]=0;
     
     /* Call forward model... */
-    formod(ctl, &atm2, &obs, &aero);
+    jur_sca_formod(ctl, &atm2, &obs, &aero);
     
     /* Save radiance data... */
     sprintf(filename, "%s.EXTINCT", radfile);

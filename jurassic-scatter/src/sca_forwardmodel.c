@@ -9,7 +9,7 @@
 
 /*****************************************************************************/
 
-void copy_obs_row(obs_t const *source, int rs, obs_t *dest, int rd) {
+void jur_sca_copy_obs_row(obs_t const *source, int rs, obs_t *dest, int rd) {
   dest->time[rd] = source->time[rs];
   dest->obsz[rd] = source->obsz[rs];
   dest->obslon[rd] = source->obslon[rs];
@@ -28,7 +28,7 @@ void copy_obs_row(obs_t const *source, int rs, obs_t *dest, int rd) {
 
 /*****************************************************************************/
 
-void advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs, int nr) {
+void jur_sca_advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs, int nr) {
 
   int *pref_sizes;
   ALLOC(pref_sizes, int, nr);
@@ -63,7 +63,7 @@ void advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs, int nr)
       int package_id = (pref_sizes[i] + j) / NR;
       int obs_row = (pref_sizes[i] + j) % NR;
       get_queue_item(&qs[i], (void*)&obs, &ind, qs[i].begin + j);
-      copy_obs_row(obs, ind, &obs_packages[package_id], obs_row);
+      jur_sca_copy_obs_row(obs, ind, &obs_packages[package_id], obs_row);
     }
   }
 
@@ -76,7 +76,7 @@ void advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs, int nr)
   tic = omp_get_wtime();
 	jur_formod_multiple_packages(ctl, atm, obs_packages, number_of_packages, aero);
   toc = omp_get_wtime();
-  printf("TIMER #%d Execute: formod_multiple_packages time: %lf\n", ctl->MPIglobrank, toc - tic);
+  printf("TIMER #%d Execute: jur_formod_multiple_packages time: %lf\n", ctl->MPIglobrank, toc - tic);
 
   tic = omp_get_wtime();
  
@@ -90,7 +90,7 @@ void advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs, int nr)
       int package_id = (pref_sizes[i] + j) / NR;
       int obs_row = (pref_sizes[i] + j) % NR;
       get_queue_item(&qs[i], (void*)&obs, &ind, qs[i].begin + j);
-      copy_obs_row(&obs_packages[package_id], obs_row, obs, ind);
+      jur_sca_copy_obs_row(&obs_packages[package_id], obs_row, obs, ind);
     }
 
   toc = omp_get_wtime();
@@ -101,7 +101,7 @@ void advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs, int nr)
 
 /*****************************************************************************/
 
-void formod(ctl_t *ctl,
+void jur_sca_formod(ctl_t *ctl,
 	    atm_t *atm,
 	    obs_t *obs,
 	    aero_t *aero) {
@@ -156,7 +156,7 @@ void formod(ctl_t *ctl,
     tic = omp_get_wtime();
 
     /* Do first ray path sequential (to initialize model)... */
-    formod_pencil(ctl, atm, obs, aero, ctl->sca_mult, 0, &qs[0]);
+    jur_sca_formod_pencil(ctl, atm, obs, aero, ctl->sca_mult, 0, &qs[0]);
     
     toc = omp_get_wtime();
     printf("TIMER #%d Prepare 1st part time: %lf\n", ctl->MPIglobrank, toc - tic);
@@ -167,7 +167,7 @@ void formod(ctl_t *ctl,
 #pragma omp parallel for schedule(dynamic)
 #endif
     for(int i=1; i<obs->nr; i++){
-      formod_pencil(ctl, atm, obs, aero, ctl->sca_mult, i, &qs[i]);
+      jur_sca_formod_pencil(ctl, atm, obs, aero, ctl->sca_mult, i, &qs[i]);
     }
     printf("\n");
 
@@ -184,14 +184,14 @@ void formod(ctl_t *ctl,
 
     tic = omp_get_wtime();
     /* Do first ray path sequential (to initialize model)... */
-    formod_pencil(ctl, atm, obs, aero, ctl->sca_mult, 0, NULL);
+    jur_sca_formod_pencil(ctl, atm, obs, aero, ctl->sca_mult, 0, NULL);
     
     /* Do remaining ray paths in parallel... */
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic)
 #endif
     for(ir=1; ir<obs->nr; ir++){
-      formod_pencil(ctl, atm, obs, aero, ctl->sca_mult, ir, NULL);
+      jur_sca_formod_pencil(ctl, atm, obs, aero, ctl->sca_mult, ir, NULL);
     }
 
     toc = omp_get_wtime();
@@ -208,10 +208,10 @@ void formod(ctl_t *ctl,
         
         for(int i = 0; i < 1; i++) {
           for(ir = qs[i].begin; ir < qs[i].begin + 1; ++ir) {
-            formod_pencil(ctl, atm, NULL, aero, 0, ir, &qs[0]);
+            jur_sca_formod_pencil(ctl, atm, NULL, aero, 0, ir, &qs[0]);
           }
           for(ir = qs[i].begin + 1; ir < qs[i].end; ++ir) {
-            formod_pencil(ctl, atm, NULL, aero, 0, ir, &qs[0]);
+            jur_sca_formod_pencil(ctl, atm, NULL, aero, 0, ir, &qs[0]);
           }
         }/* ir-loop */
         /* Do remaining ray paths in parallel... */
@@ -220,13 +220,13 @@ void formod(ctl_t *ctl,
 #endif
         for(int i = 1; i < obs->nr; i++) {
           for(int j = qs[i].begin; j < qs[i].end; j++) {
-            formod_pencil(ctl, atm, NULL, aero, 0, j, &qs[i]);
+            jur_sca_formod_pencil(ctl, atm, NULL, aero, 0, j, &qs[i]);
           } /* ir-loop */
         }
       } else {
         printf("DEBUG #%d Call advanced execute!\n", ctl->MPIglobrank);
-        advanced_execute(ctl, atm, aero, qs, obs->nr);
-        //ERRMSG("No GPU version of formod_pencil implemented!");
+        jur_sca_advanced_execute(ctl, atm, aero, qs, obs->nr);
+        //ERRMSG("No GPU version of jur_sca_formod_pencil implemented!");
       }
       toc = omp_get_wtime();
       printf("TIMER #%d Execute time: %lf\n", ctl->MPIglobrank, toc - tic);
@@ -237,7 +237,7 @@ void formod(ctl_t *ctl,
 
 
       for(int i=0; i<1; i++) {
-        formod_pencil(ctl, atm, obs, aero, ctl->sca_mult, i, &qs[i]);
+        jur_sca_formod_pencil(ctl, atm, obs, aero, ctl->sca_mult, i, &qs[i]);
       }
       toc = omp_get_wtime();
       printf("TIMER #%d Collect-1st part time: %lf\n", ctl->MPIglobrank, toc - tic);
@@ -248,7 +248,7 @@ void formod(ctl_t *ctl,
 #pragma omp parallel for schedule(dynamic)
 #endif
       for(int i=1; i<obs->nr; i++) {
-        formod_pencil(ctl, atm, obs, aero, ctl->sca_mult, i, &qs[i]);
+        jur_sca_formod_pencil(ctl, atm, obs, aero, ctl->sca_mult, i, &qs[i]);
       }
  
       toc = omp_get_wtime();
@@ -264,7 +264,7 @@ void formod(ctl_t *ctl,
   }
 
   /* Apply field-of-view convolution... */
-  formod_fov(ctl, obs);
+  jur_sca_formod_fov(ctl, obs);
   
   /* Convert radiance to brightness temperature... */
   if(ctl->write_bbt)
@@ -281,7 +281,7 @@ void formod(ctl_t *ctl,
 
 /*****************************************************************************/
 
-void formod_fov(ctl_t *ctl,
+void jur_sca_formod_fov(ctl_t *ctl,
 		obs_t *obs) {
   
   static obs_t obs2;
@@ -298,7 +298,7 @@ void formod_fov(ctl_t *ctl,
   /* Initialize FOV data... */
   if(!init) {
     init=1;
-    read_shape(ctl->fov, dz, w, &n);
+    jur_sca_read_shape(ctl->fov, dz, w, &n);
   }
   
   /* Copy observation data... */
@@ -349,7 +349,7 @@ void formod_fov(ctl_t *ctl,
 
 /*****************************************************************************/
 
-void formod_pencil(ctl_t *ctl,
+void jur_sca_formod_pencil(ctl_t *ctl,
                    atm_t *atm,
                    obs_t *obs,
                    aero_t *aero,
@@ -566,7 +566,7 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
 
 /*****************************************************************************/
 
-void read_shape(const char *filename,
+void jur_sca_read_shape(const char *filename,
 		double *x,
 		double *y,
 		int *n) {

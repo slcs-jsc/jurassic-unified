@@ -5,22 +5,22 @@
 #include "scatter.h"
 #include "atmosphere.h"
 
-void copy_obs_row(obs_t const *source, int rs, obs_t *dest, int rd);
+void jur_sca_copy_obs_row(obs_t const *source, int rs, obs_t *dest, int rd);
 
-void advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs, int nr);
+void jur_sca_advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs, int nr);
 
 /* Determine ray paths and compute radiative transfer. */
-void formod(ctl_t *ctl,
+void jur_sca_formod(ctl_t *ctl,
 	    atm_t *atm,
 	    obs_t *obs,
 	    aero_t *aero);
 
 /* Apply field of view convolution. */
-void formod_fov(ctl_t *ctl,
+void jur_sca_formod_fov(ctl_t *ctl,
 		obs_t *obs);
 
 /* Compute radiative transfer for a pencil beam. */
-void formod_pencil(ctl_t *ctl,
+void jur_sca_formod_pencil(ctl_t *ctl,
 		   atm_t *atm,
  		   obs_t *obs,
  		   aero_t *aero,
@@ -29,7 +29,7 @@ void formod_pencil(ctl_t *ctl,
        queue_t *q);
 
 /* Read shape function. */
-void read_shape(const char *filename,
+void jur_sca_read_shape(const char *filename,
 		double *x,
 		double *y,
 		int *n);
