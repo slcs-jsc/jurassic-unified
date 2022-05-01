@@ -5,8 +5,8 @@
 #include "jurassic.h"
 #include "control.h"
 #include "atmosphere.h"
-#include "forwardmodel.h"
-#include "scatter.h"
+#include "sca_forwardmodel.h"
+#include "sca_scatter.h"
 
 #define __host__
 #include "interface.h"
@@ -150,9 +150,9 @@ void call_formod(ctl_t *ctl,
   
   /* Read aerosol and cloud data */
   if(aerofile[0]!='-' && ctl->sca_n>0) {
-    read_aero(wrkdir, aerofile, ctl, &aero);
+    jur_sca_read_aero(wrkdir, aerofile, ctl, &aero);
     /* Get aerosol/cloud optical properties */
-    get_opt_prop(ctl, &aero);
+    jur_sca_get_opt_prop(ctl, &aero);
   } 
   else if (aerofile[0]=='-' && ctl->sca_n>0) {
     ERRMSG("Please give aerosol file name or set SCA_N=0 for clear air simulation!");

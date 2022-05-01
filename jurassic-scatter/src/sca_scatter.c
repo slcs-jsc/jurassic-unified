@@ -1,4 +1,4 @@
-#include "scatter.h"
+#include "sca_scatter.h"
 #include "workqueue.h" /* Queue_Prepare */
 
 #define __host__
@@ -6,7 +6,7 @@
 
 /*****************************************************************************/
 
-void bascoord(double *dz,
+void jur_sca_bascoord(double *dz,
 	      double *dy,
 	      double *ex,
 	      double *ey,
@@ -56,7 +56,7 @@ void bascoord(double *dz,
 
 /*****************************************************************************/
 
-void bhmie(double x,
+void jur_sca_bhmie(double x,
 	   double n_real,
 	   double n_imag,
 	   double *phase,
@@ -237,7 +237,7 @@ void bhmie(double x,
 }
 
 /*****************************************************************************/
-void copy_aero(ctl_t *ctl,
+void jur_sca_copy_aero(ctl_t *ctl,
 	       aero_t *aero_dest,
 	       aero_t *aero_src,
 	       int init) {
@@ -275,7 +275,7 @@ void copy_aero(ctl_t *ctl,
 
 /*****************************************************************************/
 
-void gauher(double *x,
+void jur_sca_gauher(double *x,
 	    double *w){
 
   /* Calculate abcissas (x) and weights (w) for Gauss-Hermite quadrature. */
@@ -320,7 +320,7 @@ void gauher(double *x,
       if (fabs(z-z1) <= EPS) break;
     }
     if (its >= MAXIT) {
-      ERRMSG("Too many iterations in gauher.");
+      ERRMSG("Too many iterations in jur_sca_gauher.");
     }
     x[i] = z;
     x[n-1-i] = -z;
@@ -330,7 +330,7 @@ void gauher(double *x,
 }
 
 /*****************************************************************************/
-void get_opt_prop(ctl_t *ctl,
+void jur_sca_get_opt_prop(ctl_t *ctl,
 		  aero_t *aero){
 
   int nl=1, nm=1, count=0;
@@ -390,11 +390,11 @@ void get_opt_prop(ctl_t *ctl,
       if(strcasecmp(aero->type[count], "MIE")==0){
     	/* Get optical properties for log-normal mode using Mie theory. */ 
 	/* Gauss-Hermite integration */
-	opt_prop_mie_log(ctl, aero, count, mbeta_e, mbeta_s, mp);
+	jur_sca_opt_prop_mie_log(ctl, aero, count, mbeta_e, mbeta_s, mp);
       } 
       else if(strcasecmp(aero->type[count], "Ext")==0){ 
 	/* Get optical properties from external data base. Selects properties from closest wavenumber in data base file. */
-	opt_prop_external(ctl, aero, count, mbeta_e, mbeta_s, mp);
+	jur_sca_opt_prop_external(ctl, aero, count, mbeta_e, mbeta_s, mp);
       } else if(strcasecmp(aero->type[count], "Const")==0){ 
     	printf("Using constant extinction [1/km]: %g\n", aero->nn[count]);
     	ERRMSG("Implement me!");
@@ -422,7 +422,7 @@ void get_opt_prop(ctl_t *ctl,
 
 /*****************************************************************************/
 
-void opt_prop_mie_log(ctl_t *ctl,
+void jur_sca_opt_prop_mie_log(ctl_t *ctl,
 		     aero_t *aero,
 		     int count,
 		     double *beta_ext,
@@ -472,7 +472,7 @@ void opt_prop_mie_log(ctl_t *ctl,
   if(!init) {
     init=1;  
     /* get abcissas and weights for Gauss-Hermite quadrature */
-    gauher(zs, weights); 
+    jur_sca_gauher(zs, weights); 
   }
 
   /* set coefficient */
@@ -490,8 +490,8 @@ void opt_prop_mie_log(ctl_t *ctl,
 	x = 2*M_PI*rad/lambda;
 
 	/* evaluate Mie Code at the nodes */
-	bhmie(x, n_real[id], n_imag[id], qphase, &qext, &qsca);
-	/* bhmie(rad, wavn, nang); */
+	jur_sca_bhmie(x, n_real[id], n_imag[id], qphase, &qext, &qsca);
+	/* jur_sca_bhmie(rad, wavn, nang); */
 
 	beta_ext[id] += K1 * pow(rad,2) *  qext * weights[nn];
 	beta_sca[id] += K1 * pow(rad,2) *  qsca * weights[nn];
@@ -512,7 +512,7 @@ void opt_prop_mie_log(ctl_t *ctl,
 
 /*****************************************************************************/
 
-void opt_prop_external(ctl_t *ctl,
+void jur_sca_opt_prop_external(ctl_t *ctl,
 		       aero_t *aero,
 		       int count,
 		       double *beta_ext,
@@ -583,7 +583,7 @@ void opt_prop_external(ctl_t *ctl,
 
 /*****************************************************************************/
 
-void read_aero(const char *dirname,
+void jur_sca_read_aero(const char *dirname,
 	       const char *filename,
 	       ctl_t *ctl,
 	       aero_t *aero){
@@ -643,7 +643,7 @@ void read_aero(const char *dirname,
 
 /*****************************************************************************/
 
-void srcfunc_sca(ctl_t *ctl,
+void jur_sca_srcfunc_sca(ctl_t *ctl,
 		 atm_t *atm,
 		 aero_t *aero,
 		 double sec,
@@ -656,18 +656,18 @@ void srcfunc_sca(ctl_t *ctl,
   
   /* Compute scattering of thermal radiation... */
   if(ctl->ip==1)
-    srcfunc_sca_1d(ctl, atm, aero, sec, x, dx, il, src_sca, scattering, q); 
+    jur_sca_srcfunc_sca_1d(ctl, atm, aero, sec, x, dx, il, src_sca, scattering, q); 
   else
-    srcfunc_sca_3d(ctl, atm, aero, sec, x, dx, il, src_sca, scattering, q);
+    jur_sca_srcfunc_sca_3d(ctl, atm, aero, sec, x, dx, il, src_sca, scattering, q);
   
   /* Compute scattering of solar radiation... */
   if(TSUN>0)
-    srcfunc_sca_sun(ctl, atm, aero, sec, x, dx, il, src_sca, q);
+    jur_sca_srcfunc_sca_sun(ctl, atm, aero, sec, x, dx, il, src_sca, q);
 }
 
 /*****************************************************************************/
 
-void srcfunc_sca_1d(ctl_t *ctl,
+void jur_sca_srcfunc_sca_1d(ctl_t *ctl,
 		    atm_t *atm,
 		    aero_t *aero,
         double sec,
@@ -699,7 +699,7 @@ void srcfunc_sca_1d(ctl_t *ctl,
   dnorth[0]=-x[0];
   dnorth[1]=-x[1];
   dnorth[2]=2*RE-x[2];
-  bascoord(x, dnorth, lx, ly, lz);
+  jur_sca_bascoord(x, dnorth, lx, ly, lz);
   
   /* Set angles - tested version with nalpha=28 and Fibonacci Numbers */
   alpha[0] = 0;
@@ -747,7 +747,7 @@ void srcfunc_sca_1d(ctl_t *ctl,
   if (Queue_Prepare == ctl->queue_state) return; /* prepare work queue items only */
   
   /* Get orthonormal basis (with respect to LOS)... */
-  bascoord(dx, x, sx, sy, sz);  
+  jur_sca_bascoord(dx, x, sx, sy, sz);  
   
   /* Initialize... */
   for(id=0; id<ctl->nd; id++){
@@ -814,7 +814,7 @@ void srcfunc_sca_1d(ctl_t *ctl,
 
 /*****************************************************************************/
 
-void srcfunc_sca_3d(ctl_t *ctl,
+void jur_sca_srcfunc_sca_3d(ctl_t *ctl,
 		    atm_t *atm,
 		    aero_t *aero,
         double sec,
@@ -840,7 +840,7 @@ void srcfunc_sca_3d(ctl_t *ctl,
     theta[itheta]=M_PI*(double)itheta/(NTHETA-1);
   
   /* Get orthonormal basis (with respect to LOS)... */
-  bascoord(dx, x, sx, sy, sz);  
+  jur_sca_bascoord(dx, x, sx, sy, sz);  
   
   /* Initialize... */
   for(id=0; id<ctl->nd; id++)
@@ -905,7 +905,7 @@ void srcfunc_sca_3d(ctl_t *ctl,
 
 /*****************************************************************************/
 
-void srcfunc_sca_sun(ctl_t *ctl,
+void jur_sca_srcfunc_sca_sun(ctl_t *ctl,
 		     atm_t *atm,
 		     aero_t *aero,
 		     double sec,
@@ -938,12 +938,12 @@ void srcfunc_sca_sun(ctl_t *ctl,
   dnorth[0]=-x[0];
   dnorth[1]=-x[1];
   dnorth[2]=2*RE-x[2];
-  bascoord(x, dnorth, lx, ly, lz);
+  jur_sca_bascoord(x, dnorth, lx, ly, lz);
   
   /* Get geometric coordinates of the Sun... */
   obs->nr=1;
   jur_cart2geo(x, &obs->obsz[0], &obs->obslon[0], &obs->obslat[0]);
-  suncoord(sec, obs->obslon[0], obs->obslat[0], &azi, &sza);
+  jur_sca_suncoord(sec, obs->obslon[0], obs->obslat[0], &azi, &sza);
   obs->time[0] = sec; // this was missing! 
   
   /* Find true elevation angle of Sun... */
@@ -1014,7 +1014,7 @@ void srcfunc_sca_sun(ctl_t *ctl,
 
 /*****************************************************************************/
 
-void suncoord(double sec,
+void jur_sca_suncoord(double sec,
 	      double lon,
 	      double lat,
 	      double *azi,
@@ -1060,7 +1060,7 @@ void suncoord(double sec,
 
 /*****************************************************************************/
 
-void write_aero(const char *dirname,
+void jur_sca_write_aero(const char *dirname,
 		const char *filename,
 		aero_t *aero) {
   

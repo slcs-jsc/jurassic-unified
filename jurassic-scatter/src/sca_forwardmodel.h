@@ -2,8 +2,7 @@
 #define FORWARDMODEL_H
 
 #include "jurassic.h"
-#include "scatter.h"
-#include "atmosphere.h"
+#include "sca_scatter.h"
 
 void jur_sca_copy_obs_row(obs_t const *source, int rs, obs_t *dest, int rd);
 

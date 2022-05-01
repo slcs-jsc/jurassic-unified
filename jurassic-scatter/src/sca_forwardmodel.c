@@ -1,4 +1,4 @@
-#include "forwardmodel.h"
+#include "sca_forwardmodel.h"
 #include "workqueue.h" /* Queue_Inactive, Queue_Prepare, Queue_Execute, Queue_Execute */
 #include <assert.h> /* assert */
 #include <omp.h>
@@ -128,7 +128,7 @@ void jur_sca_formod(ctl_t *ctl,
   
   /* Particles: Calculate optical properties in retrieval */
   if(ctl->retnn || ctl->retrr || ctl->retss) {
-    get_opt_prop(ctl, aero);
+    jur_sca_get_opt_prop(ctl, aero);
   }
 
   if (abs(ctl->leaf_nr) > 0) { /* switch usage of queue on by setting |MAX_QUEUE| > 0 */
@@ -479,7 +479,7 @@ if ((Queue_Collect|Queue_Prepare) & queue_mode) { /* CP */
       for(i=0; i<3; i++)
         dx[i]=x1[i]-x0[i];
 
-      srcfunc_sca(ctl,atm,aero,obs->time[ir],x,dx,los[ip].aeroi,src_sca,scattering, q);
+      jur_sca_srcfunc_sca(ctl,atm,aero,obs->time[ir],x,dx,los[ip].aeroi,src_sca,scattering, q);
 } /* CP */
 
 if ((Queue_Collect) & queue_mode) { /* C */
