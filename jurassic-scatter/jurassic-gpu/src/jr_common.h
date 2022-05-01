@@ -989,8 +989,11 @@
 
   __host__ __device__ __ext_inline__
   int pos_scatter_traceray(ctl_t *ctl, atm_t *atm, obs_t *obs, aero_t *aero, int const ir, 
-      pos_t los[], double *tsurf, int const ignore_scattering) {
+      pos_t los[], double *tsurf, int ignore_scattering) {
     double ex0[3], ex1[3], q[NG], k[NW], lat, lon, p, t, x[3], xobs[3], xvp[3], z = 1e99, z_low=z, zmax, zmin, zrefrac = 60;
+
+    if(ctl->sca_n == 0)
+      ignore_scattering = 1;
 
     // Initialize
     *tsurf = -999;
@@ -1137,9 +1140,7 @@
   #endif
 
     if(!ignore_scattering) {
-      if (ctl->sca_n > 0) {
-        np = pos_scatter_jur_add_aerosol_layers(ctl, atm, los, aero, np, (int) atmIdx, atmNp); 
-      }
+      np = pos_scatter_jur_add_aerosol_layers(ctl, atm, los, aero, np, (int) atmIdx, atmNp); 
     }
     return np;
   } // traceray
