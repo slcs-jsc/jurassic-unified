@@ -4,7 +4,6 @@
 
 #include "jurassic.h"
 #include "control.h"
-#include "atmosphere.h"
 #include "sca_forwardmodel.h"
 #include "sca_scatter.h"
 
