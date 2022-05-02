@@ -14,7 +14,7 @@
    ------------------------------------------------------------ */
 
 /* Carry out forward model computation in a single directory. */
-void call_formod(ctl_t *ctl,
+void jur_sca_call_formod(ctl_t *ctl,
 		 const char *wrkdir,
 		 const char *obsfile,
 		 const char *atmfile,
@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
   /* Single forward calculation... */
   if(dirlist[0]=='-') {
     printf("DEBUG #%d single forward calculation\n", ctl.MPIglobrank);
-    call_formod(&ctl, NULL, argv[2], argv[3], argv[4], task, aerofile);
+    jur_sca_call_formod(&ctl, NULL, argv[2], argv[3], argv[4], task, aerofile);
   }
   /* Work on directory list... */
   else {
@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
       printf("\nWorking directory: %s\n", wrkdir);
       
       /* Call forward model... */
-      call_formod(&ctl, wrkdir, argv[2], argv[3], argv[4], task, aerofile);
+      jur_sca_call_formod(&ctl, wrkdir, argv[2], argv[3], argv[4], task, aerofile);
     }
 
     /* Close dirlist... */
@@ -121,7 +121,7 @@ int main(int argc, char *argv[]) {
 
 /*****************************************************************************/
 
-void call_formod(ctl_t *ctl,
+void jur_sca_call_formod(ctl_t *ctl,
 		 const char *wrkdir,
 		 const char *obsfile,
 		 const char *atmfile,

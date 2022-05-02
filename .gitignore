@@ -9,7 +9,7 @@ jurassic-scatter/docu/jurassic.out
 jurassic-scatter/docu/jurassic.toc
 jurassic-scatter/src/brightness
 jurassic-scatter/src/climatology
-jurassic-scatter/src/formod
+jurassic-scatter/src/sca_formod
 jurassic-scatter/src/interpolate
 jurassic-scatter/src/kernel
 jurassic-scatter/src/limb
