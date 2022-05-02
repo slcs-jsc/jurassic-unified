@@ -963,6 +963,19 @@ void jur_read_ctl(int argc, char *argv[], ctl_t *ctl) {
 		if(0 == in_n2  && ctl->ctm_n2)	{ ctl->ctm_n2  = 0; printf("No frequency in N2 range, automatically set CTM_N2 = 0\n"); }
 		if(0 == in_o2  && ctl->ctm_o2)	{ ctl->ctm_o2  = 0; printf("No frequency in O2 range, automatically set CTM_O2 = 0\n"); }
 	}
+
+  // TODO: new! needs to be tested!
+  /* Scattering on Aerosol/Clouds ... */
+  ctl->sca_n=(int)jur_scan_ctl(argc, argv, "SCA_N", -1, "0", NULL);
+  if(ctl->sca_n<0 || ctl->sca_n>SCAMOD)
+    ERRMSG("Set 0 <= SCA_NMOD <= MAX!");
+  ctl->sca_mult=(int)jur_scan_ctl(argc, argv, "SCA_MULT", -1, "1", NULL);
+  jur_scan_ctl(argc, argv, "SCA_EXT", -1, "beta_a", ctl->sca_ext);
+  if(ctl->sca_n>0 && ctl->sca_mult==0 && 
+     !strcasecmp(ctl->sca_ext, "beta_e") && 
+     !strcasecmp(ctl->sca_ext, "beta_a"))
+    ERRMSG("Please set extinction to beta_a or beta_e.");
+
 	// Interpolation of atmospheric data
 	ctl->ip = (int) jur_scan_ctl(argc, argv, "IP", -1, "1", NULL);
 	ctl->cz = jur_scan_ctl(argc, argv, "CZ", -1, "0", NULL);
@@ -971,6 +984,7 @@ void jur_read_ctl(int argc, char *argv[], ctl_t *ctl) {
 	ctl->refrac = (int) jur_scan_ctl(argc, argv, "REFRAC", -1, "1", NULL);
 	ctl->rayds = jur_scan_ctl(argc, argv, "RAYDS", -1, "10", NULL);
 	ctl->raydz = jur_scan_ctl(argc, argv, "RAYDZ", -1, "0.5", NULL);
+  ctl->transs=jur_scan_ctl(argc, argv, "TRANSS", -1, "0.02", NULL); // TODO: new! needs to be tested!
 	// Field of view
 	jur_scan_ctl(argc, argv, "FOV", -1, "-", ctl->fov);
 	// Retrieval interface
@@ -986,10 +1000,17 @@ void jur_read_ctl(int argc, char *argv[], ctl_t *ctl) {
 		ctl->retk_zmin[iw] = jur_scan_ctl(argc, argv, "RETK_ZMIN", iw, "-999", NULL);
 		ctl->retk_zmax[iw] = jur_scan_ctl(argc, argv, "RETK_ZMAX", iw, "-999", NULL);
 	}
+
+  // TODO: new! needs to be tested!
+  ctl->retnn=(int)jur_scan_ctl(argc, argv, "RETNN", -1, "0", NULL);
+  ctl->retrr=(int)jur_scan_ctl(argc, argv, "RETRR", -1, "0", NULL);
+  ctl->retss=(int)jur_scan_ctl(argc, argv, "RETSS", -1, "0", NULL);
+  ctl->retnn_zmin=(int)jur_scan_ctl(argc, argv, "RETNN_ZMIN", -1, "-999", NULL);
+  ctl->retnn_zmax=(int)jur_scan_ctl(argc, argv, "RETNN_ZMAX", -1, "-999", NULL);
+
 	// Output flags
 	ctl->write_bbt = (int) jur_scan_ctl(argc, argv, "WRITE_BBT", -1, "0", NULL);
-	ctl->write_matrix =
-		(int) jur_scan_ctl(argc, argv, "WRITE_MATRIX", -1, "0", NULL);
+	ctl->write_matrix = (int) jur_scan_ctl(argc, argv, "WRITE_MATRIX", -1, "0", NULL);
 	// External forward models
 	ctl->formod = (int) jur_scan_ctl(argc, argv, "FORMOD", -1, "2", NULL);
 	jur_scan_ctl(argc, argv, "RFMBIN", -1, "-", ctl->rfmbin);
@@ -1017,9 +1038,9 @@ void jur_read_ctl(int argc, char *argv[], ctl_t *ctl) {
 
     ctl->gpu_nbytes_shared_memory = (int) jur_scan_ctl(argc, argv, "GPU_SHARED_MEMORY", -1, "0", NULL);
   
-    //Added:
-    /* Number of leaf rays ... */
-    ctl->leaf_nr=(int) jur_scan_ctl(argc, argv, "MAX_QUEUE", -1, "-1", NULL);
+  // TODO: new! needs to be tested!
+  /* Number of leaf rays ... */
+  ctl->leaf_nr=(int) jur_scan_ctl(argc, argv, "MAX_QUEUE", -1, "0", NULL);
 }
 
 //***************************************************************************

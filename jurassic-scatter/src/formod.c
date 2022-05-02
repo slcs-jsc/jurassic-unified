@@ -3,7 +3,6 @@
 #include <stdio.h>
 
 #include "jurassic.h"
-#include "control.h"
 #include "sca_forwardmodel.h"
 #include "sca_scatter.h"
 
@@ -63,7 +62,7 @@ int main(int argc, char *argv[]) {
     ERRMSG("Give parameters: <ctl> <obs> <atm> <rad>");
   
   /* Read forward model control parameters... */
-  read_ctl(argc, argv, &ctl);
+  jur_read_ctl(argc, argv, &ctl);
   
   /* Get task... */
   jur_scan_ctl(argc, argv, "TASK", -1, "-", task);

@@ -75,14 +75,14 @@ LDFLAGS = $(LIBDIR) -lgsl -lgslcblas -lm -lstdc++ -lcudart -lutil
 all: $(EXC)
 	rm -f *~
 
-$(EXC): %: %.c control.o sca_forwardmodel.o sca_workqueue.o sca_scatter.o Makefile
-	$(CC) $(CFLAGS) -o $@ $< control.o sca_forwardmodel.o  sca_workqueue.o sca_scatter.o  $(LDFLAGS)
+$(EXC): %: %.c sca_forwardmodel.o sca_workqueue.o sca_scatter.o Makefile
+	$(CC) $(CFLAGS) -o $@ $< sca_forwardmodel.o  sca_workqueue.o sca_scatter.o  $(LDFLAGS)
 
 # atmosphere.o: atmosphere.c 
 # 	$(CC) $(CFLAGS) -c atmosphere.c
 
-control.o: control.c
-	$(CC) $(CFLAGS) -c control.c
+# control.o: control.c
+# 	$(CC) $(CFLAGS) -c control.c
 
 sca_forwardmodel.o: sca_forwardmodel.c 
 	$(CC) $(CFLAGS) -c sca_forwardmodel.c
