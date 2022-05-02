@@ -99,46 +99,6 @@ void atm2x_help(atm_t *atm,
 
 /*****************************************************************************/
 
-void copy_atm(ctl_t *ctl,
-	      atm_t *atm_dest,
-	      atm_t *atm_src,
-	      int init) {
-
-  int ig, ip, iw;
-  
-  size_t s;
-
-  /* Data size... */
-  s=(size_t)atm_src->np*sizeof(double);
-  
-  /* Copy data... */
-  atm_dest->np=atm_src->np;
-  memcpy(atm_dest->time, atm_src->time, s);
-  memcpy(atm_dest->z, atm_src->z, s);
-  memcpy(atm_dest->lon, atm_src->lon, s);
-  memcpy(atm_dest->lat, atm_src->lat, s);
-  memcpy(atm_dest->p, atm_src->p, s);
-  memcpy(atm_dest->t, atm_src->t, s);
-  for(ig=0; ig<ctl->ng; ig++)
-    memcpy(atm_dest->q[ig], atm_src->q[ig], s);
-  for(iw=0; iw<ctl->nw; iw++)
-    memcpy(atm_dest->k[iw], atm_src->k[iw], s);
-  atm_dest->init=atm_src->init;
-  
-  /* Initialize... */
-  if(init)
-    for(ip=0; ip<atm_dest->np; ip++) {
-      atm_dest->p[ip]=0;
-      atm_dest->t[ip]=0;
-      for(ig=0; ig<ctl->ng; ig++)
-        atm_dest->q[ig][ip]=0;
-      for(iw=0; iw<ctl->nw; iw++)
-	atm_dest->k[iw][ip]=0;
-    }
-}
-
-/*****************************************************************************/
-
 void write_atm(const char *dirname,
 	       const char *filename,
 	       ctl_t *ctl,

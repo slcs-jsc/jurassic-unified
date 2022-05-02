@@ -180,7 +180,7 @@ void call_formod(ctl_t *ctl,
     for(ig=0; ig<ctl->ng; ig++) {
       
       /* Copy atmospheric data... */
-      copy_atm(ctl, &atm2, &atm, 0);
+      jur_copy_atm(ctl, &atm2, &atm, 0);
       
       /* Set extinction to zero... */
       for(iw=0; iw<ctl->nw; iw++)
@@ -202,7 +202,7 @@ void call_formod(ctl_t *ctl,
     }
     
     /* Copy atmospheric data... */
-    copy_atm(ctl, &atm2, &atm, 0);
+    jur_copy_atm(ctl, &atm2, &atm, 0);
     
     /* Set volume mixing ratios to zero... */
     for(ig=0; ig<ctl->ng; ig++)

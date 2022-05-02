@@ -28,12 +28,6 @@ void atm2x_help(atm_t *atm,
 		int *ipa,
 		size_t *n);
 
-/* Copy and initialize atmospheric data. */
-void copy_atm(ctl_t *ctl,
-	      atm_t *atm_dest,
-	      atm_t *atm_src,
-	      int init);
-
 /* Write atmospheric data. */
 void write_atm(const char *dirname,
 	       const char *filename,
