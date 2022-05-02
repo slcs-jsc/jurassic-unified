@@ -1,5 +1,5 @@
 #include "sca_scatter.h"
-#include "workqueue.h" /* Queue_Prepare */
+#include "sca_workqueue.h" /* Queue_Prepare */
 
 #define __host__
 #include "interface.h"

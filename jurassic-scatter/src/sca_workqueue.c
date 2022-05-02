@@ -3,9 +3,9 @@
 
 /* #define WORK_QUEUE_DEBUG */
 
-#include "workqueue.h"
+#include "sca_workqueue.h"
 
-int init_queue(queue_t *q, int size) {
+int jur_sca_init_queue(queue_t *q, int size) {
     size_t mem;
 #ifdef  WORK_QUEUE_DEBUG
     printf("# %s(%p, %d);\n", __func__, (void*)q, size);
@@ -27,7 +27,7 @@ int init_queue(queue_t *q, int size) {
     return (NULL == q->items); /* raise error if malloc failed */
 }
 
-int push_queue(queue_t *q, void* out, int ir) {
+int jur_sca_push_queue(queue_t *q, void* out, int ir) {
     int index;
     index = q->end++;
     if (index >= q->capacity) return -1-q->capacity; /* raise error */
@@ -39,7 +39,7 @@ int push_queue(queue_t *q, void* out, int ir) {
     return index;
 }
 
-int get_queue_item(queue_t *q, void **out, int *ir, int index) {
+int jur_sca_get_queue_item(queue_t *q, void **out, int *ir, int index) {
     *out = q->items[index].result;
     *ir  = q->items[index].ir;
 #ifdef  WORK_QUEUE_DEBUG
@@ -48,10 +48,10 @@ int get_queue_item(queue_t *q, void **out, int *ir, int index) {
     return index;
 }
 
-int pop_queue(queue_t *q, void **out, int *ir) {
+int jur_sca_pop_queue(queue_t *q, void **out, int *ir) {
     int index;
     index = q->begin++;
-    get_queue_item(q, out, ir, index);
+    jur_sca_get_queue_item(q, out, ir, index);
 #ifdef  WORK_QUEUE_DEBUG
     printf("# %d = %s(-, %p) ir=%d;\n", index, __func__, *out, *ir);
 #endif

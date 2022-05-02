@@ -14,9 +14,9 @@
    Functions...
    ------------------------------------------------------------ */
 
-int init_queue(queue_t *q, int size);
-int push_queue(queue_t *q, void* out, int ir);
-int get_queue_item(queue_t *q, void **out, int *ir, int index);
-int pop_queue(queue_t *q, void **out, int *ir);
+int jur_sca_init_queue(queue_t *q, int size);
+int jur_sca_push_queue(queue_t *q, void* out, int ir);
+int jur_sca_get_queue_item(queue_t *q, void **out, int *ir, int index);
+int jur_sca_pop_queue(queue_t *q, void **out, int *ir);
 
 #endif

@@ -1,5 +1,5 @@
 #include "sca_forwardmodel.h"
-#include "workqueue.h" /* Queue_Inactive, Queue_Prepare, Queue_Execute, Queue_Execute */
+#include "sca_workqueue.h" /* Queue_Inactive, Queue_Prepare, Queue_Execute, Queue_Execute */
 #include <assert.h> /* assert */
 #include <omp.h>
 #include <math.h>
@@ -62,7 +62,7 @@ void jur_sca_advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs,
       obs_t *obs;
       int package_id = (pref_sizes[i] + j) / NR;
       int obs_row = (pref_sizes[i] + j) % NR;
-      get_queue_item(&qs[i], (void*)&obs, &ind, qs[i].begin + j);
+      jur_sca_get_queue_item(&qs[i], (void*)&obs, &ind, qs[i].begin + j);
       jur_sca_copy_obs_row(obs, ind, &obs_packages[package_id], obs_row);
     }
   }
@@ -89,7 +89,7 @@ void jur_sca_advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs,
       obs_t *obs; 
       int package_id = (pref_sizes[i] + j) / NR;
       int obs_row = (pref_sizes[i] + j) % NR;
-      get_queue_item(&qs[i], (void*)&obs, &ind, qs[i].begin + j);
+      jur_sca_get_queue_item(&qs[i], (void*)&obs, &ind, qs[i].begin + j);
       jur_sca_copy_obs_row(&obs_packages[package_id], obs_row, obs, ind);
     }
 
@@ -137,7 +137,7 @@ void jur_sca_formod(ctl_t *ctl,
     if(ctl->leaf_nr < 0) leaf_rays_per_ray = (-1 * ctl->leaf_nr) / obs->nr + 1;
     ALLOC(qs, queue_t, obs->nr);
     for(int i = 0; i < obs->nr; i++)
-      init_queue(&qs[i], leaf_rays_per_ray);
+      jur_sca_init_queue(&qs[i], leaf_rays_per_ray);
     
     printf("DEBUG #%d %s init %d queues with %d elements\n", ctl->MPIglobrank,  __func__, obs->nr, leaf_rays_per_ray);
     /*
@@ -256,7 +256,7 @@ void jur_sca_formod(ctl_t *ctl,
 
       tic = omp_get_wtime();
       for(int i = 0; i < obs->nr; i++)
-        init_queue(&qs[i], -1); 
+        jur_sca_init_queue(&qs[i], -1); 
       free(qs);
       ctl->queue_state = Queue_Inactive; /* done */
       toc = omp_get_wtime();
@@ -397,13 +397,13 @@ if ((Queue_Collect|Queue_Prepare) & queue_mode) { /* CPp */
 } /* CPp */
 
 if (Queue_Prepare_Leaf == queue_mode) { /* ==p */
-  i = push_queue(q, (void*)obs, ir); /* push input and pointer to output */
+  i = jur_sca_push_queue(q, (void*)obs, ir); /* push input and pointer to output */
   if (i < 0) ERRMSG("Too many queue items!"); /* failed */
   return;
 } /* ==p */
 
 if (Queue_Collect_Leaf == queue_mode) { /* ==c */
-  pop_queue(q, (void*)&obs2, &ir); /* pop result */
+  jur_sca_pop_queue(q, (void*)&obs2, &ir); /* pop result */
   /* Copy results... */
   for(id=0; id<ctl->nd; id++) {
     obs->rad[ir][id] = obs2->rad[ir][id]; //CHANGED
@@ -417,7 +417,7 @@ if (Queue_Collect_Leaf == queue_mode) { /* ==c */
 } /* ==c */
 
 if (Queue_Execute_Leaf == queue_mode) { /* ==x */
-  get_queue_item(q, (void*)&obs, &ir, ir); /* get input */
+  jur_sca_get_queue_item(q, (void*)&obs, &ir, ir); /* get input */
   los = (pos_t*) malloc((NLOS) * sizeof(pos_t));
   np = pos_scatter_traceray(ctl, atm, obs, aero, ir, los, &tsurf, 0); // without ignoring scattering
 } /* ==x */
