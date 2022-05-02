@@ -44,4 +44,6 @@ double brightness_core(double const rad, double const nu);
 
 double jur_planck(double const t, double const nu);
 
+void jur_copy_atm(ctl_t const *ctl, atm_t *atm_dest, atm_t const *atm_src, int const init);
+
 #endif
