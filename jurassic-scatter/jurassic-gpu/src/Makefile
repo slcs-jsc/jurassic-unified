@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 
 # Main executables...
-EXC = formod #obs2spec brightness climatology jsec2time limb nadir planck time2jsec memoryinfo hash
+EXC = formod sca_formod #obs2spec brightness climatology jsec2time limb nadir planck time2jsec memoryinfo hash
 
 # Library directories...
 LIBDIR =
@@ -26,7 +26,8 @@ STATIC = 1
 # -----------------------------------------------------------------------------
 
 # Compilers...
-CC = gcc
+#CC = gcc
+CC = mpicc
 CU = nvcc
 
 # Check whether a CUDA compiler is available...
@@ -38,6 +39,8 @@ GITKEY = $(shell git log | head -1 | sed -e 's/commit //g')
 
 # Feature flags...
 CFEAFLAGS =
+CFEAFLAGS += -DMPI
+CFEAFLAGS += -D WORK_QUEUE
 CFEAFLAGS += -fopenmp
 CFEAFLAGS += -fno-common
 CFEAFLAGS += -fshort-enums
@@ -59,7 +62,7 @@ COPTFLAGS += -O3
 CUOPTFLAGS += -D USE_UNIFIED_MEMORY_FOR_TABLES
 
 # Compiler flags...
-CFLAGS = -std=gnu99 $(INCDIR) -DHAVE_INLINE -DGSL_DISABLE_DEPRACTED $(COPTFLAGS) $(CERRFLAGS) $(CFEAFLAGS) -pedantic -Winline -Wall -W -Wconversion -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wno-long-long -Wfatal-errors -Wno-deprecated-declarations
+CFLAGS = -std=gnu99 $(INCDIR) -DHAVE_INLINE -DGSL_DISABLE_DEPRACTED $(COPTFLAGS) $(CERRFLAGS) $(CFEAFLAGS) -pedantic -Winline -Wall -W -Wconversion -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wno-long-long -Wfatal-errors -Wno-deprecated-declarations 
 
 # CUDA Compiler optimization flags...
 # CUOPTFLAGS += -gencode arch=compute_60,code=sm_60 $(INCDIR) ## sm_60 for P100
@@ -80,7 +83,7 @@ CUFLAGS += -Xcompiler -fopenmp
 LDFLAGS = $(LIBDIR) -lgsl -lgslcblas -lm -lstdc++ -lgomp
 
 # Objects...
-OBJECTS = jurassic.o CPUdrivers.o interface.o
+OBJECTS = jurassic.o CPUdrivers.o sca_forwardmodel.o sca_scatter.o sca_workqueue.o 
 
 ifeq ($(strip $(ENABLEGPU)),)
 	# Linking...
@@ -95,7 +98,7 @@ else
 endif
 
 # Dependencies...
-DEP = jurassic.d CPUdrivers.d GPUdrivers.d $(EXEC:%=%.d)
+# DEP = jurassic.d CPUdrivers.d GPUdrivers.d $(EXEC:%=%.d)
 
 MYLIB = libutil.a
 # -----------------------------------------------------------------------------
