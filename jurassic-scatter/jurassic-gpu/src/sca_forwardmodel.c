@@ -393,7 +393,7 @@ if ((Queue_Collect|Queue_Prepare) & queue_mode) { /* CPp */
   los = (pos_t*) malloc((NLOS) * sizeof(pos_t));
 
   /* Raytracing... */
-  np = pos_scatter_traceray(ctl, atm, obs, aero, ir, los, &tsurf, 0); // without ignoring scattering
+  np = traceray(ctl, atm, obs, ir, los, &tsurf, aero, 0); // without ignoring scattering
 } /* CPp */
 
 if (Queue_Prepare_Leaf == queue_mode) { /* ==p */
@@ -419,7 +419,7 @@ if (Queue_Collect_Leaf == queue_mode) { /* ==c */
 if (Queue_Execute_Leaf == queue_mode) { /* ==x */
   jur_sca_get_queue_item(q, (void*)&obs, &ir, ir); /* get input */
   los = (pos_t*) malloc((NLOS) * sizeof(pos_t));
-  np = pos_scatter_traceray(ctl, atm, obs, aero, ir, los, &tsurf, 0); // without ignoring scattering
+  np = traceray(ctl, atm, obs, ir, los, &tsurf, aero, 0); // without ignoring scattering
 } /* ==x */
 
 if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */

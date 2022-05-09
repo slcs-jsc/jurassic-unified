@@ -77,10 +77,10 @@
 					// compute extinction coefficient
 					double const beta_ds = continua_core_CPU(ctl, &(los[ir][ip]), id);
 					
-          //Added:
+          // Bug found here:
           double aero_ds = 0;
-          if(NULL != aero_beta)
-            los[ir][ip].aerofac * aero_beta[los[ir][ip].aeroi][id] * los[ir][ip].ds;
+          if(NULL != aero_beta) // only if scattering is included
+            aero_ds = los[ir][ip].aerofac * aero_beta[los[ir][ip].aeroi][id] * los[ir][ip].ds;
           
           // compute transmission with the EGA method
 					double const tau_gas = apply_ega_core(tbl, &(los[ir][ip]), tau_path[id], ctl->ng, id);
@@ -101,10 +101,11 @@
 
 	__host__
 	void raytrace_rays_CPU(ctl_t const *ctl, atm_t const *atm, obs_t *obs, 
-                           pos_t los[NR][NLOS], double tsurf[], int np[]) {
+                           pos_t los[NR][NLOS], double tsurf[], int np[], aero_t *aero, int ignore_scattering) {
 #pragma omp parallel for
 		for(int ir = 0; ir < obs->nr; ir++) { // loop over rays
-			np[ir] = traceray(ctl, atm, obs, ir, los[ir], &tsurf[ir]);
+      np[ir] = traceray(ctl, atm, obs, ir, 
+                                    los[ir], &tsurf[ir], aero, ignore_scattering);
 		} // ir
 	} // raytrace_rays_CPU
 
@@ -116,16 +117,6 @@
 			} // ir
 	} // hydrostatic1d_CPU
   
-  __host__
-  void get_los_and_convert_los_t_to_pos_t_CPU(pos_t (*pos)[NLOS], int *np, double *tsurf, ctl_t const *ctl, 
-                                              atm_t const *atm, obs_t *obs, aero_t *aero) {
-    #pragma omp  parallel for
-    for(int ir = 0; ir < obs->nr; ir++) {
-      np[ir] = pos_scatter_traceray(ctl, atm, obs, aero, ir, 
-                                    pos[ir], &tsurf[ir], 0);
-    }
-  }
-
 	// ################ end of CPU driver routines ##############
 
 	// The full forward model on the CPU ////////////////////////////////////////////
@@ -154,10 +145,10 @@
 
     hydrostatic1d_CPU(ctl, atm, obs->nr, ig_h2o); // in this call atm might get modified
     // if formod function was NOT called from jurassic-scatter project
-    if(NULL != aero) {
-      get_los_and_convert_los_t_to_pos_t_CPU(los, np, t_surf, ctl, atm, obs, aero);
+    if(NULL != aero && ctl->sca_n > 0) { // only if scattering is included
+      raytrace_rays_CPU(ctl, atm, obs, los, t_surf, np, aero, 0);
     } else {  
-      raytrace_rays_CPU(ctl, atm, obs, los, t_surf, np);
+      raytrace_rays_CPU(ctl, atm, obs, los, t_surf, np, NULL, 1);
     }
 
     // "beta_a" -> 'a', "beta_e" -> 'e'

@@ -961,7 +961,7 @@ void jur_sca_srcfunc_sca_sun(ctl_t *ctl,
     jur_cart2geo(x1, &obs->vpz[0], &obs->vplon[0], &obs->vplat[0]);
 
     /* Get zenith angle at end of beam... */
-    np = pos_scatter_traceray(ctl, atm, obs, aero, 0, los, &tsurf, 0); // without ignoring scattering
+    np = traceray(ctl, atm, obs, 0, los, &tsurf, aero, 0); // without ignoring scattering
 
     if(np<2)
       break;

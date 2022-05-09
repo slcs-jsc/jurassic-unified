@@ -51,9 +51,9 @@ CFEAFLAGS += -D SHOW_GIT_KEY=$(GITKEY)
 
 # Compiler optimization flags...
 COPTFLAGS=
-COPTFLAGS += -O3
+# COPTFLAGS += -O3
 # COPTFLAGS += -Ofast
-# COPTFLAGS += -g
+COPTFLAGS += -g
 # COPTFLAGS += -pg
 # COPTFLAGS += -mtune=power8
 # COPTFLAGS += -mcpu=power8
@@ -67,12 +67,12 @@ CFLAGS = -std=gnu99 $(INCDIR) -DHAVE_INLINE -DGSL_DISABLE_DEPRACTED $(COPTFLAGS)
 # CUDA Compiler optimization flags...
 # CUOPTFLAGS += -gencode arch=compute_60,code=sm_60 $(INCDIR) ## sm_60 for P100
 CUOPTFLAGS += -gencode arch=compute_70,code=sm_70 $(INCDIR) ## sm_70 for V100
-CUOPTFLAGS += -gencode arch=compute_80,code=sm_80 $(INCDIR) ## sm_80 for A100
+# CUOPTFLAGS += -gencode arch=compute_80,code=sm_80 $(INCDIR) ## sm_80 for A100
 
 # CUDA Compiler flags...
 CUFLAGS =
 CUFLAGS += --std=c++11
-# CUFLAGS += -g -G
+CUFLAGS += -g -G
 CUFLAGS += --use_fast_math $(CUOPTFLAGS) $(patsubst %,-Xcompiler %,$(FLAGS)) 
 CUFLAGS += -Xptxas -v  
 CUFLAGS += -Xcompiler -fopenmp 
@@ -100,7 +100,7 @@ endif
 # Dependencies...
 # DEP = jurassic.d CPUdrivers.d GPUdrivers.d $(EXEC:%=%.d)
 
-MYLIB = libutil.a
+# MYLIB = libutil.a
 # -----------------------------------------------------------------------------
 # Targets...
 # -----------------------------------------------------------------------------
@@ -120,9 +120,9 @@ bak:
 indent:
 	indent -br -brf -brs -bfda -ce -cdw -lp -npcs -npsl *.c *.h
 
-$(MYLIB): $(OBJECTS) 
-	ar rc $@ $(OBJECTS)
-	ranlib $@
+# $(MYLIB): $(OBJECTS) 
+# 	ar rc $@ $(OBJECTS)
+# 	ranlib $@
 
 $(EXC): %: %.c $(OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)

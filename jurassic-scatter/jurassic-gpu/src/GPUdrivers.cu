@@ -158,7 +158,7 @@
 						
             //Added:
             double aero_ds = 0;
-            if(NULL != aero_beta)
+            if(NULL != aero_beta) // only if scattering is included
               aero_ds = los[ir][ip].aerofac * aero_beta[los[ir][ip].aeroi][id] * los[ir][ip].ds;
             
             double const tau_gas = apply_ega_core(tbl, &(los[ir][ip]), tau_path, ctl->ng, id);
@@ -199,9 +199,10 @@
 
 	// Raytracing ////////////////////////////////////////////////////////////////
 	void __global__ // GPU-kernel
-		raytrace_rays_GPU(ctl_t const *ctl, const atm_t *atm, obs_t *obs, pos_t los[][NLOS], double *tsurf, int np[]) {
+		raytrace_rays_GPU(ctl_t const *ctl, const atm_t *atm, obs_t *obs, pos_t
+    los[][NLOS], double *tsurf, int np[], aero_t *aero, int ignore_scattering) {
 			for(int ir = blockIdx.x*blockDim.x + threadIdx.x; ir < obs->nr; ir += blockDim.x*gridDim.x) { // grid stride loop over rays
-				np[ir] = traceray(ctl, &atm[0], obs, ir, los[ir], &(tsurf[ir]));
+        np[ir] = traceray(ctl, atm, obs, ir, los[ir], &tsurf[ir], aero, ignore_scattering);
 			} // ir
 		} // raytrace_rays_GPU
 
@@ -219,16 +220,6 @@
 		if(ctl->hydz < 0) return; // Check reference height
 		hydrostatic_kernel_GPU<<<nr/32 + 1, 32, 0, stream>>> (ctl_G, atm_G, nr, ig_h2o);
 	} // hydrostatic1d_GPU
-
-  void __global__
-  get_los_and_convert_los_t_to_pos_t_GPU(pos_t (*pos)[NLOS], int *np,
-                                              double *tsurf, ctl_t *ctl, 
-                                              atm_t *atm, obs_t *obs,
-                                              aero_t *aero) { 
-    for(int ir = blockIdx.x*blockDim.x + threadIdx.x; ir < obs->nr; ir += blockDim.x*gridDim.x) { // grid stride loop over rays
-      np[ir] = pos_scatter_traceray(ctl, atm, obs, aero, ir, pos[ir], &tsurf[ir], 0);
-    }
-  }
 
 	// ################ end of GPU driver routines ##############
 
@@ -289,7 +280,7 @@
     cudaStream_t stream = gpu->stream;
 		copy_data_to_GPU(atm_G, atm, 1*sizeof(atm_t), stream);
 		copy_data_to_GPU(obs_G, obs, 1*sizeof(obs_t), stream);
-    if(NULL != aero) {
+    if(NULL != aero) { // only if scattering is included
       copy_data_to_GPU(aero_G, aero, 1*sizeof(aero_t), stream);
       copy_data_to_GPU(aero_beta_G, ('a' == beta_type) ? aero->beta_a :
                        aero->beta_e, NLMAX * ND * sizeof(double), stream);
@@ -298,13 +289,13 @@
 		hydrostatic1d_GPU(ctl, ctl_G, atm_G, nr, ig_h2o, stream); // in this call atm_G gets modified
 		cuKernelCheck();
 
-    // if formod function was NOT called from jurassic-scatter project
-    if(NULL != aero) {
-      get_los_and_convert_los_t_to_pos_t_GPU <<< (nr/64)+1, 64, 0, stream>>>
-        (los_G, np_G, tsurf_G, ctl_G, atm_G, obs_G, aero_G);
+    if(NULL != aero && ctl->sca_n > 0) { // only if scattering is included
+      raytrace_rays_GPU <<< (nr/64)+1, 64, 0, stream>>> (ctl_G, atm_G, obs_G,
+      los_G, tsurf_G, np_G, aero_G, 0);
       cuKernelCheck();
     } else {
-      raytrace_rays_GPU <<< (nr/64)+1, 64, 0, stream>>> (ctl_G, atm_G, obs_G, los_G, tsurf_G, np_G);
+      raytrace_rays_GPU <<< (nr/64)+1, 64, 0, stream>>> (ctl_G, atm_G, obs_G,
+      los_G, tsurf_G, np_G, NULL, 1);
       cuKernelCheck();
     }
 	

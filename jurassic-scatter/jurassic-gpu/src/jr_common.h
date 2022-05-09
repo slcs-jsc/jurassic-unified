@@ -584,132 +584,6 @@
 		intpol_atm_1d_qk(ctl, atm, atmIdx, atmNp, z0, q, k); // 1D interpolation (vertical profile)
 	} // intpol_atm_geo_qk
 
-	__host__ __device__ __ext_inline__ 
-	int traceray(ctl_t const *ctl, atm_t const *atm, obs_t *obs, int const ir, pos_t los[], double *tsurf) {
-		double ex0[3], ex1[3], q[NG], k[NW], lat, lon, p, t, x[3], xobs[3], xvp[3], z = 1e99, z_low=z, zmax, zmin, zrefrac = 60;
-		// Initialize
-		*tsurf = -999;
-		for(int ig = 0; ig < NG; ig++) q[ig] = 0;
-		for(int iw = 0; iw < NW; iw++) k[iw] = 0;
-		obs->tpz[ir]   = obs->vpz[ir];
-		obs->tplon[ir] = obs->vplon[ir];
-		obs->tplat[ir] = obs->vplat[ir];
-		size_t atmIdx=0; int atmNp=0;
-		locate_atm(atm, obs->time[ir], &atmIdx, &atmNp);
-		altitude_range_nn(atm, atmIdx, atmNp, &zmin, &zmax);
-		if(obs->obsz[ir] < zmin)        return 0;																		// Check observer altitude
-		if(obs->vpz[ir] > zmax - 0.001) return 0;																		// Check view point altitude
-		jur_geo2cart(obs->obsz[ir], obs->obslon[ir], obs->obslat[ir], xobs);						// Cart. coordinates of observer
-		jur_geo2cart(obs->vpz[ir],	obs->vplon[ir],  obs->vplat[ir],	xvp);							// and view point
-		UNROLL
-			for(int i = 0; i < 3; i++) ex0[i] = xvp[i] - xobs[i];											// Determine initial tangent vector
-		double const norm = NORM(ex0);
-		UNROLL
-			for(int i = 0; i < 3; i++) {
-				ex0[i] /= norm;
-				x[i] = xobs[i];																													// Observer within atmosphere
-			} // i
-		if(obs->obsz[ir] > zmax) {																									// Above atmosphere, search entry point
-			double dmax = norm, dmin = 0.;
-			while(fabs(dmin - dmax) > 0.001) {
-				double const d = 0.5*(dmax + dmin);
-				UNROLL
-					for(int i = 0; i < 3; i++) x[i] = xobs[i] + d*ex0[i];
-				z = cart2alt(x); // no need to compute lat and lon here
-				if((z <= zmax) && (z > zmax - 0.001)) break;
-				if(z < zmax - 0.0005) dmax = d;
-				else									dmin = d;
-			} // while
-		}
-
-		int np = 0, z_low_idx=-1;
-		for(int stop = 0; np < NLOS; ++np) {																				// Ray-tracing
-			double ds = ctl->rayds, dz = ctl->raydz;																	// Set step length
-			if(dz > 0.) {
-				double const norm_x = 1.0/NORM(x);
-				double dot = 0.;
-				UNROLL
-					for(int i = 0; i < 3; i++) {
-						dot += ex0[i]*x[i]*norm_x;
-					}
-				double const cosa = fabs(dot);
-				if(cosa != 0.) ds = fmin(ds, dz/cosa);
-			}
-			jur_cart2geo(x, &z, &lon, &lat);																							// Determine geolocation
-			if((z < zmin) || (z > zmax)) {																						// LOS escaped
-				double xh[3];
-				stop = (z < zmin) ? 2 : 1;
-				jur_geo2cart(los[np - 1].z, los[np - 1].lon, los[np - 1].lat, xh);
-				double const zfrac = (z < zmin) ? zmin : zmax;
-				double const frac = (zfrac - los[np - 1].z)/(z - los[np - 1].z);
-				UNROLL
-					for(int i = 0; i < 3; i++) x[i] = xh[i] + frac*(x[i] - xh[i]);
-				jur_cart2geo(x, &z, &lon, &lat);
-				los[np - 1].ds = ds*frac;
-				ds = 0.;
-			}
-
-			intpol_atm_geo_pt(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, &p, &t);					// Interpolate atmospheric data
-			intpol_atm_geo_qk(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, q, k);						// Interpolate atmospheric data
-//     printf("ray #%i point#%i %g %g %g\n", ir, np, lon, lat, z); // to debug the jur_raytracer
-			write_pos_point(los + np, lon, lat, z, p, t, q, k, ds);
-			if(z < z_low) {
-				z_low = z;
-				z_low_idx = np; // store the index of the point where the altitude is lowest, used to compute the tangent point later
-			}
-#ifdef GPUDEBUG
-			los[np].ir = ir; los[np].ip = np; // for DEBUGging
-#endif
-
-			if(stop) { *tsurf = (stop == 2 ? t : -999); break; }											// Hit ground or space?
-
-			double n = 1., ng[] = {0., 0., 0.};
-			if(ctl->refrac && z <= zrefrac) {																					// Compute gradient of refractivity
-				n += jur_refractivity(p, t);
-				double xh[3];
-				UNROLL
-					for(int i = 0; i < 3; i++) xh[i] = x[i] + 0.5*ds*ex0[i];
-				jur_cart2geo(xh, &z, &lon, &lat);
-				intpol_atm_geo_pt(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, &p, &t);
-				double const n2 = jur_refractivity(p, t);
-				for(int i = 0; i < 3; i++) {
-					double const h = 0.02;
-					xh[i] += h;
-					jur_cart2geo(xh, &z, &lon, &lat);
-					intpol_atm_geo_pt(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, &p, &t);
-					ng[i] = (jur_refractivity(p, t) - n2)/h;
-					xh[i] -= h;
-				} // i
-			}
-			UNROLL
-				for(int i = 0; i < 3; i++) ex1[i] = ex0[i]*n + ds*ng[i];								// Construct new tangent vector
-
-			double const norm_ex1 = NORM(ex1);
-			for(int i = 0; i < 3; i++) {
-				ex1[i] /= norm_ex1;
-				x[i] += 0.5*ds*(ex0[i] + ex1[i]);																				// Determine next point of LOS
-				ex0[i] = ex1[i];																												// Copy tangent vector
-			} // i
-		} // np
-		++np;
-    assert(np < NLOS && "Too many LOS points!");
-
-		// Get tangent point (before changing segment lengths!)
-		jur_tangent_point(los, np, z_low_idx, &obs->tpz[ir], &obs->tplon[ir], &obs->tplat[ir]);
-		trapezoid_rule_pos(np, los);
-		column_density(ctl->ng, los, np);
-#ifdef CURTIS_GODSON
-		if(ctl->formod == 1) curtis_godson(ctl, los, np);
-		// this could be done during the while loop using the aux-variables:
-		//					double cgpxu[NG];	/*! Curtis-Godson pressure times column density */
-		//					double cgtxu[NG];	/*! Curtis-Godson temperature times column density */
-#else
-		assert(1 != ctl->formod);
-#endif
-
-		return np;
-	} // traceray
-
     // Find air parcel next to reference height
     __host__ __device__ __ext_inline__
     int find_reference_parcel(ctl_t const *ctl, atm_t const *atm, int const ip0, int const ip1) {
@@ -763,8 +637,8 @@
   // ----------- functions for the new raytracer -----------
 
   __host__ __device__ __ext_inline__
-  void pos_scatter_jur_intersection_point(ctl_t *ctl,
-      atm_t *atm,
+  void pos_scatter_jur_intersection_point(ctl_t const *ctl,
+      atm_t const *atm,
       double *znew,
       pos_t los[],
       int ip,
@@ -842,8 +716,8 @@
   }
 
   __host__ __device__ __ext_inline__
-  int pos_scatter_jur_add_aerosol_layers(ctl_t *ctl,
-      atm_t *atm,
+  int pos_scatter_jur_add_aerosol_layers(ctl_t const *ctl,
+      atm_t const *atm,
       pos_t los[],
       aero_t *aero,
       int np,
@@ -988,8 +862,8 @@
   }
 
   __host__ __device__ __ext_inline__
-  int pos_scatter_traceray(ctl_t *ctl, atm_t *atm, obs_t *obs, aero_t *aero, int const ir, 
-      pos_t los[], double *tsurf, int ignore_scattering) {
+  int traceray(ctl_t const *ctl, atm_t const *atm, obs_t *obs, int const ir, 
+      pos_t los[], double *tsurf, aero_t *aero, int ignore_scattering) {
     double ex0[3], ex1[3], q[NG], k[NW], lat, lon, p, t, x[3], xobs[3], xvp[3], z = 1e99, z_low=z, zmax, zmin, zrefrac = 60;
 
     if(ctl->sca_n == 0)
