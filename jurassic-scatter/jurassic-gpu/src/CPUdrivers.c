@@ -104,8 +104,7 @@
                            pos_t los[NR][NLOS], double tsurf[], int np[], aero_t *aero, int scattering_included) {
 #pragma omp parallel for
 		for(int ir = 0; ir < obs->nr; ir++) { // loop over rays
-      np[ir] = traceray(ctl, atm, obs, ir, 
-                                    los[ir], &tsurf[ir], aero, scattering_included);
+      np[ir] = traceray(ctl, atm, obs, ir, los[ir], &tsurf[ir], aero, scattering_included);
 		} // ir
 	} // raytrace_rays_CPU
 

@@ -861,9 +861,14 @@
     return np;
   }
 
+#ifdef __NVCC__
+  template<int scattering_included>
   __host__ __device__ __ext_inline__
-  int traceray(ctl_t const *ctl, atm_t const *atm, obs_t *obs, int const ir, 
-      pos_t los[], double *tsurf, aero_t *aero, int scattering_included) {
+  int traceray(ctl_t const *ctl, atm_t const *atm, obs_t *obs, int const ir, pos_t los[], double *tsurf, aero_t *aero) {
+#else
+  __host__ __device__ __ext_inline__
+  int traceray(ctl_t const *ctl, atm_t const *atm, obs_t *obs, int const ir, pos_t los[], double *tsurf, aero_t *aero, int scattering_included) {
+#endif
     double ex0[3], ex1[3], q[NG], k[NW], lat, lon, p, t, x[3], xobs[3], xvp[3], z = 1e99, z_low=z, zmax, zmin, zrefrac = 60;
 
     // Initialize
@@ -874,7 +879,7 @@
     obs->tplon[ir] = obs->vplon[ir];
     obs->tplat[ir] = obs->vplat[ir];
     size_t atmIdx=0; int atmNp=0;
-    /* the folowing two lines were jurassic-scatter replaced with:
+    /* the folowing two lines were in jurassic-scatter replaced with:
         zmin=gsl_stats_min(atm->z, 1, (size_t)atm->np);
         zmax=gsl_stats_max(atm->z, 1, (size_t)atm->np);
        and they are not exactly the same so a problem could arise 
