@@ -200,9 +200,9 @@
 	// Raytracing ////////////////////////////////////////////////////////////////
 	void __global__ // GPU-kernel
 		raytrace_rays_GPU(ctl_t const *ctl, const atm_t *atm, obs_t *obs, pos_t
-    los[][NLOS], double *tsurf, int np[], aero_t *aero, int ignore_scattering) {
+    los[][NLOS], double *tsurf, int np[], aero_t *aero, int scattering_included) {
 			for(int ir = blockIdx.x*blockDim.x + threadIdx.x; ir < obs->nr; ir += blockDim.x*gridDim.x) { // grid stride loop over rays
-        np[ir] = traceray(ctl, atm, obs, ir, los[ir], &tsurf[ir], aero, ignore_scattering);
+        np[ir] = traceray(ctl, atm, obs, ir, los[ir], &tsurf[ir], aero, scattering_included);
 			} // ir
 		} // raytrace_rays_GPU
 
@@ -291,11 +291,11 @@
 
     if(NULL != aero && ctl->sca_n > 0) { // only if scattering is included
       raytrace_rays_GPU <<< (nr/64)+1, 64, 0, stream>>> (ctl_G, atm_G, obs_G,
-      los_G, tsurf_G, np_G, aero_G, 0);
+      los_G, tsurf_G, np_G, aero_G, 1);
       cuKernelCheck();
     } else {
       raytrace_rays_GPU <<< (nr/64)+1, 64, 0, stream>>> (ctl_G, atm_G, obs_G,
-      los_G, tsurf_G, np_G, NULL, 1);
+      los_G, tsurf_G, np_G, NULL, 0);
       cuKernelCheck();
     }
 	

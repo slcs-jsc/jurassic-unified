@@ -863,11 +863,8 @@
 
   __host__ __device__ __ext_inline__
   int traceray(ctl_t const *ctl, atm_t const *atm, obs_t *obs, int const ir, 
-      pos_t los[], double *tsurf, aero_t *aero, int ignore_scattering) {
+      pos_t los[], double *tsurf, aero_t *aero, int scattering_included) {
     double ex0[3], ex1[3], q[NG], k[NW], lat, lon, p, t, x[3], xobs[3], xvp[3], z = 1e99, z_low=z, zmax, zmin, zrefrac = 60;
-
-    if(ctl->sca_n == 0)
-      ignore_scattering = 1;
 
     // Initialize
     *tsurf = -999;
@@ -924,7 +921,7 @@
       }
       jur_cart2geo(x, &z, &lon, &lat);																					// Determine geolocation
       double EPS = 0.001;
-      if(ignore_scattering) EPS = 0.0;
+      if(!scattering_included) EPS = 0.0;
       if((z < zmin + EPS) || (z > zmax + EPS)) {																						// LOS escaped
         double xh[3];
         stop = (z < zmin + EPS) ? 2 : 1;
@@ -934,7 +931,7 @@
         UNROLL
           for(int i = 0; i < 3; i++) x[i] = xh[i] + frac*(x[i] - xh[i]);
         jur_cart2geo(x, &z, &lon, &lat);
-        if(ignore_scattering) {
+        if(!scattering_included) {
           los[np - 1].ds = ds*frac;
           ds = 0.;
         }
@@ -947,7 +944,7 @@
           los[np].ds=0.;
         }
       }
-      if(ignore_scattering || (!ignore_scattering && stop == 0)) {
+      if(!scattering_included || (scattering_included && stop == 0)) {
         intpol_atm_geo_pt(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, &p, &t);		// Interpolate atmospheric data
         intpol_atm_geo_qk(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, q, k);			// Interpolate atmospheric data
         write_pos_point(los + np, lon, lat, z, p, t, q, k, ds);
@@ -994,7 +991,7 @@
     assert(np < NLOS && "Too many LOS points!");
 
     // FIXME: added..
-    if(!ignore_scattering) {
+    if(scattering_included) {
       /* Check length of last segment... */
       if(los[np - 2].ds < 1e-3 && np - 1 > 1)
         np--;
@@ -1013,7 +1010,7 @@
     assert(1 != ctl->formod);
   #endif
 
-    if(!ignore_scattering) {
+    if(scattering_included) {
       np = pos_scatter_jur_add_aerosol_layers(ctl, atm, los, aero, np, (int) atmIdx, atmNp); 
     }
     return np;

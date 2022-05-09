@@ -101,11 +101,11 @@
 
 	__host__
 	void raytrace_rays_CPU(ctl_t const *ctl, atm_t const *atm, obs_t *obs, 
-                           pos_t los[NR][NLOS], double tsurf[], int np[], aero_t *aero, int ignore_scattering) {
+                           pos_t los[NR][NLOS], double tsurf[], int np[], aero_t *aero, int scattering_included) {
 #pragma omp parallel for
 		for(int ir = 0; ir < obs->nr; ir++) { // loop over rays
       np[ir] = traceray(ctl, atm, obs, ir, 
-                                    los[ir], &tsurf[ir], aero, ignore_scattering);
+                                    los[ir], &tsurf[ir], aero, scattering_included);
 		} // ir
 	} // raytrace_rays_CPU
 
@@ -146,9 +146,9 @@
     hydrostatic1d_CPU(ctl, atm, obs->nr, ig_h2o); // in this call atm might get modified
     // if formod function was NOT called from jurassic-scatter project
     if(NULL != aero && ctl->sca_n > 0) { // only if scattering is included
-      raytrace_rays_CPU(ctl, atm, obs, los, t_surf, np, aero, 0);
+      raytrace_rays_CPU(ctl, atm, obs, los, t_surf, np, aero, 1);
     } else {  
-      raytrace_rays_CPU(ctl, atm, obs, los, t_surf, np, NULL, 1);
+      raytrace_rays_CPU(ctl, atm, obs, los, t_surf, np, NULL, 0);
     }
 
     // "beta_a" -> 'a', "beta_e" -> 'e'
