@@ -1,0 +1,563 @@
+Before adding templates:
+  ptxas info    : 101260 bytes gmem, 272 bytes cmem[3]
+  ptxas info    : Function properties for cudaMalloc
+      8 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for cudaFuncGetAttributes
+      8 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for cudaDeviceGetAttribute
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for cudaGetDevice
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for cudaOccupancyMaxActiveBlocksPerMultiprocessor
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for cudaOccupancyMaxActiveBlocksPerMultiprocessorWithFlags
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z3c01d
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z3lipddddd
+      56 bytes stack frame, 52 bytes spill stores, 52 bytes spill loads
+  ptxas info    : Function properties for _Z3eipddddd
+      56 bytes stack frame, 56 bytes spill stores, 56 bytes spill loads
+  ptxas info    : Function properties for _Z9locate_stPKdid
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z10jur_locatePKdid
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z9locate_idPA130_Kdidi
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z13locate_tbl_idPA130_Kfidii
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z10locate_atmPK5atm_tdPmPi
+      48 bytes stack frame, 44 bytes spill stores, 44 bytes spill loads
+  ptxas info    : Function properties for _Z7get_epsPK13trans_table_tiiiid
+      48 bytes stack frame, 48 bytes spill stores, 48 bytes spill loads
+  ptxas info    : Function properties for _Z5get_uPK13trans_table_tiiiid
+      48 bytes stack frame, 44 bytes spill stores, 44 bytes spill loads
+  ptxas info    : Function properties for _Z15brightness_coredd
+      40 bytes stack frame, 36 bytes spill stores, 36 bytes spill loads
+  ptxas info    : Function properties for _Z11jur_gravitydd
+      32 bytes stack frame, 32 bytes spill stores, 32 bytes spill loads
+  ptxas info    : Function properties for _Z15src_planck_corePK13trans_table_tdi
+      32 bytes stack frame, 32 bytes spill stores, 32 bytes spill loads
+  ptxas info    : Function properties for _Z16add_surface_coreP5obs_tPK13trans_table_tdii
+      48 bytes stack frame, 48 bytes spill stores, 48 bytes spill loads
+  ptxas info    : Function properties for _Z7ega_epsPK13trans_table_tddddii
+      184 bytes stack frame, 180 bytes spill stores, 180 bytes spill loads
+  ptxas info    : Function properties for _Z14apply_ega_corePK13trans_table_tPK5pos_tPdii
+      64 bytes stack frame, 64 bytes spill stores, 64 bytes spill loads
+  ptxas info    : Function properties for _Z12new_obs_coreP5obs_tiiddd
+      56 bytes stack frame, 52 bytes spill stores, 52 bytes spill loads
+  ptxas info    : Function properties for _Z7load_roPKdi
+      24 bytes stack frame, 20 bytes spill stores, 20 bytes spill loads
+  ptxas info    : Function properties for _Z15continua_ctmco2dddd
+      144 bytes stack frame, 140 bytes spill stores, 140 bytes spill loads
+  ptxas info    : Function properties for _Z15continua_ctmh2oddddd
+      216 bytes stack frame, 196 bytes spill stores, 196 bytes spill loads
+  ptxas info    : Function properties for _Z14continua_ctmn2ddd
+      112 bytes stack frame, 108 bytes spill stores, 108 bytes spill loads
+  ptxas info    : Function properties for _Z14continua_ctmo2ddd
+      112 bytes stack frame, 108 bytes spill stores, 108 bytes spill loads
+  ptxas info    : Function properties for _Z17altitude_range_nnPK5atm_tmiPdS2_
+      56 bytes stack frame, 56 bytes spill stores, 56 bytes spill loads
+  ptxas info    : Function properties for _Z15write_pos_pointP5pos_tdddddPKdS2_d
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z18trapezoid_rule_posiP5pos_t
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z14column_densityiP5pos_ti
+      48 bytes stack frame, 44 bytes spill stores, 44 bytes spill loads
+  ptxas info    : Function properties for _Z16jur_refractivitydd
+      32 bytes stack frame, 28 bytes spill stores, 28 bytes spill loads
+  ptxas info    : Function properties for _Z12jur_cart2geoPKdPdS1_S1_
+      56 bytes stack frame, 52 bytes spill stores, 52 bytes spill loads
+  ptxas info    : Function properties for _Z8cart2altPKd
+      16 bytes stack frame, 16 bytes spill stores, 16 bytes spill loads
+  ptxas info    : Function properties for _Z12jur_geo2cartdddPd
+      64 bytes stack frame, 64 bytes spill stores, 64 bytes spill loads
+  ptxas info    : Function properties for _Z17jur_tangent_pointPK5pos_tiiPdS2_S2_
+      264 bytes stack frame, 184 bytes spill stores, 184 bytes spill loads
+  ptxas info    : Function properties for _Z16intpol_atm_1d_ptPK5ctl_tPK5atm_tiidPdS5_
+      64 bytes stack frame, 52 bytes spill stores, 52 bytes spill loads
+  ptxas info    : Function properties for _Z16intpol_atm_1d_qkPK5ctl_tPK5atm_tiidPdS5_
+      72 bytes stack frame, 72 bytes spill stores, 72 bytes spill loads
+  ptxas info    : Function properties for _Z17intpol_atm_geo_ptPK5ctl_tPK5atm_tiidddPdS5_
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z17intpol_atm_geo_qkPK5ctl_tPK5atm_tiidddPdS5_
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z21find_reference_parcelPK5ctl_tPK5atm_tii
+      56 bytes stack frame, 52 bytes spill stores, 52 bytes spill loads
+  ptxas info    : Function properties for _Z18hydrostatic_1d_h2oPK5ctl_tP5atm_tiii
+      136 bytes stack frame, 132 bytes spill stores, 132 bytes spill loads
+  ptxas info    : Function properties for _Z34pos_scatter_jur_intersection_pointPK5ctl_tPK5atm_tPdP5pos_tiS7_iii
+      152 bytes stack frame, 88 bytes spill stores, 88 bytes spill loads
+  ptxas info    : Function properties for _Z18min_value_in_arrayPdi
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z18max_value_in_arrayPdi
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z10naive_sortPdi
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z8copy_posPK5pos_tPS_
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z34pos_scatter_jur_add_aerosol_layersPK5ctl_tPK5atm_tP5pos_tP6aero_tiii
+      888 bytes stack frame, 168 bytes spill stores, 168 bytes spill loads
+  ptxas info    : Function properties for _Z8tracerayPK5ctl_tPK5atm_tP5obs_tiP5pos_tPdP6aero_ti
+      800 bytes stack frame, 268 bytes spill stores, 268 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi0ELi0ELi0ELi0EEdPK5ctl_tPK5pos_tiii
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi0ELi0ELi0ELi1EEdPK5ctl_tPK5pos_tiii
+      72 bytes stack frame, 68 bytes spill stores, 68 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi0ELi0ELi1ELi0EEdPK5ctl_tPK5pos_tiii
+      72 bytes stack frame, 68 bytes spill stores, 68 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi0ELi0ELi1ELi1EEdPK5ctl_tPK5pos_tiii
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi0ELi1ELi0ELi0EEdPK5ctl_tPK5pos_tiii
+      72 bytes stack frame, 68 bytes spill stores, 68 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi0ELi1ELi0ELi1EEdPK5ctl_tPK5pos_tiii
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi0ELi1ELi1ELi0EEdPK5ctl_tPK5pos_tiii
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi0ELi1ELi1ELi1EEdPK5ctl_tPK5pos_tiii
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi1ELi0ELi0ELi0EEdPK5ctl_tPK5pos_tiii
+      72 bytes stack frame, 68 bytes spill stores, 68 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi1ELi0ELi0ELi1EEdPK5ctl_tPK5pos_tiii
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi1ELi0ELi1ELi0EEdPK5ctl_tPK5pos_tiii
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi1ELi0ELi1ELi1EEdPK5ctl_tPK5pos_tiii
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi1ELi1ELi0ELi0EEdPK5ctl_tPK5pos_tiii
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi1ELi1ELi0ELi1EEdPK5ctl_tPK5pos_tiii
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi1ELi1ELi1ELi0EEdPK5ctl_tPK5pos_tiii
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi1ELi1ELi1ELi1EEdPK5ctl_tPK5pos_tiii
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Compiling entry function '_Z26radiance_to_brightness_GPUPK5ctl_tP5obs_t' for 'sm_70'
+  ptxas info    : Function properties for _Z26radiance_to_brightness_GPUPK5ctl_tP5obs_t
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 38 registers, 64 bytes cumulative stack size, 368 bytes cmem[0], 16 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17surface_terms_GPUPK13trans_table_tP5obs_tPKdi' for 'sm_70'
+  ptxas info    : Function properties for _Z17surface_terms_GPUPK13trans_table_tP5obs_tPKdi
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 38 registers, 104 bytes cumulative stack size, 380 bytes cmem[0]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi0ELi0ELi0ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi0ELi0ELi0ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 90 registers, 552 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi0ELi0ELi0ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi0ELi0ELi0ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 90 registers, 552 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi0ELi0ELi1ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi0ELi0ELi1ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 90 registers, 552 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi0ELi0ELi1ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi0ELi0ELi1ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 90 registers, 552 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi0ELi1ELi0ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi0ELi1ELi0ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 98 registers, 808 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi0ELi1ELi0ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi0ELi1ELi0ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 98 registers, 816 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi0ELi1ELi1ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi0ELi1ELi1ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 98 registers, 816 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi0ELi1ELi1ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi0ELi1ELi1ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 98 registers, 816 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi1ELi0ELi0ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi1ELi0ELi0ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 90 registers, 552 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi1ELi0ELi0ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi1ELi0ELi0ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 90 registers, 552 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi1ELi0ELi1ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi1ELi0ELi1ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 90 registers, 552 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi1ELi0ELi1ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi1ELi0ELi1ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 90 registers, 552 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi1ELi1ELi0ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi1ELi1ELi0ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 98 registers, 816 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi1ELi1ELi0ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi1ELi1ELi0ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 98 registers, 816 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi1ELi1ELi1ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi1ELi1ELi1ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 98 registers, 816 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi1ELi1ELi1ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi1ELi1ELi1ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 98 registers, 816 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17raytrace_rays_GPUPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_ti' for 'sm_70'
+  ptxas info    : Function properties for _Z17raytrace_rays_GPUPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_ti
+      8 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 136 registers, 2104 bytes cumulative stack size, 412 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z22hydrostatic_kernel_GPUPK5ctl_tP5atm_tii' for 'sm_70'
+  ptxas info    : Function properties for _Z22hydrostatic_kernel_GPUPK5ctl_tP5atm_tii
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 66 registers, 328 bytes cumulative stack size, 376 bytes cmem[0], 88 bytes cmem[2]
+  ptxas info    : Function properties for _ZN4dim3C1Ejjj
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _ZN4dim3C2Ejjj
+      32 bytes stack frame, 28 bytes spill stores, 28 bytes spill loads
+  ptxas info    : Function properties for __assert_fail
+      8 bytes stack frame, 8 bytes spill stores, 8 bytes spill loads
+  ptxas info    : Function properties for fabs
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for fmin
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for fmax
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for sqrt
+      24 bytes stack frame, 20 bytes spill stores, 20 bytes spill loads
+  ptxas info    : Function properties for sin
+      24 bytes stack frame, 20 bytes spill stores, 20 bytes spill loads
+  ptxas info    : Function properties for cos
+      24 bytes stack frame, 20 bytes spill stores, 20 bytes spill loads
+  ptxas info    : Function properties for log
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for log1p
+      24 bytes stack frame, 24 bytes spill stores, 24 bytes spill loads
+  ptxas info    : Function properties for exp
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for tanh
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for atan2
+      48 bytes stack frame, 44 bytes spill stores, 44 bytes spill loads
+  ptxas info    : Function properties for asin
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for pow
+      40 bytes stack frame, 36 bytes spill stores, 36 bytes spill loads
+  ptxas info    : Function properties for __internal_trig_reduction_slowpathd
+      136 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for __internal_accurate_pow
+      280 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _ZN67_INTERNAL_45_tmpxft_0030f498_00000000_7_GPUdrivers_cpp1_ii_1acf068c5__ldgEPKd
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+
+
+-----------------------------------------
+
+
+After adding templates:
+  ptxas info    : 101403 bytes gmem, 272 bytes cmem[3]
+  ptxas info    : Function properties for cudaMalloc
+      8 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for cudaFuncGetAttributes
+      8 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for cudaDeviceGetAttribute
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for cudaGetDevice
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for cudaOccupancyMaxActiveBlocksPerMultiprocessor
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for cudaOccupancyMaxActiveBlocksPerMultiprocessorWithFlags
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z3c01d
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z3lipddddd
+      56 bytes stack frame, 52 bytes spill stores, 52 bytes spill loads
+  ptxas info    : Function properties for _Z3eipddddd
+      56 bytes stack frame, 56 bytes spill stores, 56 bytes spill loads
+  ptxas info    : Function properties for _Z9locate_stPKdid
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z10jur_locatePKdid
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z9locate_idPA130_Kdidi
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z13locate_tbl_idPA130_Kfidii
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z10locate_atmPK5atm_tdPmPi
+      48 bytes stack frame, 44 bytes spill stores, 44 bytes spill loads
+  ptxas info    : Function properties for _Z7get_epsPK13trans_table_tiiiid
+      48 bytes stack frame, 48 bytes spill stores, 48 bytes spill loads
+  ptxas info    : Function properties for _Z5get_uPK13trans_table_tiiiid
+      48 bytes stack frame, 44 bytes spill stores, 44 bytes spill loads
+  ptxas info    : Function properties for _Z15brightness_coredd
+      40 bytes stack frame, 36 bytes spill stores, 36 bytes spill loads
+  ptxas info    : Function properties for _Z11jur_gravitydd
+      32 bytes stack frame, 32 bytes spill stores, 32 bytes spill loads
+  ptxas info    : Function properties for _Z15src_planck_corePK13trans_table_tdi
+      32 bytes stack frame, 32 bytes spill stores, 32 bytes spill loads
+  ptxas info    : Function properties for _Z16add_surface_coreP5obs_tPK13trans_table_tdii
+      48 bytes stack frame, 48 bytes spill stores, 48 bytes spill loads
+  ptxas info    : Function properties for _Z7ega_epsPK13trans_table_tddddii
+      184 bytes stack frame, 180 bytes spill stores, 180 bytes spill loads
+  ptxas info    : Function properties for _Z14apply_ega_corePK13trans_table_tPK5pos_tPdii
+      64 bytes stack frame, 64 bytes spill stores, 64 bytes spill loads
+  ptxas info    : Function properties for _Z12new_obs_coreP5obs_tiiddd
+      56 bytes stack frame, 52 bytes spill stores, 52 bytes spill loads
+  ptxas info    : Function properties for _Z7load_roPKdi
+      24 bytes stack frame, 20 bytes spill stores, 20 bytes spill loads
+  ptxas info    : Function properties for _Z15continua_ctmco2dddd
+      144 bytes stack frame, 140 bytes spill stores, 140 bytes spill loads
+  ptxas info    : Function properties for _Z15continua_ctmh2oddddd
+      216 bytes stack frame, 196 bytes spill stores, 196 bytes spill loads
+  ptxas info    : Function properties for _Z14continua_ctmn2ddd
+      112 bytes stack frame, 108 bytes spill stores, 108 bytes spill loads
+  ptxas info    : Function properties for _Z14continua_ctmo2ddd
+      112 bytes stack frame, 108 bytes spill stores, 108 bytes spill loads
+  ptxas info    : Function properties for _Z17altitude_range_nnPK5atm_tmiPdS2_
+      56 bytes stack frame, 56 bytes spill stores, 56 bytes spill loads
+  ptxas info    : Function properties for _Z15write_pos_pointP5pos_tdddddPKdS2_d
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z18trapezoid_rule_posiP5pos_t
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z14column_densityiP5pos_ti
+      48 bytes stack frame, 44 bytes spill stores, 44 bytes spill loads
+  ptxas info    : Function properties for _Z16jur_refractivitydd
+      32 bytes stack frame, 28 bytes spill stores, 28 bytes spill loads
+  ptxas info    : Function properties for _Z12jur_cart2geoPKdPdS1_S1_
+      56 bytes stack frame, 52 bytes spill stores, 52 bytes spill loads
+  ptxas info    : Function properties for _Z8cart2altPKd
+      16 bytes stack frame, 16 bytes spill stores, 16 bytes spill loads
+  ptxas info    : Function properties for _Z12jur_geo2cartdddPd
+      64 bytes stack frame, 64 bytes spill stores, 64 bytes spill loads
+  ptxas info    : Function properties for _Z17jur_tangent_pointPK5pos_tiiPdS2_S2_
+      264 bytes stack frame, 184 bytes spill stores, 184 bytes spill loads
+  ptxas info    : Function properties for _Z16intpol_atm_1d_ptPK5ctl_tPK5atm_tiidPdS5_
+      64 bytes stack frame, 52 bytes spill stores, 52 bytes spill loads
+  ptxas info    : Function properties for _Z16intpol_atm_1d_qkPK5ctl_tPK5atm_tiidPdS5_
+      72 bytes stack frame, 72 bytes spill stores, 72 bytes spill loads
+  ptxas info    : Function properties for _Z17intpol_atm_geo_ptPK5ctl_tPK5atm_tiidddPdS5_
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z17intpol_atm_geo_qkPK5ctl_tPK5atm_tiidddPdS5_
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z21find_reference_parcelPK5ctl_tPK5atm_tii
+      56 bytes stack frame, 52 bytes spill stores, 52 bytes spill loads
+  ptxas info    : Function properties for _Z18hydrostatic_1d_h2oPK5ctl_tP5atm_tiii
+      136 bytes stack frame, 132 bytes spill stores, 132 bytes spill loads
+  ptxas info    : Function properties for _Z34pos_scatter_jur_intersection_pointPK5ctl_tPK5atm_tPdP5pos_tiS7_iii
+      152 bytes stack frame, 88 bytes spill stores, 88 bytes spill loads
+  ptxas info    : Function properties for _Z18min_value_in_arrayPdi
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z18max_value_in_arrayPdi
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z10naive_sortPdi
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z8copy_posPK5pos_tPS_
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z34pos_scatter_jur_add_aerosol_layersPK5ctl_tPK5atm_tP5pos_tP6aero_tiii
+      888 bytes stack frame, 168 bytes spill stores, 168 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi0ELi0ELi0ELi0EEdPK5ctl_tPK5pos_tiii
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi0ELi0ELi0ELi1EEdPK5ctl_tPK5pos_tiii
+      72 bytes stack frame, 68 bytes spill stores, 68 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi0ELi0ELi1ELi0EEdPK5ctl_tPK5pos_tiii
+      72 bytes stack frame, 68 bytes spill stores, 68 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi0ELi0ELi1ELi1EEdPK5ctl_tPK5pos_tiii
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi0ELi1ELi0ELi0EEdPK5ctl_tPK5pos_tiii
+      72 bytes stack frame, 68 bytes spill stores, 68 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi0ELi1ELi0ELi1EEdPK5ctl_tPK5pos_tiii
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi0ELi1ELi1ELi0EEdPK5ctl_tPK5pos_tiii
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi0ELi1ELi1ELi1EEdPK5ctl_tPK5pos_tiii
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi1ELi0ELi0ELi0EEdPK5ctl_tPK5pos_tiii
+      72 bytes stack frame, 68 bytes spill stores, 68 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi1ELi0ELi0ELi1EEdPK5ctl_tPK5pos_tiii
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi1ELi0ELi1ELi0EEdPK5ctl_tPK5pos_tiii
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi1ELi0ELi1ELi1EEdPK5ctl_tPK5pos_tiii
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi1ELi1ELi0ELi0EEdPK5ctl_tPK5pos_tiii
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi1ELi1ELi0ELi1EEdPK5ctl_tPK5pos_tiii
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi1ELi1ELi1ELi0EEdPK5ctl_tPK5pos_tiii
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z18continua_core_tempILi1ELi1ELi1ELi1EEdPK5ctl_tPK5pos_tiii
+      80 bytes stack frame, 76 bytes spill stores, 76 bytes spill loads
+  ptxas info    : Function properties for _Z8tracerayILi1EEiPK5ctl_tPK5atm_tP5obs_tiP5pos_tPdP6aero_t
+      792 bytes stack frame, 264 bytes spill stores, 264 bytes spill loads
+  ptxas info    : Function properties for _Z8tracerayILi0EEiPK5ctl_tPK5atm_tP5obs_tiP5pos_tPdP6aero_t
+      792 bytes stack frame, 256 bytes spill stores, 256 bytes spill loads
+  ptxas info    : Compiling entry function '_Z26radiance_to_brightness_GPUPK5ctl_tP5obs_t' for 'sm_70'
+  ptxas info    : Function properties for _Z26radiance_to_brightness_GPUPK5ctl_tP5obs_t
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 38 registers, 64 bytes cumulative stack size, 368 bytes cmem[0], 16 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17surface_terms_GPUPK13trans_table_tP5obs_tPKdi' for 'sm_70'
+  ptxas info    : Function properties for _Z17surface_terms_GPUPK13trans_table_tP5obs_tPKdi
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 38 registers, 104 bytes cumulative stack size, 380 bytes cmem[0]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi0ELi0ELi0ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi0ELi0ELi0ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 90 registers, 552 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi0ELi0ELi0ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi0ELi0ELi0ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 90 registers, 552 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi0ELi0ELi1ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi0ELi0ELi1ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 90 registers, 552 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi0ELi0ELi1ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi0ELi0ELi1ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 90 registers, 552 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi0ELi1ELi0ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi0ELi1ELi0ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 98 registers, 808 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi0ELi1ELi0ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi0ELi1ELi0ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 98 registers, 816 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi0ELi1ELi1ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi0ELi1ELi1ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 98 registers, 816 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi0ELi1ELi1ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi0ELi1ELi1ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 98 registers, 816 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi1ELi0ELi0ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi1ELi0ELi0ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 90 registers, 552 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi1ELi0ELi0ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi1ELi0ELi0ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 90 registers, 552 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi1ELi0ELi1ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi1ELi0ELi1ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 90 registers, 552 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi1ELi0ELi1ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi1ELi0ELi1ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 90 registers, 552 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi1ELi1ELi0ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi1ELi1ELi0ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 98 registers, 816 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi1ELi1ELi0ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi1ELi1ELi0ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 98 registers, 816 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi1ELi1ELi1ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi1ELi1ELi1ELi0EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 98 registers, 816 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17fusion_kernel_GPUILi1ELi1ELi1ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd' for 'sm_70'
+  ptxas info    : Function properties for _Z17fusion_kernel_GPUILi1ELi1ELi1ELi1EEvPK13trans_table_tPK5ctl_tP5obs_tPA10000_K5pos_tPKiiiPA130_Kd
+      200 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 98 registers, 816 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z22hydrostatic_kernel_GPUPK5ctl_tP5atm_tii' for 'sm_70'
+  ptxas info    : Function properties for _Z22hydrostatic_kernel_GPUPK5ctl_tP5atm_tii
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 66 registers, 328 bytes cumulative stack size, 376 bytes cmem[0], 88 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17raytrace_rays_GPUILi1EEvPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_t' for 'sm_70'
+  ptxas info    : Function properties for _Z17raytrace_rays_GPUILi1EEvPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_t
+      8 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 136 registers, 2096 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Compiling entry function '_Z17raytrace_rays_GPUILi0EEvPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_t' for 'sm_70'
+  ptxas info    : Function properties for _Z17raytrace_rays_GPUILi0EEvPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_t
+      8 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 130 registers, 1288 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+  ptxas info    : Function properties for _ZN4dim3C1Ejjj
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _ZN4dim3C2Ejjj
+      32 bytes stack frame, 28 bytes spill stores, 28 bytes spill loads
+  ptxas info    : Function properties for __assert_fail
+      8 bytes stack frame, 8 bytes spill stores, 8 bytes spill loads
+  ptxas info    : Function properties for fabs
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for fmin
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for fmax
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for sqrt
+      24 bytes stack frame, 20 bytes spill stores, 20 bytes spill loads
+  ptxas info    : Function properties for sin
+      24 bytes stack frame, 20 bytes spill stores, 20 bytes spill loads
+  ptxas info    : Function properties for cos
+      24 bytes stack frame, 20 bytes spill stores, 20 bytes spill loads
+  ptxas info    : Function properties for log
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for log1p
+      24 bytes stack frame, 24 bytes spill stores, 24 bytes spill loads
+  ptxas info    : Function properties for exp
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for tanh
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for atan2
+      48 bytes stack frame, 44 bytes spill stores, 44 bytes spill loads
+  ptxas info    : Function properties for asin
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for pow
+      40 bytes stack frame, 36 bytes spill stores, 36 bytes spill loads
+  ptxas info    : Function properties for __internal_trig_reduction_slowpathd
+      136 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for __internal_accurate_pow
+      280 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Function properties for _ZN67_INTERNAL_45_tmpxft_00303157_00000000_7_GPUdrivers_cpp1_ii_1acf068c5__ldgEPKd
+      0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+
+---------------------------------------------------------------------------------------------------------------------------
+IMPORTANT LINES:
+
+  old JURASSIC-GPU (without scattering):
+
+    ptxas info    : Function properties for _Z8tracerayPK5ctl_tPK5atm_tP5obs_tiP5pos_tPd
+        784 bytes stack frame, 256 bytes spill stores, 256 bytes spill loads
+    ptxas info    : Function properties for _Z34pos_scatter_jur_add_aerosol_layersP5ctl_tP5atm_tP5pos_tP6aero_tiii
+        888 bytes stack frame, 168 bytes spill stores, 168 bytes spill loads
+    ptxas info    : Function properties for _Z20pos_scatter_tracerayP5ctl_tP5atm_tP5obs_tP6aero_tiP5pos_tPdi
+        800 bytes stack frame, 268 bytes spill stores, 268 bytes spill loads
+    ptxas info    : Compiling entry function '_Z17raytrace_rays_GPUPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPi' for 'sm_70'
+    ptxas info    : Function properties for _Z17raytrace_rays_GPUPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPi
+        0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+    ptxas info    : Used 130 registers, 1272 bytes cumulative stack size, 400 bytes cmem[0], 144 bytes cmem[2]
+
+  new JURASSIC-unfied:
+
+    before adding templates:
+      ptxas info    : Function properties for _Z34pos_scatter_jur_add_aerosol_layersPK5ctl_tPK5atm_tP5pos_tP6aero_tiii
+          888 bytes stack frame, 168 bytes spill stores, 168 bytes spill loads
+
+      ptxas info    : Function properties for _Z8tracerayPK5ctl_tPK5atm_tP5obs_tiP5pos_tPdP6aero_ti
+          800 bytes stack frame, 268 bytes spill stores, 268 bytes spill loads
+
+      ptxas info    : Compiling entry function '_Z17raytrace_rays_GPUPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_ti' for 'sm_70'
+      ptxas info    : Function properties for _Z17raytrace_rays_GPUPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_ti
+          8 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+      ptxas info    : Used 136 registers, 2104 bytes cumulative stack size, 412 bytes cmem[0], 144 bytes cmem[2]
+
+    after adding templates:
+      ptxas info    : Function properties for _Z34pos_scatter_jur_add_aerosol_layersPK5ctl_tPK5atm_tP5pos_tP6aero_tiii
+          888 bytes stack frame, 168 bytes spill stores, 168 bytes spill loads
+
+      ptxas info    : Function properties for _Z8tracerayILi1EEiPK5ctl_tPK5atm_tP5obs_tiP5pos_tPdP6aero_t
+          792 bytes stack frame, 264 bytes spill stores, 264 bytes spill loads
+      ptxas info    : Function properties for _Z8tracerayILi0EEiPK5ctl_tPK5atm_tP5obs_tiP5pos_tPdP6aero_t
+          792 bytes stack frame, 256 bytes spill stores, 256 bytes spill loads
+
+      ptxas info    : Compiling entry function '_Z17raytrace_rays_GPUILi1EEvPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_t' for 'sm_70'
+      ptxas info    : Function properties for _Z17raytrace_rays_GPUILi1EEvPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_t
+          8 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+      ptxas info    : Used 136 registers, 2096 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+      ptxas info    : Compiling entry function '_Z17raytrace_rays_GPUILi0EEvPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_t' for 'sm_70'
+      ptxas info    : Function properties for _Z17raytrace_rays_GPUILi0EEvPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_t
+          8 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+      ptxas info    : Used 130 registers, 1288 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
