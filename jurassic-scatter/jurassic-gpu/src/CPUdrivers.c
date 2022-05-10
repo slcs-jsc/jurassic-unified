@@ -188,7 +188,7 @@
                 printf("CUDA not found during compilation, continue on CPUs instead!\n");
                 warnGPU = 0; // switch this warning off
             } // warnGPU
-            //TODO: Add parallelism!
+            #pragma omp parallel for
             for(int i = 0; i < n; i++) {
               //aero and los are optionl
               formod_CPU(ctl, atm, &obs[i], aero);
@@ -212,8 +212,9 @@
         if (ctl->useGPU) { //has to be changed
             formod_GPU(ctl, atm, obs, aero, n);
         } else { // USEGPU = 0 means use-GPU-never
+            #pragma omp parallel for
             for(int i = 0; i < n; i++) {
-              //aero and los are optionl
+              //aero is optionl
               formod_CPU(ctl, atm, &obs[i], aero);
             }
         } // useGPU
@@ -228,7 +229,30 @@ void jur_formod(ctl_t const *ctl,
 //we could use the same trick as above but it's not necessary
 __host__
 trans_table_t* get_tbl_on_GPU(ctl_t const *ctl)
-;
+#ifdef hasGPU
+    ; // declaration only, will be provided by GPUdrivers.o at link time 
+#else
+    { // definition here
+        static int warnGPU = 1;
+        if (ctl->useGPU > 0) { // USEGPU > 0 means use-GPU-always
+            fprintf(stdout, "CUDA not found during compilation, cannot run on GPUs. ABORT\n\n");
+            fprintf(stdout, "USEGPU = 1 (use-GPU-always) found in controls\n"
+                            "USEGPU = -1 (use-GPU-if-possible) could help\n\n");
+            fflush(stdout);
+            fprintf(stderr, "CUDA not found during compilation, cannot run on GPUs. ABORT\n\n");
+            exit(EXIT_FAILURE);
+        } else {               // USEGPU < 0 means use-GPU-if-possible
+            assert(ctl->useGPU < 0); 
+            // automatic decision: fallback solution is CPU
+            if (warnGPU) { // this warning appears only once per process
+                printf("CUDA not found during compilation, continue on CPUs instead!\n");
+                warnGPU = 0; // switch this warning off
+            } // warnGPU
+            printf("DEBUG #%d call initilaze CPU..\n", ctl->MPIglobrank);
+            return get_tbl(ctl);
+        } //
+    } // get_tbl_on_GPU
+#endif
 
 __host__
 void jur_table_initialization(ctl_t *ctl) {
