@@ -545,19 +545,31 @@ IMPORTANT LINES:
       ptxas info    : Used 136 registers, 2104 bytes cumulative stack size, 412 bytes cmem[0], 144 bytes cmem[2]
 
     after adding templates:
-      ptxas info    : Function properties for _Z34pos_scatter_jur_add_aerosol_layersPK5ctl_tPK5atm_tP5pos_tP6aero_tiii
-          888 bytes stack frame, 168 bytes spill stores, 168 bytes spill loads
+      naive sort case:
+        ptxas info    : Function properties for _Z34pos_scatter_jur_add_aerosol_layersPK5ctl_tPK5atm_tP5pos_tP6aero_tiii
+            888 bytes stack frame, 168 bytes spill stores, 168 bytes spill loads
 
-      ptxas info    : Function properties for _Z8tracerayILi1EEiPK5ctl_tPK5atm_tP5obs_tiP5pos_tPdP6aero_t
-          792 bytes stack frame, 264 bytes spill stores, 264 bytes spill loads
-      ptxas info    : Function properties for _Z8tracerayILi0EEiPK5ctl_tPK5atm_tP5obs_tiP5pos_tPdP6aero_t
-          792 bytes stack frame, 256 bytes spill stores, 256 bytes spill loads
+        ptxas info    : Function properties for _Z8tracerayILi1EEiPK5ctl_tPK5atm_tP5obs_tiP5pos_tPdP6aero_t
+            792 bytes stack frame, 264 bytes spill stores, 264 bytes spill loads
+        ptxas info    : Function properties for _Z8tracerayILi0EEiPK5ctl_tPK5atm_tP5obs_tiP5pos_tPdP6aero_t
+            792 bytes stack frame, 256 bytes spill stores, 256 bytes spill loads
 
-      ptxas info    : Compiling entry function '_Z17raytrace_rays_GPUILi1EEvPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_t' for 'sm_70'
-      ptxas info    : Function properties for _Z17raytrace_rays_GPUILi1EEvPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_t
-          8 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
-      ptxas info    : Used 136 registers, 2096 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
-      ptxas info    : Compiling entry function '_Z17raytrace_rays_GPUILi0EEvPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_t' for 'sm_70'
-      ptxas info    : Function properties for _Z17raytrace_rays_GPUILi0EEvPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_t
-          8 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
-      ptxas info    : Used 130 registers, 1288 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+        ptxas info    : Compiling entry function '_Z17raytrace_rays_GPUILi1EEvPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_t' for 'sm_70'
+        ptxas info    : Function properties for _Z17raytrace_rays_GPUILi1EEvPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_t
+            8 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+        ptxas info    : Used 136 registers, 2096 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+        ptxas info    : Compiling entry function '_Z17raytrace_rays_GPUILi0EEvPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_t' for 'sm_70'
+        ptxas info    : Function properties for _Z17raytrace_rays_GPUILi0EEvPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_t
+            8 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+        ptxas info    : Used 130 registers, 1288 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+
+      merge sort case:
+        ptxas info    : Compiling entry function '_Z17raytrace_rays_GPUILi1EEvPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_t' for 'sm_70'
+        ptxas info    : Function properties for _Z17raytrace_rays_GPUILi1EEvPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_t
+            8 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+        ptxas info    : Used 136 registers, 2328 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]
+
+        ptxas info    : Compiling entry function '_Z17raytrace_rays_GPUILi0EEvPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_t' for 'sm_70'
+        ptxas info    : Function properties for _Z17raytrace_rays_GPUILi0EEvPK5ctl_tPK5atm_tP5obs_tPA10000_5pos_tPdPiP6aero_t
+            8 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+        ptxas info    : Used 130 registers, 1288 bytes cumulative stack size, 408 bytes cmem[0], 144 bytes cmem[2]

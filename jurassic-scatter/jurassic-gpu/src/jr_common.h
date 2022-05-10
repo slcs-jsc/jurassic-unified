@@ -684,9 +684,8 @@
     return ret;
   }
 
-  // smarter sort will need to be used
   __host__ __device__ __ext_inline__
-  void naive_sort(double *arr, int n) { // (reversed) bubble sort
+  void naive_sort(double *arr, int n) { // (reversed) bubble sort, O(n^2), in-place
     int i, j;
     double t;
     for(i = 0; i < n - 1; i++) {
@@ -699,6 +698,42 @@
       }
     }
   } 
+
+  __host__ __device__ __ext_inline__
+  void merge_sort(double *arr, int n) { // (reversed) merge sort, O(n log n), not in-place
+    double tmp[8 * NLMAX];
+    return;
+    for(int len = 1; len < n; len *= 2) {
+      for(int pos = 0; pos < n; pos += 2 * len) {
+        int it = pos;
+        int p = pos, q = pos + len;
+        while(p < pos + len && q < pos + 2 * len && p < n && q < n) {
+          if(arr[p] >= arr[q]) {
+            tmp[it] = arr[p];
+            p++;
+          }
+          else {
+            tmp[it] = arr[q];
+            q++;
+          }
+          it++;
+        }
+        while(p < pos + len && p < n) {
+          tmp[it] = arr[p];
+          p++;
+          it++;
+        }
+        while(q < pos + 2 * len && q < n) {
+          tmp[it] = arr[q];
+          q++;
+          it++;
+        }
+        for(int i = pos; i < pos + 2 * len && i < n; i++)
+          arr[i] = tmp[i];
+      }
+    }
+  }
+
 
   // copy pos
   __host__ __device__ __ext_inline__
@@ -724,7 +759,7 @@
       int atmIdx, // atmIdx and atmNp are determined by obs->time[ir]
       int atmNp) {
 
-    double alti[8*NLMAX], altimax, altimin, x1[3], x2[3], x3[3], tt=0., epsilon=0.005; 
+    double alti[8 * NLMAX], altimax, altimin, x1[3], x2[3], x3[3], tt=0., epsilon=0.005; 
     /* deltatop=10., deltabot=10., */
 
     int il, ig, jl=0, ip, it;
@@ -757,7 +792,7 @@
 
     assert(jl < 8 * NLMAX && "You should increase NLMAX!");
 
-    naive_sort(alti, jl);
+    merge_sort(alti, jl);
 
     altimax = max_value_in_array(alti, jl);
     altimin = min_value_in_array(alti, jl);
