@@ -702,7 +702,6 @@
   __host__ __device__ __ext_inline__
   void merge_sort(double *arr, int n) { // (reversed) merge sort, O(n log n), not in-place
     double tmp[8 * NLMAX];
-    return;
     for(int len = 1; len < n; len *= 2) {
       for(int pos = 0; pos < n; pos += 2 * len) {
         int it = pos;
