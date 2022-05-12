@@ -320,15 +320,15 @@
 		cuCheck(cudaEventSynchronize(finishedEvent));
 	} // formod_one_package_GPU
 
-    // make sure that formod_multiple_packages_GPU can be linked from CPUdrivers.c
+    // make sure that jur_formod_multiple_packages_GPU can be linked from CPUdrivers.c
 	extern "C" {
-	   void formod_multiple_packages_GPU(ctl_t *ctl, atm_t *atm, obs_t *obs,
-                     aero_t const *aero, int n);
+	   void jur_formod_multiple_packages_GPU(ctl_t *ctl, atm_t *atm, obs_t *obs,
+                                           int n, aero_t const *aero);
    }
 
 	__host__
-	void formod_multiple_packages_GPU(ctl_t *ctl, atm_t *atm, obs_t *obs,
-                  aero_t const *aero, int n) {
+	void jur_formod_multiple_packages_GPU(ctl_t *ctl, atm_t *atm, obs_t *obs,
+                                        int n, aero_t const *aero) {
     static ctl_t *ctl_G=NULL;
 		static trans_table_t *tbl_G=NULL;
 
@@ -343,7 +343,7 @@
 #pragma omp critical
 		{
 			if (do_init) {
-        printf("DEBUG #%d formod_multiple_packages_GPU was called!\n", ctl->MPIglobrank);
+        printf("DEBUG #%d jur_formod_multiple_packages_GPU was called!\n", ctl->MPIglobrank);
         double tic = omp_get_wtime();
 				const size_t sizePerLane = sizeof(aero_t) + sizeof(obs_t) + NR * (sizeof(atm_t) + sizeof(pos_t[NLOS]) + sizeof(double) + sizeof(int));
         
@@ -435,4 +435,4 @@
 		  apply_mask(mask, &obs[i], ctl);
     }
     omp_set_nested(false);
-	} // formod_multiple_packages_GPU
+	} // jur_formod_multiple_packages_GPU

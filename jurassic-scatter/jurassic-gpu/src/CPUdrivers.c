@@ -179,8 +179,18 @@
 		apply_mask(mask, obs, ctl);
 	} // formod_one_package_CPU
 
-	__host__ void formod_multiple_packages_GPU(ctl_t const *ctl, atm_t *atm, obs_t *obs,
-                                             aero_t const *aero, int n)
+	__host__
+	void jur_formod_multiple_packages_CPU(ctl_t const *ctl, atm_t *atm, obs_t *obs, int n, aero_t const *aero) {
+    #pragma omp parallel for
+    for(int i = 0; i < n; i++) {
+      //aero is optionl
+      formod_one_package_CPU(ctl, atm, &obs[i], NULL, aero);
+    }
+  }
+
+  __host__ 
+  void jur_formod_multiple_packages_GPU(ctl_t const *ctl, atm_t *atm, obs_t *obs,
+                                        int n, aero_t const *aero)
 #ifdef hasGPU
     ; // declaration only, will be provided by GPUdrivers.o at link time 
 #else
@@ -200,11 +210,7 @@
                 printf("CUDA not found during compilation, continue on CPUs instead!\n");
                 warnGPU = 0; // switch this warning off
             } // warnGPU
-            #pragma omp parallel for
-            for(int i = 0; i < n; i++) {
-              //aero and los are optionl
-              formod_one_package_CPU(ctl, atm, &obs[i], NULL, aero);
-            }
+            jur_formod_multiple_packages_CPU(ctl, atm, obs, n, aero);
         } //
     } // formod_multiple_packages_GPU
 #endif
@@ -222,14 +228,9 @@
             } // only report if nr changed
         } // checkmode
         if (ctl->useGPU) { //has to be changed
-            formod_multiple_packages_GPU(ctl, atm, obs, aero, n);
+          jur_formod_multiple_packages_GPU(ctl, atm, obs, n, aero);
         } else { // USEGPU = 0 means use-GPU-never
-                 // jur_formod_multiple_packages_CPU case:
-            #pragma omp parallel for
-            for(int i = 0; i < n; i++) {
-              //aero is optionl
-              formod_one_package_CPU(ctl, atm, &obs[i], NULL, aero);
-            }
+          jur_formod_multiple_packages_CPU(ctl, atm, obs, n, aero);
         } // useGPU
     } // jur_formod_multiple_packages
 
