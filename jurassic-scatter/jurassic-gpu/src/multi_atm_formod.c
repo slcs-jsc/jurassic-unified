@@ -52,6 +52,9 @@ int read_atm_id(char const *dirname, char const *filename,
   return i;
 }
 
+// at the moment we use only CPU version
+void formod_CPU(ctl_t const *ctl, atm_t *atm, obs_t *obs,
+                int const *atm_id, aero_t const *aero); 
 
 int main(
 	 int argc,
@@ -62,40 +65,36 @@ int main(
   atm_t *atm;
 
   obs_t *obs;
+
+  char atm_list[MAX_LIST_SIZE][MAX_FILENAME_LENGTH];
+
+  int atm_id[MAX_OBS];
   
-  /* Check arguments... */
   if (argc < 6)
     ERRMSG("Give parameters: <ctl> <obs> <atm_list> <atm_id> <rad>");
 
   ALLOC(obs, obs_t, 1);
   
-  /* Read control parameters... */
   jur_read_ctl(argc, argv, &ctl);
   
-  /* Read observation geometry... */
   jur_read_obs(".", argv[2], &ctl, obs);
 
-  /* Read atmospheric data... */
-  // jur_read_atm(".", argv[3], &ctl, atm);
-  // to verify that we read in the atms correctly
-  //   write_atm(".", "atm_ref.tab", &ctl, atm);
-  //
-  char atm_list[MAX_LIST_SIZE][MAX_FILENAME_LENGTH];
   int num_of_atms = read_atm_list(".", argv[3], atm_list);
 
-  int atm_id[MAX_OBS];
-  int atm_id_list_length = read_atm_id(".", argv[3], atm_id);
+  int atm_id_list_length = read_atm_id(".", argv[4], atm_id);
 
-  /* Allocate... */
+  printf("list length vs. obs->nr: %d vs. %d\n", atm_id_list_length, obs->nr);
+
+  assert(atm_id_list_length == obs->nr);
+  for(int i = 0; i < obs->nr; i++) 
+    assert(atm_id[i] < num_of_atms);
+
   ALLOC(atm, atm_t, num_of_atms);
   for(int i = 0; i < num_of_atms; i++)
     jur_read_atm(".", atm_list[i], &ctl, &atm[i]);
 
+  formod_CPU(&ctl, atm, obs, atm_id, NULL);
 
-  /* Call forward model... */
-  jur_formod(&ctl, &atm[0], obs);
-
-  /* Write radiance data... for reference */
   jur_write_obs(".", argv[5], &ctl, obs);
   
   free(atm);

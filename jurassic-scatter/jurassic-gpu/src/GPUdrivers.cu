@@ -201,7 +201,7 @@
   template<int scattering_included>
 	void __global__ // GPU-kernel
 		raytrace_rays_GPU(ctl_t const *ctl, const atm_t *atm, obs_t *obs, pos_t
-    los[][NLOS], double *tsurf, int np[], aero_t *aero) {
+    los[][NLOS], double *tsurf, int np[], aero_t const *aero) {
 			for(int ir = blockIdx.x*blockDim.x + threadIdx.x; ir < obs->nr; ir += blockDim.x*gridDim.x) { // grid stride loop over rays
         np[ir] = traceray<scattering_included>(ctl, atm, obs, ir, los[ir], &tsurf[ir], aero);
 			} // ir
@@ -241,7 +241,7 @@
 			trans_table_t const *tbl_G,
 			atm_t *atm, // can be made const if we do not get the atms back
 			obs_t *obs,
-      aero_t *aero,
+      aero_t const *aero,
 			gpuLane_t const *gpu)
     // a workload manager for the GPU
     {
@@ -323,12 +323,12 @@
     // make sure that formod_GPU can be linked from CPUdrivers.c
 	extern "C" {
 	   void formod_GPU(ctl_t *ctl, atm_t *atm, obs_t *obs,
-                     aero_t *aero, int n);
+                     aero_t const *aero, int n);
    }
 
 	__host__
 	void formod_GPU(ctl_t *ctl, atm_t *atm, obs_t *obs,
-                  aero_t *aero, int n) {
+                  aero_t const *aero, int n) {
     static ctl_t *ctl_G=NULL;
 		static trans_table_t *tbl_G=NULL;
 

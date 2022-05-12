@@ -753,7 +753,7 @@
   int pos_scatter_jur_add_aerosol_layers(ctl_t const *ctl,
       atm_t const *atm,
       pos_t los[],
-      aero_t *aero,
+      aero_t const *aero,
       int np,
       int atmIdx, // atmIdx and atmNp are determined by obs->time[ir]
       int atmNp) {
@@ -898,10 +898,10 @@
 #ifdef __NVCC__
   template<int scattering_included>
   __host__ __device__ __ext_inline__
-  int traceray(ctl_t const *ctl, atm_t const *atm, obs_t *obs, int const ir, pos_t los[], double *tsurf, aero_t *aero) {
+  int traceray(ctl_t const *ctl, atm_t const *atm, obs_t *obs, int const ir, pos_t los[], double *tsurf, aero_t const *aero) {
 #else
   __host__ __device__ __ext_inline__
-  int traceray(ctl_t const *ctl, atm_t const *atm, obs_t *obs, int const ir, pos_t los[], double *tsurf, aero_t *aero, int scattering_included) {
+  int traceray(ctl_t const *ctl, atm_t const *atm, obs_t *obs, int const ir, pos_t los[], double *tsurf, aero_t const *aero, int scattering_included) {
 #endif
     double ex0[3], ex1[3], q[NG], k[NW], lat, lon, p, t, x[3], xobs[3], xvp[3], z = 1e99, z_low=z, zmax, zmin, zrefrac = 60;
 

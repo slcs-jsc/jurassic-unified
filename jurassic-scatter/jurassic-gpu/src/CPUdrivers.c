@@ -101,27 +101,39 @@
 
 	__host__
 	void raytrace_rays_CPU(ctl_t const *ctl, atm_t const *atm, obs_t *obs, 
-                           pos_t los[NR][NLOS], double tsurf[], int np[], aero_t *aero, int scattering_included) {
+                           pos_t los[NR][NLOS], double tsurf[], int np[], 
+                           int const *atm_id, aero_t const *aero, int scattering_included) {
 #pragma omp parallel for
 		for(int ir = 0; ir < obs->nr; ir++) { // loop over rays
-      np[ir] = traceray(ctl, atm, obs, ir, los[ir], &tsurf[ir], aero, scattering_included);
+      np[ir] = traceray(ctl, &atm[(NULL == atm_id ? 0 : atm_id[ir])], obs, ir, los[ir], &tsurf[ir], aero, scattering_included);
 		} // ir
 	} // raytrace_rays_CPU
 
 	__host__
-	void hydrostatic1d_CPU(ctl_t const *ctl, atm_t *atm, int const nr, int const ig_h2o) {
+	void hydrostatic1d_CPU(ctl_t const *ctl, atm_t *atm, int const num_of_atms, int const ig_h2o) {
 			if(ctl->hydz < 0) return; // Check reference height
-			for(int ir = 0; ir < nr; ir++) { // Apply hydrostatic equation to individual profiles
-				hydrostatic_1d_h2o(ctl, atm, 0, atm->np, ig_h2o);
-			} // ir
+			for(int i = 0; i < num_of_atms; i++) { // Apply hydrostatic equation to individual profiles
+				hydrostatic_1d_h2o(ctl, &atm[i], 0, atm[i].np, ig_h2o);
+			} // i
 	} // hydrostatic1d_CPU
   
 	// ################ end of CPU driver routines ##############
+  
+  __host__
+  int get_num_of_atms(int const nr, int const *atm_id) {
+    if(NULL == atm_id) return 1;
+    int maksi = 0;
+    for(int i = 0; i < nr; i++)
+      if(atm_id[i] > maksi)
+        maksi = atm_id[i];
+    return maksi + 1;
+  }
 
 	// The full forward model on the CPU ////////////////////////////////////////////
 	__host__
 	void formod_CPU(ctl_t const *ctl, atm_t *atm, obs_t *obs,
-                  aero_t const *aero) {
+                  int const *atm_id, aero_t const *aero) { // NULL == atm_id if all observations use the same atm
+                                                           // otherwise |atm_id| == obs -> nr
     printf("DEBUG #%d formod_CPU was called!\n", ctl->MPIglobrank);
   
     if (ctl->checkmode) {
@@ -142,12 +154,12 @@
 		static int ig_h2o = -999;
 		if((ctl->ctm_h2o) && (-999 == ig_h2o)) ig_h2o = jur_find_emitter(ctl, "H2O");
 
-    hydrostatic1d_CPU(ctl, atm, obs->nr, ig_h2o); // in this call atm might get modified
+    hydrostatic1d_CPU(ctl, atm, get_num_of_atms(obs->nr, atm_id), ig_h2o); // in this call atm might get modified
     // if formod function was NOT called from jurassic-scatter project
     if(NULL != aero && ctl->sca_n > 0) { // only if scattering is included
-      raytrace_rays_CPU(ctl, atm, obs, los, t_surf, np, aero, 1);
+      raytrace_rays_CPU(ctl, atm, obs, los, t_surf, np, atm_id, aero, 1);
     } else {  
-      raytrace_rays_CPU(ctl, atm, obs, los, t_surf, np, NULL, 0);
+      raytrace_rays_CPU(ctl, atm, obs, los, t_surf, np, atm_id, NULL, 0);
     }
 
     // "beta_a" -> 'a', "beta_e" -> 'e'
@@ -191,7 +203,7 @@
             #pragma omp parallel for
             for(int i = 0; i < n; i++) {
               //aero and los are optionl
-              formod_CPU(ctl, atm, &obs[i], aero);
+              formod_CPU(ctl, atm, &obs[i], NULL, aero);
             }
         } //
     } // formod_GPU
@@ -215,7 +227,7 @@
             #pragma omp parallel for
             for(int i = 0; i < n; i++) {
               //aero is optionl
-              formod_CPU(ctl, atm, &obs[i], aero);
+              formod_CPU(ctl, atm, &obs[i], NULL, aero);
             }
         } // useGPU
     } // formod
