@@ -93,7 +93,7 @@ int main(
   for(int i = 0; i < num_of_atms; i++)
     jur_read_atm(".", atm_list[i], &ctl, &atm[i]);
 
-  formod_CPU(&ctl, atm, obs, atm_id, NULL);
+  formod_one_package_CPU(&ctl, atm, obs, atm_id, NULL);
 
   jur_write_obs(".", argv[5], &ctl, obs);
 

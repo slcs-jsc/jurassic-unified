@@ -237,7 +237,7 @@
 	} gpuLane_t;
 
 	// The full forward model working on one package of NR rays
-	void formod_one_package(ctl_t *ctl, ctl_t *ctl_G,
+	void formod_one_package_GPU(ctl_t *ctl, ctl_t *ctl_G,
 			trans_table_t const *tbl_G,
 			atm_t *atm, // can be made const if we do not get the atms back
 			obs_t *obs,
@@ -318,16 +318,16 @@
 		// Wait for GPU operations to complete
 		cuCheck(cudaEventRecord(finishedEvent, stream));
 		cuCheck(cudaEventSynchronize(finishedEvent));
-	} // formod_one_package
+	} // formod_one_package_GPU
 
-    // make sure that formod_GPU can be linked from CPUdrivers.c
+    // make sure that formod_multiple_packages_GPU can be linked from CPUdrivers.c
 	extern "C" {
-	   void formod_GPU(ctl_t *ctl, atm_t *atm, obs_t *obs,
+	   void formod_multiple_packages_GPU(ctl_t *ctl, atm_t *atm, obs_t *obs,
                      aero_t const *aero, int n);
    }
 
 	__host__
-	void formod_GPU(ctl_t *ctl, atm_t *atm, obs_t *obs,
+	void formod_multiple_packages_GPU(ctl_t *ctl, atm_t *atm, obs_t *obs,
                   aero_t const *aero, int n) {
     static ctl_t *ctl_G=NULL;
 		static trans_table_t *tbl_G=NULL;
@@ -343,7 +343,7 @@
 #pragma omp critical
 		{
 			if (do_init) {
-        printf("DEBUG #%d formod_GPU was called!\n", ctl->MPIglobrank);
+        printf("DEBUG #%d formod_multiple_packages_GPU was called!\n", ctl->MPIglobrank);
         double tic = omp_get_wtime();
 				const size_t sizePerLane = sizeof(aero_t) + sizeof(obs_t) + NR * (sizeof(atm_t) + sizeof(pos_t[NLOS]) + sizeof(double) + sizeof(int));
         
@@ -431,8 +431,8 @@
       char mask[NR][ND];
       save_mask(mask, &obs[i], ctl);
       copy_data_to_GPU(ctl_G, ctl, sizeof(ctl_t), gpuLanes[myLane].stream); // controls might change, update
-      formod_one_package(ctl, ctl_G, tbl_G, atm, &obs[i], aero, &gpuLanes[myLane]);
+      formod_one_package_GPU(ctl, ctl_G, tbl_G, atm, &obs[i], aero, &gpuLanes[myLane]);
 		  apply_mask(mask, &obs[i], ctl);
     }
     omp_set_nested(false);
-	} // formod_GPU
+	} // formod_multiple_packages_GPU

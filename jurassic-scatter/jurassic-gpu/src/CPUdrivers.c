@@ -131,10 +131,10 @@
 
 	// The full forward model on the CPU ////////////////////////////////////////////
 	__host__
-	void formod_CPU(ctl_t const *ctl, atm_t *atm, obs_t *obs,
+	void formod_one_package_CPU(ctl_t const *ctl, atm_t *atm, obs_t *obs,
                   int const *atm_id, aero_t const *aero) { // NULL == atm_id if all observations use the same atm
                                                            // otherwise |atm_id| == obs -> nr
-    printf("DEBUG #%d formod_CPU was called!\n", ctl->MPIglobrank);
+    printf("DEBUG #%d formod_one_package_CPU was called!\n", ctl->MPIglobrank);
   
     if (ctl->checkmode) {
       printf("# %s: checkmode = %d, no actual computation is performed!\n", __func__, ctl->checkmode);
@@ -177,10 +177,10 @@
 		  radiance_to_brightness_CPU(ctl, obs);
 
 		apply_mask(mask, obs, ctl);
-	} // formod_CPU
+	} // formod_one_package_CPU
 
-	__host__ void formod_GPU(ctl_t const *ctl, atm_t *atm, obs_t *obs,
-                            aero_t const *aero, int n)
+	__host__ void formod_multiple_packages_GPU(ctl_t const *ctl, atm_t *atm, obs_t *obs,
+                                             aero_t const *aero, int n)
 #ifdef hasGPU
     ; // declaration only, will be provided by GPUdrivers.o at link time 
 #else
@@ -203,10 +203,10 @@
             #pragma omp parallel for
             for(int i = 0; i < n; i++) {
               //aero and los are optionl
-              formod_CPU(ctl, atm, &obs[i], NULL, aero);
+              formod_one_package_CPU(ctl, atm, &obs[i], NULL, aero);
             }
         } //
-    } // formod_GPU
+    } // formod_multiple_packages_GPU
 #endif
 
 	__host__
@@ -222,17 +222,18 @@
             } // only report if nr changed
         } // checkmode
         if (ctl->useGPU) { //has to be changed
-            formod_GPU(ctl, atm, obs, aero, n);
+            formod_multiple_packages_GPU(ctl, atm, obs, aero, n);
         } else { // USEGPU = 0 means use-GPU-never
+                 // jur_formod_multiple_packages_CPU case:
             #pragma omp parallel for
             for(int i = 0; i < n; i++) {
               //aero is optionl
-              formod_CPU(ctl, atm, &obs[i], NULL, aero);
+              formod_one_package_CPU(ctl, atm, &obs[i], NULL, aero);
             }
         } // useGPU
-    } // formod
+    } // jur_formod_multiple_packages
 
-void jur_formod(ctl_t const *ctl, 
+void jur_formod(ctl_t const *ctl, // function with the original parameters, without aero, one atm, one obs package 
     atm_t *atm, 
     obs_t *obs) {
       jur_formod_multiple_packages(ctl, atm, obs, 1, NULL);
