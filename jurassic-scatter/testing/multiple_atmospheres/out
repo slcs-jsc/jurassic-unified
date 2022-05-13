@@ -1,8 +1,8 @@
 
 Juelich Rapid Spectral Simulation Code (JURASSIC)
-(executable: ../../jurassic-gpu/src/multi_atm_formod | compiled: May 12 2022, 02:23:54)
+(executable: ../../jurassic-gpu/src/multi_atm_formod | compiled: May 13 2022, 03:42:30)
 
-# JURASSIC git commit 6f2cef66db03a2f4e166854fedbf4b7bd4252123
+# JURASSIC git commit 67db9c0b73b18bce378ee3ab67a741f3724daa92
 
 NG = 3
 ND = 40
@@ -38,19 +38,21 @@ WRITE_MATRIX = 0
 FORMOD = 2
 RFMBIN = -
 RFMHIT = -
-USEGPU = -1
+USEGPU = 0
 CHECKMODE = 0
 CHECKMODE = 0 (run)
 READ_BINARY = 0
 WRITE_BINARY = 0
 GPU_SHARED_MEMORY = 0
 MAX_QUEUE = 1e5
-Read observation data: ./generated_data/obs.tab
-Read atm list: ./generated_data/atm_list.tab
-Read atm list, found 4 files
+Read name list: ./generated_data/atm_list.tab
+Read name list, found 4 files
 Read atm list: ./generated_data/atm_id.tab
-Read atm_id, found 20 indices
-list length vs. obs->nr: 20 vs. 20
+Read atm_id, found 37 indices
+Read name list: ./generated_data/obs_list.tab
+Read name list, found 3 files
+Read name list: ./generated_data/rad_list.tab
+Read name list, found 3 files
 Read atmospheric data: ./generated_data/atm0.tab
 Read atmospheric data found 20 height levels, max 1000
 Read atmospheric data: ./generated_data/atm1.tab
@@ -59,8 +61,12 @@ Read atmospheric data: ./generated_data/atm2.tab
 Read atmospheric data found 20 height levels, max 1000
 Read atmospheric data: ./generated_data/atm3.tab
 Read atmospheric data found 21 height levels, max 1000
-DEBUG #0 formod_CPU was called!
-Timer 'INIT_TBL' (jurassic.c, jur_init_tbl, l319-414): 1.782 sec
+Read observation data: ./generated_data/obs0.tab
+Read observation data: ./generated_data/obs1.tab
+Read observation data: ./generated_data/obs2.tab
+list length vs. obs->nr: 37 vs. 37
+DEBUG #0 call initilaze CPU..
+Timer 'INIT_TBL' (jurassic.c, jur_init_tbl, l319-414): 1.788 sec
 
 # jurassic.h could be configured minimally with
 # NG = 3  	 now 23
@@ -77,43 +83,50 @@ Count initialized tables...
 # per channel   3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3  total=120 (of 120)
 # per gas       40 40 40  total=120 (of 120)
 Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_787.5200.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_794.2400.filt
 Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_790.8800.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_793.4000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.8400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_796.7600.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_797.6000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_800.1200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_799.7000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_790.0400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_794.2400.filt
 Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_799.2800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_787.5200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.6800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_793.4000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_795.0800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_798.4400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_798.8600.filt
 Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_792.5600.filt
 Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_789.2000.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_797.6000.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_798.4400.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_799.7000.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_796.7600.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_798.8600.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_791.7200.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_800.9600.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.6800.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_790.0400.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_795.9200.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_800.1200.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_788.3600.filt
 Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_800.5400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_788.3600.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_800.9600.filt
 Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_801.3800.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_795.0800.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.8400.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_787.9400.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_793.8200.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_792.9800.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_794.6600.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_796.3400.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_791.3000.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_792.1400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_795.9200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_791.7200.filt
 Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_787.1000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_787.9400.filt
 Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.2600.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_795.5000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_791.3000.filt
 Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_790.4600.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_789.6200.filt
-Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_788.7800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_794.6600.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_793.8200.filt
 Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_797.1800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_789.6200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_788.7800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_792.1400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_792.9800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_795.5000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_796.3400.filt
 Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_798.0200.filt
-Write observation data: ./rad.tab
+TIMER #0 jurassic-gpu table initialization time: 0.000000
+DEBUG #0 jur_formod: number of packages.. 3
+DEBUG #0 formod_one_package_CPU was called!
+DEBUG #0 formod_one_package_CPU was called!
+DEBUG #0 formod_one_package_CPU was called!
+Write observation data: ./rad0.tab
+Write observation data: ./rad1.tab
+Write observation data: ./rad2.tab

@@ -27,4 +27,4 @@ export OMP_NUM_THREADS=24
 src=$1
 
 ### run forward model
-time srun $src/multi_atm_formod generated_data/clear.ctl generated_data/obs.tab generated_data/atm_list.tab generated_data/atm_id.tab rad.tab
+time srun $src/multi_atm_formod generated_data/clear.ctl generated_data/obs_list.tab generated_data/atm_list.tab generated_data/atm_id.tab generated_data/rad_list.tab
