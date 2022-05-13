@@ -209,14 +209,11 @@
 
 	__host__
 	void jur_formod_multiple_packages_CPU(ctl_t const *ctl, atm_t *atm, obs_t *obs, int n, int const *atm_id, aero_t const *aero) {
-    if(NULL == atm_id) {
+    if(NULL == atm_id || 1 == n) {
       #pragma omp parallel for
       for(int i = 0; i < n; i++) {
-        formod_one_package_CPU(ctl, atm, &obs[i], NULL, aero);
+        formod_one_package_CPU(ctl, atm, &obs[i], atm_id, aero);
       }
-    }
-    else if(n == 1) {
-      formod_one_package_CPU(ctl, atm, obs, atm_id, aero);
     }
     else {
       atm_t **divided_atms = (atm_t **) malloc(n * sizeof(atm_t *));
