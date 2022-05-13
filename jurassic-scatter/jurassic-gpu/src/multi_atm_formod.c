@@ -10,24 +10,24 @@ const int MAX_LIST_SIZE = 100;
 const int MAX_FILENAME_LENGTH = 30;
 const int MAX_OBS = 100;
 
-int read_atm_list(char const *dirname, char const *filename, 
-    char atm_list[MAX_LIST_SIZE][MAX_FILENAME_LENGTH]) {
+int read_name_list(char const *dirname, char const *filename, 
+    char name_list[MAX_LIST_SIZE][MAX_FILENAME_LENGTH]) {
   FILE *in;
   char line[LEN], *tok, *saveptr;
   int i = 0;
-  printf("Read atm list: %s/%s\n", dirname, filename);
+  printf("Read name list: %s/%s\n", dirname, filename);
   // Open file
   in = jur_mkFile(dirname, filename, "r");
   // Read line
   while (fgets(line, LEN, in)) {
     // Read data
-    TOK_FIVE_ARGS(line, tok, "%s", atm_list[i++], &saveptr);
+    TOK_FIVE_ARGS(line, tok, "%s", name_list[i++], &saveptr);
   }
   // Close file
   fclose(in);
   // Check number of points
   if(i < 1) ERRMSG("Could not read any data!");
-  printf("Read atm list, found %d files\n", i);
+  printf("Read name list, found %d files\n", i);
   return i;
 }
 
@@ -67,35 +67,51 @@ int main(
   obs_t *obs;
 
   char atm_list[MAX_LIST_SIZE][MAX_FILENAME_LENGTH];
+  char obs_list[MAX_LIST_SIZE][MAX_FILENAME_LENGTH];
+  char rad_list[MAX_LIST_SIZE][MAX_FILENAME_LENGTH];
 
   int atm_id[MAX_OBS];
 
   if (argc < 6)
     ERRMSG("Give parameters: <ctl> <obs> <atm_list> <atm_id> <rad>");
 
-  ALLOC(obs, obs_t, 1);
-
   jur_read_ctl(argc, argv, &ctl);
 
-  jur_read_obs(".", argv[2], &ctl, obs);
-
-  int num_of_atms = read_atm_list(".", argv[3], atm_list);
+  int num_of_atms = read_name_list(".", argv[3], atm_list);
 
   int atm_id_list_length = read_atm_id(".", argv[4], atm_id);
 
-  printf("list length vs. obs->nr: %d vs. %d\n", atm_id_list_length, obs->nr);
+  int num_of_obss = read_name_list(".", argv[2], obs_list);
 
-  assert(atm_id_list_length == obs->nr);
-  for(int i = 0; i < obs->nr; i++) 
-    assert(atm_id[i] < num_of_atms);
+  int num_of_rads = read_name_list(".", argv[5], rad_list);
+
+  assert(num_of_obss == num_of_rads);
 
   ALLOC(atm, atm_t, num_of_atms);
   for(int i = 0; i < num_of_atms; i++)
     jur_read_atm(".", atm_list[i], &ctl, &atm[i]);
 
-  formod_one_package_CPU(&ctl, atm, obs, atm_id, NULL);
+  ALLOC(obs, obs_t, num_of_obss);
+  for(int i = 0; i < num_of_obss; i++)
+    jur_read_obs(".", obs_list[i], &ctl, &obs[i]);
 
-  jur_write_obs(".", argv[5], &ctl, obs);
+  int total_num_of_rays = 0;
+  for(int i = 0; i < num_of_obss; i++)
+    total_num_of_rays += obs[i].nr;
+
+  printf("list length vs. obs->nr: %d vs. %d\n", atm_id_list_length, total_num_of_rays);
+  assert(atm_id_list_length == total_num_of_rays);
+  for(int i = 0; i < total_num_of_rays; i++) 
+    assert(atm_id[i] < num_of_atms);
+
+  // FIXME: without this line there is a problem with barrier inside get_tbl(..) function
+  jur_table_initialization(&ctl); 
+
+  jur_formod_multiple_packages(&ctl, atm, obs, num_of_obss, atm_id, NULL);
+
+  for(int i = 0; i < num_of_rads; i++) {
+    jur_write_obs(".", rad_list[i], &ctl, &obs[i]);
+  }
 
   free(atm);
   free(obs);

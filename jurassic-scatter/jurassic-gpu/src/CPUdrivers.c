@@ -179,12 +179,62 @@
 		apply_mask(mask, obs, ctl);
 	} // formod_one_package_CPU
 
+  __host__
+  void divide_atm_data_into_packages(atm_t const *atm, obs_t const *obs, int n, int const *atm_id, 
+                                     atm_t **divided_atms, int **divided_atm_ids) {
+      int total_num_of_rays = 0;
+      for(int i = 0; i < n; i++)
+        total_num_of_rays += obs[i].nr;
+      int *used_atms = (int *) malloc(total_num_of_rays * sizeof(int));
+      int index = 0;
+      for(int i = 0; i < n; i++) {
+        for(int j = 0; j < total_num_of_rays; j++)
+          used_atms[j] = -1;
+        divided_atm_ids[i] = (int *) malloc(obs[i].nr * sizeof(int));
+        int num_of_used_atms = 0;
+        for(int j = 0; j < obs[i].nr; j++) {
+          if(-1 == used_atms[atm_id[index]]) {
+            used_atms[atm_id[index]] = num_of_used_atms++;
+          }
+          divided_atm_ids[i][j] = used_atms[atm_id[index]];
+          index++;
+        }
+        divided_atms[i] = (atm_t *) malloc(num_of_used_atms * sizeof(atm_t));
+        for(int j = 0; j < total_num_of_rays; j++)
+          if(-1 != used_atms[j])
+            memcpy(&divided_atms[i][used_atms[j]], &atm[j], sizeof(atm_t));
+      }
+      free(used_atms);
+  }
+
 	__host__
-	void jur_formod_multiple_packages_CPU(ctl_t const *ctl, atm_t *atm, obs_t *obs, int n, aero_t const *aero) {
-    #pragma omp parallel for
-    for(int i = 0; i < n; i++) {
-      //aero is optionl
-      formod_one_package_CPU(ctl, atm, &obs[i], NULL, aero);
+	void jur_formod_multiple_packages_CPU(ctl_t const *ctl, atm_t *atm, obs_t *obs, int n, int const *atm_id, aero_t const *aero) {
+    if(NULL == atm_id) {
+      #pragma omp parallel for
+      for(int i = 0; i < n; i++) {
+        formod_one_package_CPU(ctl, atm, &obs[i], NULL, aero);
+      }
+    }
+    else if(n == 1) {
+      formod_one_package_CPU(ctl, atm, obs, atm_id, aero);
+    }
+    else {
+      atm_t **divided_atms = (atm_t **) malloc(n * sizeof(atm_t *));
+      int **divided_atm_ids = (int **) malloc(n * sizeof(int *));
+
+      divide_atm_data_into_packages(atm, obs, n, atm_id, divided_atms, divided_atm_ids);
+
+      #pragma omp parallel for
+      for(int i = 0; i < n; i++) {
+        formod_one_package_CPU(ctl, divided_atms[i], &obs[i], divided_atm_ids[i], aero);
+      }
+      
+      for(int i = 0; i < n; i++) {
+        free(divided_atms[i]);
+        free(divided_atm_ids[i]);
+      }
+      free(divided_atms);
+      free(divided_atm_ids);
     }
   }
 
@@ -216,7 +266,7 @@
 #endif
 
 	__host__
-	void jur_formod_multiple_packages(ctl_t const *ctl, atm_t *atm, obs_t *obs, int n, aero_t const *aero) {
+	void jur_formod_multiple_packages(ctl_t const *ctl, atm_t *atm, obs_t *obs, int n, int const *atm_id, aero_t const *aero) {
         printf("DEBUG #%d jur_formod: number of packages.. %d\n", ctl->MPIglobrank, n);
         if (ctl->checkmode) {
             static int nr_last_time = -999;
@@ -230,14 +280,14 @@
         if (ctl->useGPU) { //has to be changed
           jur_formod_multiple_packages_GPU(ctl, atm, obs, n, aero);
         } else { // USEGPU = 0 means use-GPU-never
-          jur_formod_multiple_packages_CPU(ctl, atm, obs, n, aero);
+          jur_formod_multiple_packages_CPU(ctl, atm, obs, n, atm_id, aero);
         } // useGPU
     } // jur_formod_multiple_packages
 
 void jur_formod(ctl_t const *ctl, // function with the original parameters, without aero, one atm, one obs package 
     atm_t *atm, 
     obs_t *obs) {
-      jur_formod_multiple_packages(ctl, atm, obs, 1, NULL);
+      jur_formod_multiple_packages(ctl, atm, obs, 1, NULL, NULL);
     }
 
 //we could use the same trick as above but it's not necessary

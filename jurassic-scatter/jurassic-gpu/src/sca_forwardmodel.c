@@ -74,7 +74,7 @@ void jur_sca_advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs,
     printf("%d ", obs_packages[i].nr);
   printf("\n");
   tic = omp_get_wtime();
-	jur_formod_multiple_packages(ctl, atm, obs_packages, number_of_packages, aero);
+	jur_formod_multiple_packages(ctl, atm, obs_packages, number_of_packages, NULL, aero);
   toc = omp_get_wtime();
   printf("TIMER #%d Execute: jur_formod_multiple_packages time: %lf\n", ctl->MPIglobrank, toc - tic);
 

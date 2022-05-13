@@ -433,4 +433,5 @@ void jur_formod_multiple_packages(ctl_t const *ctl,
     atm_t *atm, 
     obs_t *obs, 
     int n,
+    int const *atm_id,
     aero_t const *aero);
