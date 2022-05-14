@@ -81,22 +81,22 @@ int main(
 
   int atm_id_list_length = read_atm_id(".", argv[4], atm_id);
 
-  int num_of_obss = read_name_list(".", argv[2], obs_list);
+  int num_of_obs = read_name_list(".", argv[2], obs_list);
 
   int num_of_rads = read_name_list(".", argv[5], rad_list);
 
-  assert(num_of_obss == num_of_rads);
+  assert(num_of_obs == num_of_rads);
 
   ALLOC(atm, atm_t, num_of_atms);
   for(int i = 0; i < num_of_atms; i++)
     jur_read_atm(".", atm_list[i], &ctl, &atm[i]);
 
-  ALLOC(obs, obs_t, num_of_obss);
-  for(int i = 0; i < num_of_obss; i++)
+  ALLOC(obs, obs_t, num_of_obs);
+  for(int i = 0; i < num_of_obs; i++)
     jur_read_obs(".", obs_list[i], &ctl, &obs[i]);
 
   int total_num_of_rays = 0;
-  for(int i = 0; i < num_of_obss; i++)
+  for(int i = 0; i < num_of_obs; i++)
     total_num_of_rays += obs[i].nr;
 
   printf("list length vs. obs->nr: %d vs. %d\n", atm_id_list_length, total_num_of_rays);
@@ -105,13 +105,29 @@ int main(
     assert(atm_id[i] < num_of_atms);
 
   // FIXME: without this line there is a problem with barrier inside get_tbl(..) function
+  // FIXME: also, SIGSEGV in useGPU case, but only when using gdb :o
   jur_table_initialization(&ctl); 
 
-  jur_formod_multiple_packages(&ctl, atm, obs, num_of_obss, atm_id, NULL);
+  jur_formod_multiple_packages(&ctl, atm, obs, num_of_obs, atm_id, NULL);
 
   for(int i = 0; i < num_of_rads; i++) {
     jur_write_obs(".", rad_list[i], &ctl, &obs[i]);
   }
+  
+  // ------------------------
+  // testing muti - single - multi - single scenario
+
+  atm_t *one_atm;
+  ALLOC(one_atm, atm_t, 1);
+	memcpy(one_atm, &atm[0], sizeof(atm_t));
+  obs_t *one_obs;
+  ALLOC(one_obs, obs_t, 1);
+  memcpy(one_obs, &obs[0], sizeof(obs_t));
+
+  jur_formod_multiple_packages(&ctl, one_atm, one_obs, 1, NULL, NULL);
+  jur_formod_multiple_packages(&ctl, atm, obs, num_of_obs, atm_id, NULL);
+  jur_formod_multiple_packages(&ctl, one_atm, one_obs, 1, NULL, NULL);
+  jur_formod_multiple_packages(&ctl, atm, obs, num_of_obs, atm_id, NULL);
 
   free(atm);
   free(obs);

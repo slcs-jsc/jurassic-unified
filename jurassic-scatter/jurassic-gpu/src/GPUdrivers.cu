@@ -383,6 +383,7 @@
                 if(!do_init && multi_atm_before != multi_atm_now) {
                   for(size_t lane = 0; lane < numLanes; ++lane) {
                     gpuLane_t* gpu = &(gpuLanes[lane]); // abbreviation
+                    // Deallocation of GPU memory
                     free_memory_on_GPU((void **) &gpu->aero_G);
                     free_memory_on_GPU((void **) &gpu->obs_G);
                     free_memory_on_GPU((void **) &gpu->atm_G);
@@ -394,6 +395,8 @@
                       free_memory_on_GPU((void **) &gpu->atm_id_G);
                   }
                   free(gpuLanes);
+                  debug_printf("[INFO] multi_atm_now = %d\n", (int) multi_atm_now);
+                  debug_printf("[INFO] GPU lanes memory deallocation\n");
                 }
 
                 if(do_init) {
@@ -411,7 +414,7 @@
                 size_t gpuMemFree, gpuMemTotal;
                 cuCheck(cudaMemGetInfo(&gpuMemFree, &gpuMemTotal));
                 debug_printf("[INFO] memory GPU: free %.3f of total %.3f MByte = %.1f %%\n",
-                    1e-6*gpuMemFree, 1e-6*gpuMemTotal, gpuMemFree/(.01*gpuMemTotal));
+                              1e-6*gpuMemFree, 1e-6*gpuMemTotal, gpuMemFree/(.01*gpuMemTotal));
 
                 numLanes = (size_t)((0.9*gpuMemFree) / (double)sizePerLane); // Only use 90% of free GPU memory ...
                 printf("DEBUG #%d max possible number of Lanes: %d\n",
@@ -440,10 +443,14 @@
                     gpu->atm_id_G  = NULL;
                     gpu->atm_G	   = malloc_GPU(atm_t, 1);
                   }
-
                   cuCheck(cudaStreamCreate(&gpu->stream));
                   debug_printf("[INFO] cudaStreamCreate --> streamId %d\n", gpu->stream);
                 } // lane
+                debug_printf("[INFO] multi_atm_now = %d\n", (int) multi_atm_now);
+                debug_printf("[INFO] GPU lanes memory allocation\n");
+                cuCheck(cudaMemGetInfo(&gpuMemFree, &gpuMemTotal));
+                debug_printf("[INFO] memory GPU: free %.3f of total %.3f MByte = %.1f %%\n",
+                              1e-6*gpuMemFree, 1e-6*gpuMemTotal, gpuMemFree/(.01*gpuMemTotal));
               } // checkmode
 
 				do_init = false;
