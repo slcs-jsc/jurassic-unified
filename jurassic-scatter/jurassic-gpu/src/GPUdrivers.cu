@@ -201,25 +201,25 @@
   template<int scattering_included>
 	void __global__ // GPU-kernel
 		raytrace_rays_GPU(ctl_t const *ctl, const atm_t *atm, obs_t *obs, pos_t
-    los[][NLOS], double *tsurf, int np[], aero_t const *aero) {
+    los[][NLOS], double *tsurf, int np[], int const *atm_id, aero_t const *aero) {
 			for(int ir = blockIdx.x*blockDim.x + threadIdx.x; ir < obs->nr; ir += blockDim.x*gridDim.x) { // grid stride loop over rays
-        np[ir] = traceray<scattering_included>(ctl, atm, obs, ir, los[ir], &tsurf[ir], aero);
+        np[ir] = traceray<scattering_included>(ctl, &atm[(NULL == atm_id ? 0 : atm_id[ir])], obs, ir, los[ir], &tsurf[ir], aero);
 			} // ir
 		} // raytrace_rays_GPU
 
 	// Compute hydrostatic equilibria for all atm //////////////////////////////
 	void __global__ // GPU-kernel
-		hydrostatic_kernel_GPU(ctl_t const *ctl, atm_t *atm, const int nr, int const ig_h2o) {
-			for(int ir = blockIdx.x*blockDim.x + threadIdx.x; ir < nr; ir += blockDim.x*gridDim.x) {
-				hydrostatic_1d_h2o(ctl, &atm[0], 0, atm[0].np, ig_h2o);
+		hydrostatic_kernel_GPU(ctl_t const *ctl, atm_t *atm, const int num_of_atms, int const ig_h2o) {
+			for(int i = blockIdx.x*blockDim.x + threadIdx.x; i < num_of_atms; i += blockDim.x*gridDim.x) {
+				hydrostatic_1d_h2o(ctl, &atm[i], 0, atm[i].np, ig_h2o);
 			} // ip
 		} // hydrostatic_kernel
 
     __host__
 	void hydrostatic1d_GPU(ctl_t const *ctl, ctl_t const *ctl_G,
-			atm_t *atm_G, int const nr, int const ig_h2o, cudaStream_t const stream) {
+			atm_t *atm_G, int const num_of_atms, int const ig_h2o, cudaStream_t const stream) {
 		if(ctl->hydz < 0) return; // Check reference height
-		hydrostatic_kernel_GPU<<<nr/32 + 1, 32, 0, stream>>> (ctl_G, atm_G, nr, ig_h2o);
+		hydrostatic_kernel_GPU<<<num_of_atms/32 + 1, 32, 0, stream>>> (ctl_G, atm_G, num_of_atms, ig_h2o);
 	} // hydrostatic1d_GPU
 
 	// ################ end of GPU driver routines ##############
@@ -233,6 +233,7 @@
 		double *tsurf_G;
 		int    *np_G;
     double (*aero_beta_G)[ND];
+    int *atm_id_G; 
 		cudaStream_t stream;
 	} gpuLane_t;
 
@@ -242,6 +243,7 @@
 			atm_t *atm, // can be made const if we do not get the atms back
 			obs_t *obs,
       aero_t const *aero,
+      int const *atm_id,
 			gpuLane_t const *gpu)
     // a workload manager for the GPU
     {
@@ -252,6 +254,7 @@
                __func__, obs->nr, NR, ctl->ng, NG, ctl->nd, ND);
         
 		atm_t *atm_G = gpu->atm_G;
+    int *atm_id_G = gpu->atm_id_G;
     aero_t *aero_G = gpu->aero_G;
 		obs_t *obs_G = gpu->obs_G;
     double (*aero_beta_G)[ND] = gpu->aero_beta_G;
@@ -274,27 +277,36 @@
                 +   (1 == ctl->ctm_o2)                    *0b0001); // O2
 
 		unsigned const nd = ctl->nd, nr = obs->nr; // abbreviate
+    int const num_of_atms = jur_get_num_of_atms(nr, atm_id);
 
     // "beta_a" -> 'a', "beta_e" -> 'e'
     char const beta_type = ctl->sca_ext[5];
 		
     cudaStream_t stream = gpu->stream;
-		copy_data_to_GPU(atm_G, atm, 1*sizeof(atm_t), stream);
+
 		copy_data_to_GPU(obs_G, obs, 1*sizeof(obs_t), stream);
     if(NULL != aero) { // only if scattering is included
       copy_data_to_GPU(aero_G, aero, 1*sizeof(aero_t), stream);
       copy_data_to_GPU(aero_beta_G, ('a' == beta_type) ? aero->beta_a :
                        aero->beta_e, NLMAX * ND * sizeof(double), stream);
     }
-
-		hydrostatic1d_GPU(ctl, ctl_G, atm_G, nr, ig_h2o, stream); // in this call atm_G gets modified
+    if(NULL != atm_id) {
+      copy_data_to_GPU(atm_id_G, atm_id, nr * sizeof(int), stream);
+		  copy_data_to_GPU(atm_G, atm, num_of_atms * sizeof(atm_t), stream);
+    }
+    else {
+      atm_id_G = NULL;
+		  copy_data_to_GPU(atm_G, atm, sizeof(atm_t), stream);
+    }
+        
+		hydrostatic1d_GPU(ctl, ctl_G, atm_G, num_of_atms, ig_h2o, stream); // in this call atm_G gets modified
 		cuKernelCheck();
 
     if(NULL != aero && ctl->sca_n > 0) { // only if scattering is included
-      raytrace_rays_GPU<1> <<< (nr/64)+1, 64, 0, stream>>> (ctl_G, atm_G, obs_G, los_G, tsurf_G, np_G, aero_G);
+      raytrace_rays_GPU<1> <<< (nr/64)+1, 64, 0, stream>>> (ctl_G, atm_G, obs_G, los_G, tsurf_G, np_G, atm_id_G, aero_G);
       cuKernelCheck();
     } else {
-      raytrace_rays_GPU<0> <<< (nr/64)+1, 64, 0, stream>>> (ctl_G, atm_G, obs_G, los_G, tsurf_G, np_G, NULL);
+      raytrace_rays_GPU<0> <<< (nr/64)+1, 64, 0, stream>>> (ctl_G, atm_G, obs_G, los_G, tsurf_G, np_G, atm_id_G, NULL);
       cuKernelCheck();
     }
 	
@@ -323,12 +335,12 @@
     // make sure that jur_formod_multiple_packages_GPU can be linked from CPUdrivers.c
 	extern "C" {
 	   void jur_formod_multiple_packages_GPU(ctl_t *ctl, atm_t *atm, obs_t *obs,
-                                           int n, aero_t const *aero);
+                                           int n, int const *atm_id, aero_t const *aero);
    }
 
 	__host__
 	void jur_formod_multiple_packages_GPU(ctl_t *ctl, atm_t *atm, obs_t *obs,
-                                        int n, aero_t const *aero) {
+                                        int n, int const *atm_id, aero_t const *aero) {
     static ctl_t *ctl_G=NULL;
 		static trans_table_t *tbl_G=NULL;
 
@@ -340,30 +352,60 @@
 
 		static bool do_init = true;
 
+    // it can also by set to true, the initial value is irelevant
+    static bool multi_atm_before = false;
+    const bool multi_atm_now = NULL != atm_id;
+
+    atm_t **divided_atms;
+    int **divided_atm_ids;
+
+    if(multi_atm_now) {
+      divided_atms = (atm_t **) malloc(n * sizeof(atm_t *));
+      divided_atm_ids = (int **) malloc(n * sizeof(int *));
+      jur_divide_atm_data_into_packages(atm, obs, n, atm_id, divided_atms, divided_atm_ids);
+    }
+
 #pragma omp critical
 		{
-			if (do_init) {
-        printf("DEBUG #%d jur_formod_multiple_packages_GPU was called!\n", ctl->MPIglobrank);
-        double tic = omp_get_wtime();
-				const size_t sizePerLane = sizeof(aero_t) + sizeof(obs_t) + NR * (sizeof(atm_t) + sizeof(pos_t[NLOS]) + sizeof(double) + sizeof(int));
-        
+			if (do_init || (!do_init && multi_atm_before != multi_atm_now)) {
+              double tic = omp_get_wtime();
+              size_t sizePerLane = sizeof(aero_t) + sizeof(obs_t) + sizeof(atm_t) + NR * (NLOS * sizeof(pos_t) + sizeof(double) + sizeof(int));
+              // in this case we have NR * atm_t instead of the only one and one additional atm_id array
+              if(multi_atm_now)
+                sizePerLane = sizeof(aero_t) + sizeof(obs_t) + NR * (sizeof(atm_t) + NLOS * sizeof(pos_t) + sizeof(double) + 2 * sizeof(int));
+ 
               if (ctl->checkmode) {
                 printf("# %s: GPU memory requirement per lane is %.3f MByte\n", __func__, 1e-6*sizePerLane);
               } else {
                 cudaSetDevice(0);
                 cuCheck(cudaGetDeviceCount(&numDevices));
 
-                // Initialize ctl and tbl-struct (1 per GPU)
-                ctl_G = malloc_GPU(ctl_t, 1);
-                copy_data_to_GPU(ctl_G, ctl, sizeof(ctl_t), 0);
+                if(!do_init && multi_atm_before != multi_atm_now) {
+                  for(size_t lane = 0; lane < numLanes; ++lane) {
+                    gpuLane_t* gpu = &(gpuLanes[lane]); // abbreviation
+                    free_memory_on_GPU((void **) &gpu->aero_G);
+                    free_memory_on_GPU((void **) &gpu->obs_G);
+                    free_memory_on_GPU((void **) &gpu->atm_G);
+                    free_memory_on_GPU((void **) &gpu->tsurf_G);
+                    free_memory_on_GPU((void **) &gpu->np_G);
+                    free_memory_on_GPU((void **) &gpu->los_G);
+                    free_memory_on_GPU((void **) &gpu->aero_beta_G);
+                    if(multi_atm_before)
+                      free_memory_on_GPU((void **) &gpu->atm_id_G);
+                  }
+                  free(gpuLanes);
+                }
 
-                double tic = omp_get_wtime(); 
-                
-                tbl_G = get_tbl_on_GPU(ctl);
-                
-                double toc = omp_get_wtime();
-                printf("TIMER #%d jurassic-gpu reading table time: %lf\n",
-                ctl->MPIglobrank, toc - tic);
+                if(do_init) {
+                  // Initialize ctl and tbl-struct (1 per GPU)
+                  ctl_G = malloc_GPU(ctl_t, 1);
+                  copy_data_to_GPU(ctl_G, ctl, sizeof(ctl_t), 0);
+                  double tic = omp_get_wtime();
+                  tbl_G = get_tbl_on_GPU(ctl);
+                  double toc = omp_get_wtime();
+                  printf("TIMER #%d jurassic-gpu reading table time: %lf\n",
+                  ctl->MPIglobrank, toc - tic);
+                }
 
                 // Get number of possible lanes
                 size_t gpuMemFree, gpuMemTotal;
@@ -384,43 +426,42 @@
                 for(size_t lane = 0; lane < numLanes; ++lane) {
                   gpuLane_t* gpu = &(gpuLanes[lane]); // abbreviation
                   // Allocation of GPU memory
-                  gpu->aero_G		= malloc_GPU(aero_t, 1);
-                  gpu->obs_G		= malloc_GPU(obs_t, 1);
-                  gpu->atm_G		= malloc_GPU(atm_t, NR);
-                  gpu->tsurf_G	= malloc_GPU(double, NR);
-                  gpu->np_G		= malloc_GPU(int, NR);
-                  gpu->los_G		= (pos_t (*)[NLOS])__allocate_on_GPU(NR*NLOS*sizeof(pos_t), __FILE__, __LINE__); 
-                 
-                  //Added:
+                  gpu->aero_G		   = malloc_GPU(aero_t, 1);
+                  gpu->obs_G		   = malloc_GPU(obs_t, 1);
+                  gpu->tsurf_G	   = malloc_GPU(double, NR);
+                  gpu->np_G		     = malloc_GPU(int, NR);
+                  gpu->los_G		   = (pos_t (*)[NLOS])__allocate_on_GPU(NR*NLOS*sizeof(pos_t), __FILE__, __LINE__); 
                   gpu->aero_beta_G = (double(*)[ND])__allocate_on_GPU(NLMAX*ND*sizeof(double), __FILE__, __LINE__);
+                  if(multi_atm_now) {
+                    gpu->atm_id_G  = malloc_GPU(int, NR);
+                    gpu->atm_G     = malloc_GPU(atm_t, NR);
+                  }
+                  else {
+                    gpu->atm_id_G  = NULL;
+                    gpu->atm_G	   = malloc_GPU(atm_t, 1);
+                  }
 
-                  // for los_G[NLOS], the macro malloc_GPU does not work
                   cuCheck(cudaStreamCreate(&gpu->stream));
                   debug_printf("[INFO] cudaStreamCreate --> streamId %d\n", gpu->stream);
                 } // lane
               } // checkmode
 
 				do_init = false;
+        multi_atm_before = multi_atm_now;
         double toc = omp_get_wtime();
         printf("TIMER #%d jurassic-gpu gpu_lanes initialization time: %lf\n", ctl->MPIglobrank, toc - tic);
-				// nextLane = 0;
-			} // do_init
-
-			// Save own Lane and increment global / static counter
-			// myLane = nextLane;
-			// nextLane++;
-			// if(nextLane >= numLanes) nextLane=0;
-		} // omp critical
+			} // do_init || (!do_init && multi_atm_before != multi_atm_now)
+    } //<------- omp critical is here, maybe I should put it to the end of the function!
 
     // TODO: this may be a probelm in juwels-booster case (with more then one GPU  device per node)
     cudaSetDevice(0);
 
-		if (ctl->checkmode) { printf("# %s: no operation in checkmode\n", __func__); return; }
-		
+    if (ctl->checkmode) { printf("# %s: no operation in checkmode\n", __func__); return; }
+    
     printf("numDevices: %d\n", numDevices);
     printf("DEBUG #%d numDevices: %d\n", ctl->MPIglobrank, numDevices);
 
-    //I should added this because of CPUs converting los to pos..    
+    // I had add to this because of CPUs converting los to pos..    
     omp_set_nested(true);
 #pragma omp parallel num_threads(numLanes)
 #pragma omp for schedule(dynamic, 1) //work stealing
@@ -431,8 +472,19 @@
       char mask[NR][ND];
       save_mask(mask, &obs[i], ctl);
       copy_data_to_GPU(ctl_G, ctl, sizeof(ctl_t), gpuLanes[myLane].stream); // controls might change, update
-      formod_one_package_GPU(ctl, ctl_G, tbl_G, atm, &obs[i], aero, &gpuLanes[myLane]);
-		  apply_mask(mask, &obs[i], ctl);
+      if(multi_atm_now)
+        formod_one_package_GPU(ctl, ctl_G, tbl_G, divided_atms[i], &obs[i], aero, divided_atm_ids[i], &gpuLanes[myLane]);
+      else
+        formod_one_package_GPU(ctl, ctl_G, tbl_G, atm, &obs[i], aero, atm_id, &gpuLanes[myLane]);
+      apply_mask(mask, &obs[i], ctl);
     }
     omp_set_nested(false);
+    if(multi_atm_now) {
+      for(int i = 0; i < n; i++) {
+        free(divided_atms[i]);
+        free(divided_atm_ids[i]);
+      }
+      free(divided_atms);
+      free(divided_atm_ids);
+    }
 	} // jur_formod_multiple_packages_GPU

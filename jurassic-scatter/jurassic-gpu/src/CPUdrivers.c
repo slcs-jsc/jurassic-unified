@@ -199,7 +199,7 @@
 
   __host__ 
   void jur_formod_multiple_packages_GPU(ctl_t const *ctl, atm_t *atm, obs_t *obs,
-                                        int n, aero_t const *aero)
+                                        int n, int const *atm_id, aero_t const *aero)
 #ifdef hasGPU
     ; // declaration only, will be provided by GPUdrivers.o at link time 
 #else
@@ -237,7 +237,7 @@
             } // only report if nr changed
         } // checkmode
         if (ctl->useGPU) { //has to be changed
-          jur_formod_multiple_packages_GPU(ctl, atm, obs, n, aero);
+          jur_formod_multiple_packages_GPU(ctl, atm, obs, n, atm_id, aero);
         } else { // USEGPU = 0 means use-GPU-never
           jur_formod_multiple_packages_CPU(ctl, atm, obs, n, atm_id, aero);
         } // useGPU
