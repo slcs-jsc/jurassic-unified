@@ -85,7 +85,7 @@
 		static trans_table_t *tbl_G = nullptr;
 		if (!tbl_G) {
       printf("DEBUG #%d tbl_G == nullptr\n", ctl->MPIglobrank);
-			trans_table_t* tbl = get_tbl(ctl);
+			trans_table_t* tbl = jur_get_tbl(ctl);
 #ifdef  USE_UNIFIED_MEMORY_FOR_TABLES
             printf("[INFO] allocated %.3f MByte unified memory for tables\n", 1e-6*sizeof(trans_table_t));
             tbl_G = tbl; // just passing a pointer, same memory space
@@ -106,7 +106,7 @@
 			for(int ir = blockIdx.x; ir < obs->nr; ir += gridDim.x) { // grid stride loop over blocks = rays
 				for(int id = threadIdx.x; id < ctl->nd; id += blockDim.x) { // grid stride loop over threads = detectors
                     auto const radiance = obs->rad[ir][id];
-					obs->rad[ir][id] = brightness_core(radiance, ctl->nu[id]); // modify in-place
+					obs->rad[ir][id] = jur_brightness_core(radiance, ctl->nu[id]); // modify in-place
 				} // id
 			} // ir
 		} // jur_radiance_to_brightness_GPU
@@ -116,7 +116,7 @@
 		jur_surface_terms_GPU(const trans_table_t *tbl, obs_t *obs, double const tsurf[], int const nd) {
 			for(int ir = blockIdx.x; ir < obs->nr; ir += gridDim.x) { // grid stride loop over blocks = rays
 				for(int id = threadIdx.x; id < nd; id += blockDim.x) { // grid stride loop over threads = detectors
-					add_surface_core(obs, tbl, tsurf[ir], ir, id);
+					jur_add_surface_core(obs, tbl, tsurf[ir], ir, id);
 				} // id
 			} // ir
 		} // jur_surface_terms_GPU
@@ -129,10 +129,10 @@
       double const ds = los->ds;
       double beta_ds = los->k[ctl->window[id]]*ds;													// extinction
       // make sure that ig_co2 and ig_h2o are both >= 0
-      if ((CO2)) beta_ds += continua_ctmco2(ctl->nu[id], p, t, los->u[ig_co2]);						// co2 continuum
-      if ((H2O)) beta_ds += continua_ctmh2o(ctl->nu[id], p, t, los->q[ig_h2o], los->u[ig_h2o]);		// h2o continuum
-      if ((N2))  beta_ds += continua_ctmn2(ctl->nu[id], p, t)*ds;									// n2 continuum
-      if ((O2))  beta_ds += continua_ctmo2(ctl->nu[id], p, t)*ds;									// o2 continuum
+      if ((CO2)) beta_ds += jur_continua_ctmco2(ctl->nu[id], p, t, los->u[ig_co2]);						// co2 continuum
+      if ((H2O)) beta_ds += jur_continua_ctmh2o(ctl->nu[id], p, t, los->q[ig_h2o], los->u[ig_h2o]);		// h2o continuum
+      if ((N2))  beta_ds += jur_continua_ctmn2(ctl->nu[id], p, t)*ds;									// n2 continuum
+      if ((O2))  beta_ds += jur_continua_ctmo2(ctl->nu[id], p, t)*ds;									// o2 continuum
       return     beta_ds;
   } // jur_continua_core_bbbb where each b is either 0 or 1
   
@@ -161,9 +161,9 @@
             if(NULL != aero_beta) // only if scattering is included
               aero_ds = los[ir][ip].aerofac * aero_beta[los[ir][ip].aeroi][id] * los[ir][ip].ds;
             
-            double const tau_gas = apply_ega_core(tbl, &(los[ir][ip]), tau_path, ctl->ng, id);
-						double const planck = src_planck_core(tbl, los[ir][ip].t, id);
-						new_obs_core(obs, ir, id, beta_ds + aero_ds, planck, tau_gas);
+            double const tau_gas = jur_apply_ega_core(tbl, &(los[ir][ip]), tau_path, ctl->ng, id);
+						double const planck = jur_src_planck_core(tbl, los[ir][ip].t, id);
+						jur_new_obs_core(obs, ir, id, beta_ds + aero_ds, planck, tau_gas);
 					} // id --> parallel over detectors=threads
 				} // ip --> non-parallelisable
 			} // ir --> parallel over rays==blocks
@@ -203,7 +203,7 @@
 		jur_raytrace_rays_GPU(ctl_t const *ctl, const atm_t *atm, obs_t *obs, pos_t
     los[][NLOS], double *tsurf, int np[], int const *atm_id, aero_t const *aero) {
 			for(int ir = blockIdx.x*blockDim.x + threadIdx.x; ir < obs->nr; ir += blockDim.x*gridDim.x) { // grid stride loop over rays
-        np[ir] = traceray<scattering_included>(ctl, &atm[(NULL == atm_id ? 0 : atm_id[ir])], obs, ir, los[ir], &tsurf[ir], aero);
+        np[ir] = jur_traceray<scattering_included>(ctl, &atm[(NULL == atm_id ? 0 : atm_id[ir])], obs, ir, los[ir], &tsurf[ir], aero);
 			} // ir
 		} // jur_raytrace_rays_GPU
 
@@ -211,7 +211,7 @@
 	void __global__ // GPU-kernel
 		jur_hydrostatic_kernel_GPU(ctl_t const *ctl, atm_t *atm, const int num_of_atms, int const ig_h2o) {
 			for(int i = blockIdx.x*blockDim.x + threadIdx.x; i < num_of_atms; i += blockDim.x*gridDim.x) {
-				hydrostatic_1d_h2o(ctl, &atm[i], 0, atm[i].np, ig_h2o);
+				jur_hydrostatic_1d_h2o(ctl, &atm[i], 0, atm[i].np, ig_h2o);
 			} // ip
 		} // jur_hydrostatic_kernel
 
@@ -477,13 +477,13 @@
       int const myLane = omp_get_thread_num();
       assert(myLane < numLanes);
       char mask[NR][ND];
-      save_mask(mask, &obs[i], ctl);
+      jur_save_mask(mask, &obs[i], ctl);
       copy_data_to_GPU(ctl_G, ctl, sizeof(ctl_t), gpuLanes[myLane].stream); // controls might change, update
       if(multi_atm_now)
         jur_formod_one_package_GPU(ctl, ctl_G, tbl_G, divided_atms[i], &obs[i], aero, divided_atm_ids[i], &gpuLanes[myLane]);
       else
         jur_formod_one_package_GPU(ctl, ctl_G, tbl_G, atm, &obs[i], aero, atm_id, &gpuLanes[myLane]);
-      apply_mask(mask, &obs[i], ctl);
+      jur_apply_mask(mask, &obs[i], ctl);
     }
     omp_set_nested(false);
     if(multi_atm_now) {

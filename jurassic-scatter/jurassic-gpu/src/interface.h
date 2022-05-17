@@ -9,16 +9,16 @@
 
 void jur_table_initialization(ctl_t *ctl);
 
-//int pos_scatter_traceray(ctl_t *ctl, atm_t *atm, obs_t *obs, int const ir,
-//                            pos_t los[], double *tsurf, aero_t *aero, int scattering_included);
+int jur_traceray(ctl_t *ctl, atm_t *atm, obs_t *obs, int const ir,
+                            pos_t los[], double *tsurf, aero_t *aero, int scattering_included);
 
-trans_table_t* get_tbl(ctl_t const *ctl);
+trans_table_t* jur_get_tbl(ctl_t const *ctl);
 
-double src_planck_core(trans_table_t const *tbl, double const t, int const id);
+double jur_src_planck_core(trans_table_t const *tbl, double const t, int const id);
 
 double jur_continua_core_CPU(ctl_t const *ctl, pos_t const *los, int const id);
 
-double apply_ega_core(trans_table_t const *tbl, pos_t const *los, double (*ptr tau_path), int const ng, int const id);
+double jur_apply_ega_core(trans_table_t const *tbl, pos_t const *los, double (*ptr tau_path), int const ng, int const id);
 
 void jur_read_atm(char const *dirname, char const *filename, ctl_t *ctl, atm_t *atm);
 
@@ -40,7 +40,7 @@ void jur_hydrostatic1d_CPU(ctl_t const *ctl, atm_t *atm, int const nr, int const
 
 int jur_find_emitter(ctl_t const *ctl, char const *emitter);
 
-double brightness_core(double const rad, double const nu);
+double jur_brightness_core(double const rad, double const nu);
 
 double jur_planck(double const t, double const nu);
 

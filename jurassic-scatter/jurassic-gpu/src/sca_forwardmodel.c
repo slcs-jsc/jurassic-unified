@@ -275,7 +275,7 @@ void jur_sca_formod(ctl_t *ctl,
   if(ctl->write_bbt)
     for(ir=0; ir<obs->nr; ir++)
       for(id=0; id<ctl->nd; id++)
-	      obs->rad[ir][id]=brightness_core(obs->rad[ir][id], ctl->nu[id]); //CHANGED
+	      obs->rad[ir][id]=jur_brightness_core(obs->rad[ir][id], ctl->nu[id]); //CHANGED
 
   /* Apply observation mask... */
   for(id=0; id<ctl->nd; id++)
@@ -398,7 +398,7 @@ if ((Queue_Collect|Queue_Prepare) & queue_mode) { /* CPp */
   los = (pos_t*) malloc((NLOS) * sizeof(pos_t));
 
   /* Raytracing... */
-  np = traceray(ctl, atm, obs, ir, los, &tsurf, aero, 1); // with scattering
+  np = jur_traceray(ctl, atm, obs, ir, los, &tsurf, aero, 1); // with scattering
 } /* CPp */
 
 if (Queue_Prepare_Leaf == queue_mode) { /* ==p */
@@ -424,20 +424,14 @@ if (Queue_Collect_Leaf == queue_mode) { /* ==c */
 if (Queue_Execute_Leaf == queue_mode) { /* ==x */
   jur_sca_get_queue_item(q, (void*)&obs, &ir, ir); /* get input */
   los = (pos_t*) malloc((NLOS) * sizeof(pos_t));
-  np = traceray(ctl, atm, obs, ir, los, &tsurf, aero, 1); // with scattering
+  np = jur_traceray(ctl, atm, obs, ir, los, &tsurf, aero, 1); // with scattering
 } /* ==x */
 
 if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
   /* Read tables... */
   if(!init) {
     init=1;
-    // removing tbl_t
-    // tbl = scatter_get_tbl(ctl);
-    // printf("%d\n", tbl->np[0][0]); // Have to do it, because of unused warning... 
-
-    // bug that I had:
-    // https://stackoverflow.com/questions/8552684/pointer-return-value-changes-after-function-call
-    trans_tbl = get_tbl(ctl); 
+    trans_tbl = jur_get_tbl(ctl); 
   }
 
   /* Initialize... */
@@ -458,7 +452,7 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
 if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
     /* Get trace gas transmittance... */
     for(id = 0; id < ctl->nd; id++)
-      tau_gas[id] = apply_ega_core(trans_tbl, &los[ip], tau_path[id], ctl->ng, id);
+      tau_gas[id] = jur_apply_ega_core(trans_tbl, &los[ip], tau_path[id], ctl->ng, id);
 
     /* Get continuum absorption... */
     for(id = 0; id < ctl->nd; id++)
@@ -466,7 +460,7 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
 
     /* Compute Planck function... */
     for(id = 0; id < ctl->nd; id++) {
-      src_planck[id] = src_planck_core(trans_tbl, los[ip].t, id);
+      src_planck[id] = jur_src_planck_core(trans_tbl, los[ip].t, id);
     }
 
 } /* Cx */
@@ -553,7 +547,7 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
   if(tsurf>0) {
     /* Compute Planck function */
     for(id = 0; id < ctl->nd; id++) {
-      src_planck[id] = src_planck_core(trans_tbl, tsurf, id);
+      src_planck[id] = jur_src_planck_core(trans_tbl, tsurf, id);
     }
 
     for(id=0; id<ctl->nd; id++)

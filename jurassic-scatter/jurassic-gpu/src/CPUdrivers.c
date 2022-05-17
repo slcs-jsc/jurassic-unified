@@ -8,7 +8,7 @@
 		for(int ir = 0; ir < obs->nr; ir++) { // loop over rays
 			for(int id = 0; id < ctl->nd; id++) { // loop over detectors
 				// convert in-place
-				obs->rad[ir][id] = brightness_core(obs->rad[ir][id], ctl->nu[id]);
+				obs->rad[ir][id] = jur_brightness_core(obs->rad[ir][id], ctl->nu[id]);
 			} // id
 		} // ir
 	} // jur_radiance_to_brightness
@@ -18,7 +18,7 @@
 #pragma omp  parallel for
 		for(int ir = 0; ir < obs->nr; ir++) { // loop over rays
 			for(int id = 0; id < nd; id++) { // loop over detectors
-				add_surface_core(obs, tbl, tsurf[ir], ir, id);
+				jur_add_surface_core(obs, tbl, tsurf[ir], ir, id);
 			} // id
 		} // ir
 	} // jur_surface_terms_CPU
@@ -48,10 +48,10 @@
       double const ds = los->ds;
       double beta_ds = los->k[ctl->window[id]]*ds;  // extinction
       // make sure that ig_co2 and ig_h2o are both >= 0
-      if(CO2) beta_ds += continua_ctmco2(ctl->nu[id], p, t, los->u[ig_co2]);  // co2 continuum
-      if(H2O) beta_ds += continua_ctmh2o(ctl->nu[id], p, t, los->q[ig_h2o], los->u[ig_h2o]);  // h2o continuum
-      if(N2)  beta_ds += continua_ctmn2(ctl->nu[id], p, t)*ds;  // n2 continuum
-      if(O2)  beta_ds += continua_ctmo2(ctl->nu[id], p, t)*ds;  // o2 continuum
+      if(CO2) beta_ds += jur_continua_ctmco2(ctl->nu[id], p, t, los->u[ig_co2]);  // co2 continuum
+      if(H2O) beta_ds += jur_continua_ctmh2o(ctl->nu[id], p, t, los->q[ig_h2o], los->u[ig_h2o]);  // h2o continuum
+      if(N2)  beta_ds += jur_continua_ctmn2(ctl->nu[id], p, t)*ds;  // n2 continuum
+      if(O2)  beta_ds += jur_continua_ctmo2(ctl->nu[id], p, t)*ds;  // o2 continuum
       return     beta_ds;
   } // jur_continua_core_CPU
 
@@ -83,11 +83,11 @@
             aero_ds = los[ir][ip].aerofac * aero_beta[los[ir][ip].aeroi][id] * los[ir][ip].ds;
           
           // compute transmission with the EGA method
-					double const tau_gas = apply_ega_core(tbl, &(los[ir][ip]), tau_path[id], ctl->ng, id);
+					double const tau_gas = jur_apply_ega_core(tbl, &(los[ir][ip]), tau_path[id], ctl->ng, id);
 					// compute the source term
-					double const planck = src_planck_core(tbl, los[ir][ip].t, id);
+					double const planck = jur_src_planck_core(tbl, los[ir][ip].t, id);
 					// perform integration
-					new_obs_core(obs, ir, id, beta_ds + aero_ds, planck, tau_gas);
+					jur_new_obs_core(obs, ir, id, beta_ds + aero_ds, planck, tau_gas);
 
 				} // id --> could be vectorized over detector channels
 #ifdef GPUDEBUG
@@ -105,7 +105,7 @@
                            int const *atm_id, aero_t const *aero, int scattering_included) {
 #pragma omp parallel for
 		for(int ir = 0; ir < obs->nr; ir++) { // loop over rays
-      np[ir] = traceray(ctl, &atm[(NULL == atm_id ? 0 : atm_id[ir])], obs, ir, los[ir], &tsurf[ir], aero, scattering_included);
+      np[ir] = jur_traceray(ctl, &atm[(NULL == atm_id ? 0 : atm_id[ir])], obs, ir, los[ir], &tsurf[ir], aero, scattering_included);
 		} // ir
 	} // jur_raytrace_rays_CPU
 
@@ -113,7 +113,7 @@
 	void jur_hydrostatic1d_CPU(ctl_t const *ctl, atm_t *atm, int const num_of_atms, int const ig_h2o) {
 			if(ctl->hydz < 0) return; // Check reference height
 			for(int i = 0; i < num_of_atms; i++) { // Apply hydrostatic equation to individual profiles
-				hydrostatic_1d_h2o(ctl, &atm[i], 0, atm[i].np, ig_h2o);
+				jur_hydrostatic_1d_h2o(ctl, &atm[i], 0, atm[i].np, ig_h2o);
 			} // i
 	} // jur_hydrostatic1d_CPU
   
@@ -134,9 +134,9 @@
 		assert(obs);
 
 		char mask[NR][ND];
-		save_mask(mask, obs, ctl);
+		jur_save_mask(mask, obs, ctl);
 
-		trans_table_t const *tbl = get_tbl(ctl);
+		trans_table_t const *tbl = jur_get_tbl(ctl);
 		double *t_surf = (double*)malloc((obs->nr)*sizeof(double));
 		int *np = (int*)malloc((obs->nr)*sizeof(int));
 		pos_t (*los)[NLOS] = (pos_t (*)[NLOS])malloc((obs->nr)*(NLOS)*sizeof(pos_t));
@@ -166,7 +166,7 @@
     if(ctl->write_bbt && ctl->leaf_nr == -1)  // convert radiance to brightness (in-place)
 		  jur_radiance_to_brightness_CPU(ctl, obs);
 
-		apply_mask(mask, obs, ctl);
+		jur_apply_mask(mask, obs, ctl);
 	} // jur_formod_one_package_CPU
 
 	__host__
@@ -273,7 +273,7 @@
                   warnGPU = 0; // switch this warning off
               } // warnGPU
               printf("DEBUG #%d call initilaze CPU..\n", ctl->MPIglobrank);
-              return get_tbl(ctl);
+              return jur_get_tbl(ctl);
           } //
       } // jur_get_tbl_on_GPU
   #endif
@@ -288,7 +288,7 @@
     }
     else {
       printf("DEBUG #%d call initilaze CPU..\n", ctl->MPIglobrank);
-      tbl = get_tbl(ctl);
+      tbl = jur_get_tbl(ctl);
     }
     double toc = omp_get_wtime();
     printf("TIMER #%d jurassic-gpu table initialization time: %lf\n", ctl->MPIglobrank, toc - tic);
