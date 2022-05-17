@@ -3,11 +3,9 @@
 #include <stdio.h>
 
 #include "jurassic.h"
+#include "sca_gpu_interface.h"
 #include "sca_forwardmodel.h"
 #include "sca_scatter.h"
-
-#define __host__
-#include "interface.h"
 
 /* ------------------------------------------------------------
    Functions...

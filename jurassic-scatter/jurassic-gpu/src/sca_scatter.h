@@ -4,6 +4,7 @@
 /* Module containing all variables and functions related to scattering simulations */
 
 #include "jurassic.h"
+#include "sca_gpu_interface.h"
 #include "sca_forwardmodel.h"
 
 /* ------------------------------------------------------------

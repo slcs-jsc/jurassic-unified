@@ -1,9 +1,6 @@
 #include "sca_scatter.h"
 #include "sca_workqueue.h" /* Queue_Prepare */
 
-#define __host__
-#include "interface.h"
-
 /*****************************************************************************/
 
 void jur_sca_bascoord(double *dz,

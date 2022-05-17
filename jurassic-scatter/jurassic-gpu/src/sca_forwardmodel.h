@@ -2,6 +2,7 @@
 #define FORWARDMODEL_H
 
 #include "jurassic.h"
+#include "sca_gpu_interface.h"
 #include "sca_scatter.h"
 
 void jur_sca_copy_obs_row(obs_t const *source, int rs, obs_t *dest, int rd);

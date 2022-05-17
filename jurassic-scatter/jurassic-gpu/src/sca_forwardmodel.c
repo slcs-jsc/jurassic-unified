@@ -4,14 +4,6 @@
 #include <omp.h>
 #include <math.h>
 
-#define __host__
-#include "interface.h"
-
-
-// declaration of the functions from CPUdrivers.c
-double jur_continua_core_CPU(ctl_t const *ctl, pos_t const *los, int const id);
-void jur_hydrostatic1d_CPU(ctl_t const *ctl, atm_t *atm, int const nr, int const ig_h2o);
-
 /*****************************************************************************/
 
 void jur_sca_copy_obs_row(obs_t const *source, int rs, obs_t *dest, int rd) {
