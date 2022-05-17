@@ -102,28 +102,28 @@
 
 	// Radiance -> Brightness conversion //////////////////////////////////////////
 	void __global__ // GPU-kernel
-		radiance_to_brightness_GPU(ctl_t const *ctl, obs_t *obs) { // operates onto obs in-place
+		jur_radiance_to_brightness_GPU(ctl_t const *ctl, obs_t *obs) { // operates onto obs in-place
 			for(int ir = blockIdx.x; ir < obs->nr; ir += gridDim.x) { // grid stride loop over blocks = rays
 				for(int id = threadIdx.x; id < ctl->nd; id += blockDim.x) { // grid stride loop over threads = detectors
                     auto const radiance = obs->rad[ir][id];
 					obs->rad[ir][id] = brightness_core(radiance, ctl->nu[id]); // modify in-place
 				} // id
 			} // ir
-		} // radiance_to_brightness_GPU
+		} // jur_radiance_to_brightness_GPU
 
 	// Add planetary surface emission ////////////////////////////////////////////
 	void __global__ // GPU-kernel
-		surface_terms_GPU(const trans_table_t *tbl, obs_t *obs, double const tsurf[], int const nd) {
+		jur_surface_terms_GPU(const trans_table_t *tbl, obs_t *obs, double const tsurf[], int const nd) {
 			for(int ir = blockIdx.x; ir < obs->nr; ir += gridDim.x) { // grid stride loop over blocks = rays
 				for(int id = threadIdx.x; id < nd; id += blockDim.x) { // grid stride loop over threads = detectors
 					add_surface_core(obs, tbl, tsurf[ir], ir, id);
 				} // id
 			} // ir
-		} // surface_terms_GPU
+		} // jur_surface_terms_GPU
 
   template<int CO2, int H2O, int N2, int O2>
   __host__ __device__ __ext_inline__
-  double continua_core_temp(ctl_t const *ctl, pos_t const *los, int const ig_co2, int const ig_h2o, int const id) {
+  double jur_continua_core_temp(ctl_t const *ctl, pos_t const *los, int const ig_co2, int const ig_h2o, int const id) {
       double const p = los->p;
       double const t = los->t;
       double const ds = los->ds;
@@ -134,11 +134,11 @@
       if ((N2))  beta_ds += continua_ctmn2(ctl->nu[id], p, t)*ds;									// n2 continuum
       if ((O2))  beta_ds += continua_ctmo2(ctl->nu[id], p, t)*ds;									// o2 continuum
       return     beta_ds;
-  } // continua_core_bbbb where each b is either 0 or 1
+  } // jur_continua_core_bbbb where each b is either 0 or 1
   
   template<int CO2, int H2O, int N2, int O2>
     void __global__ // GPU-kernel
-    fusion_kernel_GPU(trans_table_t const *tbl, ctl_t const *ctl,
+    jur_fusion_kernel_GPU(trans_table_t const *tbl, ctl_t const *ctl,
         obs_t *obs, pos_t const (*restrict los)[NLOS],
         int const np[], int const ig_co2, int const ig_h2o,
         double const (*restrict aero_beta)[ND]) {
@@ -153,7 +153,7 @@
 				} // ig
 				for(int ip = 0; ip < np[ir]; ++ip) {
 					for(int id = threadIdx.x; id < ctl->nd; id += blockDim.x) { // grid stride loop over threads = detectors
-						double const beta_ds = continua_core_temp <CO2, H2O, N2, O2>
+						double const beta_ds = jur_continua_core_temp <CO2, H2O, N2, O2>
                                    (ctl, &(los[ir][ip]), ig_co2, ig_h2o, id);           // function args
 						
             //Added:
@@ -167,60 +167,60 @@
 					} // id --> parallel over detectors=threads
 				} // ip --> non-parallelisable
 			} // ir --> parallel over rays==blocks
-    } // fusion_kernel_GPU
+    } // jur_fusion_kernel_GPU
 
     __host__
-	void multi_version_GPU(char const fourbit, trans_table_t const *tbl, ctl_t const *ctl,
+	void jur_multi_version_GPU(char const fourbit, trans_table_t const *tbl, ctl_t const *ctl,
 			obs_t *obs, pos_t const (*restrict los)[NLOS],
 			int const np[], int const ig_co2, int const ig_h2o,
       double const (*restrict aero_beta)[ND],
 			unsigned const grid, unsigned const block, unsigned const shmem, cudaStream_t const stream) {
 #define LaunchKernel <<< grid, block, shmem, stream >>> (tbl, ctl, obs, los, np, ig_co2, ig_h2o, aero_beta)
 		switch (fourbit) {
-			case 0b0000: fusion_kernel_GPU<0,0,0,0> LaunchKernel; break;
-			case 0b0001: fusion_kernel_GPU<0,0,0,1> LaunchKernel; break;
-			case 0b0010: fusion_kernel_GPU<0,0,1,0> LaunchKernel; break;
-			case 0b0011: fusion_kernel_GPU<0,0,1,1> LaunchKernel; break;
-			case 0b0100: fusion_kernel_GPU<0,1,0,0> LaunchKernel; break;
-			case 0b0101: fusion_kernel_GPU<0,1,0,1> LaunchKernel; break;
-			case 0b0110: fusion_kernel_GPU<0,1,1,0> LaunchKernel; break;
-			case 0b0111: fusion_kernel_GPU<0,1,1,1> LaunchKernel; break;
-			case 0b1000: fusion_kernel_GPU<1,0,0,0> LaunchKernel; break;
-			case 0b1001: fusion_kernel_GPU<1,0,0,1> LaunchKernel; break;
-			case 0b1010: fusion_kernel_GPU<1,0,1,0> LaunchKernel; break;
-			case 0b1011: fusion_kernel_GPU<1,0,1,1> LaunchKernel; break;
-			case 0b1100: fusion_kernel_GPU<1,1,0,0> LaunchKernel; break;
-			case 0b1101: fusion_kernel_GPU<1,1,0,1> LaunchKernel; break;
-			case 0b1110: fusion_kernel_GPU<1,1,1,0> LaunchKernel; break;
-			case 0b1111: fusion_kernel_GPU<1,1,1,1> LaunchKernel; break;
+			case 0b0000: jur_fusion_kernel_GPU<0,0,0,0> LaunchKernel; break;
+			case 0b0001: jur_fusion_kernel_GPU<0,0,0,1> LaunchKernel; break;
+			case 0b0010: jur_fusion_kernel_GPU<0,0,1,0> LaunchKernel; break;
+			case 0b0011: jur_fusion_kernel_GPU<0,0,1,1> LaunchKernel; break;
+			case 0b0100: jur_fusion_kernel_GPU<0,1,0,0> LaunchKernel; break;
+			case 0b0101: jur_fusion_kernel_GPU<0,1,0,1> LaunchKernel; break;
+			case 0b0110: jur_fusion_kernel_GPU<0,1,1,0> LaunchKernel; break;
+			case 0b0111: jur_fusion_kernel_GPU<0,1,1,1> LaunchKernel; break;
+			case 0b1000: jur_fusion_kernel_GPU<1,0,0,0> LaunchKernel; break;
+			case 0b1001: jur_fusion_kernel_GPU<1,0,0,1> LaunchKernel; break;
+			case 0b1010: jur_fusion_kernel_GPU<1,0,1,0> LaunchKernel; break;
+			case 0b1011: jur_fusion_kernel_GPU<1,0,1,1> LaunchKernel; break;
+			case 0b1100: jur_fusion_kernel_GPU<1,1,0,0> LaunchKernel; break;
+			case 0b1101: jur_fusion_kernel_GPU<1,1,0,1> LaunchKernel; break;
+			case 0b1110: jur_fusion_kernel_GPU<1,1,1,0> LaunchKernel; break;
+			case 0b1111: jur_fusion_kernel_GPU<1,1,1,1> LaunchKernel; break;
 		} // fourbit
 #undef	LaunchKernel
-	} // multi_version_GPU
+	} // jur_multi_version_GPU
 
 	// Raytracing ////////////////////////////////////////////////////////////////
   template<int scattering_included>
 	void __global__ // GPU-kernel
-		raytrace_rays_GPU(ctl_t const *ctl, const atm_t *atm, obs_t *obs, pos_t
+		jur_raytrace_rays_GPU(ctl_t const *ctl, const atm_t *atm, obs_t *obs, pos_t
     los[][NLOS], double *tsurf, int np[], int const *atm_id, aero_t const *aero) {
 			for(int ir = blockIdx.x*blockDim.x + threadIdx.x; ir < obs->nr; ir += blockDim.x*gridDim.x) { // grid stride loop over rays
         np[ir] = traceray<scattering_included>(ctl, &atm[(NULL == atm_id ? 0 : atm_id[ir])], obs, ir, los[ir], &tsurf[ir], aero);
 			} // ir
-		} // raytrace_rays_GPU
+		} // jur_raytrace_rays_GPU
 
 	// Compute hydrostatic equilibria for all atm //////////////////////////////
 	void __global__ // GPU-kernel
-		hydrostatic_kernel_GPU(ctl_t const *ctl, atm_t *atm, const int num_of_atms, int const ig_h2o) {
+		jur_hydrostatic_kernel_GPU(ctl_t const *ctl, atm_t *atm, const int num_of_atms, int const ig_h2o) {
 			for(int i = blockIdx.x*blockDim.x + threadIdx.x; i < num_of_atms; i += blockDim.x*gridDim.x) {
 				hydrostatic_1d_h2o(ctl, &atm[i], 0, atm[i].np, ig_h2o);
 			} // ip
-		} // hydrostatic_kernel
+		} // jur_hydrostatic_kernel
 
     __host__
-	void hydrostatic1d_GPU(ctl_t const *ctl, ctl_t const *ctl_G,
+	void jur_hydrostatic1d_GPU(ctl_t const *ctl, ctl_t const *ctl_G,
 			atm_t *atm_G, int const num_of_atms, int const ig_h2o, cudaStream_t const stream) {
 		if(ctl->hydz < 0) return; // Check reference height
-		hydrostatic_kernel_GPU<<<num_of_atms/32 + 1, 32, 0, stream>>> (ctl_G, atm_G, num_of_atms, ig_h2o);
-	} // hydrostatic1d_GPU
+		jur_hydrostatic_kernel_GPU<<<num_of_atms/32 + 1, 32, 0, stream>>> (ctl_G, atm_G, num_of_atms, ig_h2o);
+	} // jur_hydrostatic1d_GPU
 
 	// ################ end of GPU driver routines ##############
 
@@ -238,7 +238,7 @@
 	} gpuLane_t;
 
 	// The full forward model working on one package of NR rays
-	void formod_one_package_GPU(ctl_t *ctl, ctl_t *ctl_G,
+	void jur_formod_one_package_GPU(ctl_t *ctl, ctl_t *ctl_G,
 			trans_table_t const *tbl_G,
 			atm_t *atm, // can be made const if we do not get the atms back
 			obs_t *obs,
@@ -299,27 +299,27 @@
 		  copy_data_to_GPU(atm_G, atm, sizeof(atm_t), stream);
     }
         
-		hydrostatic1d_GPU(ctl, ctl_G, atm_G, num_of_atms, ig_h2o, stream); // in this call atm_G gets modified
+		jur_hydrostatic1d_GPU(ctl, ctl_G, atm_G, num_of_atms, ig_h2o, stream); // in this call atm_G gets modified
 		cuKernelCheck();
 
     if(NULL != aero && ctl->sca_n > 0) { // only if scattering is included
-      raytrace_rays_GPU<1> <<< (nr/64)+1, 64, 0, stream>>> (ctl_G, atm_G, obs_G, los_G, tsurf_G, np_G, atm_id_G, aero_G);
+      jur_raytrace_rays_GPU<1> <<< (nr/64)+1, 64, 0, stream>>> (ctl_G, atm_G, obs_G, los_G, tsurf_G, np_G, atm_id_G, aero_G);
       cuKernelCheck();
     } else {
-      raytrace_rays_GPU<0> <<< (nr/64)+1, 64, 0, stream>>> (ctl_G, atm_G, obs_G, los_G, tsurf_G, np_G, atm_id_G, NULL);
+      jur_raytrace_rays_GPU<0> <<< (nr/64)+1, 64, 0, stream>>> (ctl_G, atm_G, obs_G, los_G, tsurf_G, np_G, atm_id_G, NULL);
       cuKernelCheck();
     }
 	
-    multi_version_GPU(fourbit, tbl_G, ctl_G, obs_G, los_G, np_G, ig_co2, ig_h2o,
+    jur_multi_version_GPU(fourbit, tbl_G, ctl_G, obs_G, los_G, np_G, ig_co2, ig_h2o,
                       NULL == aero ? NULL:  aero_beta_G,
                       nr, nd, ctl->gpu_nbytes_shared_memory, stream);
 		cuKernelCheck();
 
-    surface_terms_GPU <<< nr, nd, 0, stream>>> (tbl_G, obs_G, tsurf_G, nd);
+    jur_surface_terms_GPU <<< nr, nd, 0, stream>>> (tbl_G, obs_G, tsurf_G, nd);
 		cuKernelCheck();
         
     if (ctl->write_bbt && ctl->leaf_nr == -1) { // convert radiance to brightness (in-place)
-        radiance_to_brightness_GPU <<< nr, nd, 0, stream >>> (ctl_G, obs_G);
+        jur_radiance_to_brightness_GPU <<< nr, nd, 0, stream >>> (ctl_G, obs_G);
     } // write_bbt
 
 // 		get_data_from_GPU(atm, atm_G, 1*sizeof(atm_t), stream); // do we really need to get the atms back?
@@ -480,9 +480,9 @@
       save_mask(mask, &obs[i], ctl);
       copy_data_to_GPU(ctl_G, ctl, sizeof(ctl_t), gpuLanes[myLane].stream); // controls might change, update
       if(multi_atm_now)
-        formod_one_package_GPU(ctl, ctl_G, tbl_G, divided_atms[i], &obs[i], aero, divided_atm_ids[i], &gpuLanes[myLane]);
+        jur_formod_one_package_GPU(ctl, ctl_G, tbl_G, divided_atms[i], &obs[i], aero, divided_atm_ids[i], &gpuLanes[myLane]);
       else
-        formod_one_package_GPU(ctl, ctl_G, tbl_G, atm, &obs[i], aero, atm_id, &gpuLanes[myLane]);
+        jur_formod_one_package_GPU(ctl, ctl_G, tbl_G, atm, &obs[i], aero, atm_id, &gpuLanes[myLane]);
       apply_mask(mask, &obs[i], ctl);
     }
     omp_set_nested(false);

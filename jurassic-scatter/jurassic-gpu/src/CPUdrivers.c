@@ -23,7 +23,7 @@
 		} // ir
 	} // jur_surface_terms_CPU
 
-  __host__ __device__ __ext_inline__
+  __host__ 
   double jur_continua_core_CPU(ctl_t const *ctl, pos_t const *los, int const id) {
       static int init = 0;
       static int CO2, H2O, N2, O2, ig_co2, ig_h2o;
@@ -243,52 +243,53 @@
         } // useGPU
     } // jur_formod_multiple_packages
 
-void jur_formod(ctl_t const *ctl, // function with the original parameters, without aero, one atm, one obs package 
-    atm_t *atm, 
-    obs_t *obs) {
-      jur_formod_multiple_packages(ctl, atm, obs, 1, NULL, NULL);
-} // jur_formod
+  __host__
+  void jur_formod(ctl_t const *ctl, // function with the original parameters, without aero, one atm, one obs package 
+      atm_t *atm, 
+      obs_t *obs) {
+        jur_formod_multiple_packages(ctl, atm, obs, 1, NULL, NULL);
+  } // jur_formod
 
-//we could use the same trick as above but it's not necessary
-__host__
-trans_table_t* jur_get_tbl_on_GPU(ctl_t const *ctl)
-#ifdef hasGPU
-    ; // declaration only, will be provided by GPUdrivers.o at link time 
-#else
-    { // definition here
-        static int warnGPU = 1;
-        if (ctl->useGPU > 0) { // USEGPU > 0 means use-GPU-always
-            fprintf(stdout, "CUDA not found during compilation, cannot run on GPUs. ABORT\n\n");
-            fprintf(stdout, "USEGPU = 1 (use-GPU-always) found in controls\n"
-                            "USEGPU = -1 (use-GPU-if-possible) could help\n\n");
-            fflush(stdout);
-            fprintf(stderr, "CUDA not found during compilation, cannot run on GPUs. ABORT\n\n");
-            exit(EXIT_FAILURE);
-        } else {               // USEGPU < 0 means use-GPU-if-possible
-            assert(ctl->useGPU < 0); 
-            // automatic decision: fallback solution is CPU
-            if (warnGPU) { // this warning appears only once per process
-                printf("CUDA not found during compilation, continue on CPUs instead!\n");
-                warnGPU = 0; // switch this warning off
-            } // warnGPU
-            printf("DEBUG #%d call initilaze CPU..\n", ctl->MPIglobrank);
-            return get_tbl(ctl);
-        } //
-    } // jur_get_tbl_on_GPU
-#endif
+  //we could use the same trick as above but it's not necessary
+  __host__
+  trans_table_t* jur_get_tbl_on_GPU(ctl_t const *ctl)
+  #ifdef hasGPU
+      ; // declaration only, will be provided by GPUdrivers.o at link time 
+  #else
+      { // definition here
+          static int warnGPU = 1;
+          if (ctl->useGPU > 0) { // USEGPU > 0 means use-GPU-always
+              fprintf(stdout, "CUDA not found during compilation, cannot run on GPUs. ABORT\n\n");
+              fprintf(stdout, "USEGPU = 1 (use-GPU-always) found in controls\n"
+                              "USEGPU = -1 (use-GPU-if-possible) could help\n\n");
+              fflush(stdout);
+              fprintf(stderr, "CUDA not found during compilation, cannot run on GPUs. ABORT\n\n");
+              exit(EXIT_FAILURE);
+          } else {               // USEGPU < 0 means use-GPU-if-possible
+              assert(ctl->useGPU < 0); 
+              // automatic decision: fallback solution is CPU
+              if (warnGPU) { // this warning appears only once per process
+                  printf("CUDA not found during compilation, continue on CPUs instead!\n");
+                  warnGPU = 0; // switch this warning off
+              } // warnGPU
+              printf("DEBUG #%d call initilaze CPU..\n", ctl->MPIglobrank);
+              return get_tbl(ctl);
+          } //
+      } // jur_get_tbl_on_GPU
+  #endif
 
-__host__
-void jur_table_initialization(ctl_t *ctl) {
-  double tic = omp_get_wtime(); 
-  trans_table_t *tbl;
-  if(ctl->useGPU) {
-    printf("DEBUG #%d call initilaze GPU..\n", ctl->MPIglobrank);
-    tbl = jur_get_tbl_on_GPU(ctl); 
-  }
-  else {
-    printf("DEBUG #%d call initilaze CPU..\n", ctl->MPIglobrank);
-    tbl = get_tbl(ctl);
-  }
-  double toc = omp_get_wtime();
-  printf("TIMER #%d jurassic-gpu table initialization time: %lf\n", ctl->MPIglobrank, toc - tic);
-} // jur_table_initialization
+  __host__
+  void jur_table_initialization(ctl_t *ctl) {
+    double tic = omp_get_wtime(); 
+    trans_table_t *tbl;
+    if(ctl->useGPU) {
+      printf("DEBUG #%d call initilaze GPU..\n", ctl->MPIglobrank);
+      tbl = jur_get_tbl_on_GPU(ctl); 
+    }
+    else {
+      printf("DEBUG #%d call initilaze CPU..\n", ctl->MPIglobrank);
+      tbl = get_tbl(ctl);
+    }
+    double toc = omp_get_wtime();
+    printf("TIMER #%d jurassic-gpu table initialization time: %lf\n", ctl->MPIglobrank, toc - tic);
+  } // jur_table_initialization
