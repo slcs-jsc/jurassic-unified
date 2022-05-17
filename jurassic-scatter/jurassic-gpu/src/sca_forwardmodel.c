@@ -7,6 +7,11 @@
 #define __host__
 #include "interface.h"
 
+
+// declaration of the functions from CPUdrivers.c
+double jur_continua_core_CPU(ctl_t const *ctl, pos_t const *los, int const id);
+void jur_hydrostatic1d_CPU(ctl_t const *ctl, atm_t *atm, int const nr, int const ig_h2o);
+
 /*****************************************************************************/
 
 void jur_sca_copy_obs_row(obs_t const *source, int rs, obs_t *dest, int rd) {
@@ -124,7 +129,7 @@ void jur_sca_formod(ctl_t *ctl,
   static int ig_h2o = -999;
   if((ctl->ctm_h2o) && (-999 == ig_h2o)) ig_h2o = jur_find_emitter(ctl, "H2O");
 
-  hydrostatic1d_CPU(ctl, atm, obs->nr, ig_h2o); // in this call atm might get modified
+  jur_hydrostatic1d_CPU(ctl, atm, obs->nr, ig_h2o); // in this call atm might get modified
   
   /* Particles: Calculate optical properties in retrieval */
   if(ctl->retnn || ctl->retrr || ctl->retss) {
@@ -457,7 +462,7 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
 
     /* Get continuum absorption... */
     for(id = 0; id < ctl->nd; id++)
-      beta_ctm[id] = continua_core_CPU(ctl, &los[ip], id) / los[ip].ds;
+      beta_ctm[id] = jur_continua_core_CPU(ctl, &los[ip], id) / los[ip].ds;
 
     /* Compute Planck function... */
     for(id = 0; id < ctl->nd; id++) {

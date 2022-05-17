@@ -77,11 +77,11 @@
     #define getUnifiedMemory(TYPE, NUM) (TYPE *)__allocate_unified_memory((NUM)*sizeof(TYPE), __FILE__, __LINE__)
     
   extern "C" {
-	  trans_table_t* get_tbl_on_GPU(ctl_t const *ctl); 
+	  trans_table_t* jur_get_tbl_on_GPU(ctl_t const *ctl); 
   }
     __host__
-	trans_table_t* get_tbl_on_GPU(ctl_t const *ctl) {
-    printf("DEBUG #%d get_tbl_on_GPU was called..\n", ctl->MPIglobrank);
+	trans_table_t* jur_get_tbl_on_GPU(ctl_t const *ctl) {
+    printf("DEBUG #%d jur_get_tbl_on_GPU was called..\n", ctl->MPIglobrank);
 		static trans_table_t *tbl_G = nullptr;
 		if (!tbl_G) {
       printf("DEBUG #%d tbl_G == nullptr\n", ctl->MPIglobrank);
@@ -96,7 +96,7 @@
 #endif
 		} // !tbl_G
 		return tbl_G;
-	} // get_tbl_on_GPU
+	} // jur_get_tbl_on_GPU
 
 	// ################ GPU driver routines - keep consistent with CPUdrivers.cu ##############
 
@@ -404,7 +404,7 @@
                   ctl_G = malloc_GPU(ctl_t, 1);
                   copy_data_to_GPU(ctl_G, ctl, sizeof(ctl_t), 0);
                   double tic = omp_get_wtime();
-                  tbl_G = get_tbl_on_GPU(ctl);
+                  tbl_G = jur_get_tbl_on_GPU(ctl);
                   double toc = omp_get_wtime();
                   printf("TIMER #%d jurassic-gpu reading table time: %lf\n",
                   ctl->MPIglobrank, toc - tic);

@@ -3,7 +3,7 @@
 	// ################ CPU driver routines - keep consistent with GPUdrivers.cu ##############
 
     __host__
-	void radiance_to_brightness_CPU(ctl_t const *ctl, obs_t *obs) {
+	void jur_radiance_to_brightness_CPU(ctl_t const *ctl, obs_t *obs) {
 #pragma omp parallel for
 		for(int ir = 0; ir < obs->nr; ir++) { // loop over rays
 			for(int id = 0; id < ctl->nd; id++) { // loop over detectors
@@ -11,20 +11,20 @@
 				obs->rad[ir][id] = brightness_core(obs->rad[ir][id], ctl->nu[id]);
 			} // id
 		} // ir
-	} // radiance_to_brightness
+	} // jur_radiance_to_brightness
 
 	__host__
-	void surface_terms_CPU(trans_table_t const *tbl, obs_t *obs, double const tsurf[], int const nd) {
+	void jur_surface_terms_CPU(trans_table_t const *tbl, obs_t *obs, double const tsurf[], int const nd) {
 #pragma omp  parallel for
 		for(int ir = 0; ir < obs->nr; ir++) { // loop over rays
 			for(int id = 0; id < nd; id++) { // loop over detectors
 				add_surface_core(obs, tbl, tsurf[ir], ir, id);
 			} // id
 		} // ir
-	} // surface_terms_CPU
+	} // jur_surface_terms_CPU
 
   __host__ __device__ __ext_inline__
-  double continua_core_CPU(ctl_t const *ctl, pos_t const *los, int const id) {
+  double jur_continua_core_CPU(ctl_t const *ctl, pos_t const *los, int const id) {
       static int init = 0;
       static int CO2, H2O, N2, O2, ig_co2, ig_h2o;
       if(!init) {
@@ -53,10 +53,10 @@
       if(N2)  beta_ds += continua_ctmn2(ctl->nu[id], p, t)*ds;  // n2 continuum
       if(O2)  beta_ds += continua_ctmo2(ctl->nu[id], p, t)*ds;  // o2 continuum
       return     beta_ds;
-  } // continua_core_CPU
+  } // jur_continua_core_CPU
 
 	__host__
-	void apply_kernels_CPU(trans_table_t const *tbl, ctl_t const *ctl, obs_t *obs, 
+	void jur_apply_kernels_CPU(trans_table_t const *tbl, ctl_t const *ctl, obs_t *obs, 
         pos_t const (*restrict los)[NLOS], int const np[], 
         double const (*restrict aero_beta)[ND]) { // aero_beta is added
 
@@ -75,7 +75,7 @@
 				for(int id = 0; id < ctl->nd; id++) { // loop over detector channels
 
 					// compute extinction coefficient
-					double const beta_ds = continua_core_CPU(ctl, &(los[ir][ip]), id);
+					double const beta_ds = jur_continua_core_CPU(ctl, &(los[ir][ip]), id);
 					
           // Bug found here:
           double aero_ds = 0;
@@ -97,34 +97,34 @@
 			} // ip --> non-parallelisable due to loup carried dependency
 		} // ir --> OpenMP parallel over rays
 
-	} // apply_kernels_CPU
+	} // jur_apply_kernels_CPU
 
 	__host__
-	void raytrace_rays_CPU(ctl_t const *ctl, atm_t const *atm, obs_t *obs, 
+	void jur_raytrace_rays_CPU(ctl_t const *ctl, atm_t const *atm, obs_t *obs, 
                            pos_t los[NR][NLOS], double tsurf[], int np[], 
                            int const *atm_id, aero_t const *aero, int scattering_included) {
 #pragma omp parallel for
 		for(int ir = 0; ir < obs->nr; ir++) { // loop over rays
       np[ir] = traceray(ctl, &atm[(NULL == atm_id ? 0 : atm_id[ir])], obs, ir, los[ir], &tsurf[ir], aero, scattering_included);
 		} // ir
-	} // raytrace_rays_CPU
+	} // jur_raytrace_rays_CPU
 
 	__host__
-	void hydrostatic1d_CPU(ctl_t const *ctl, atm_t *atm, int const num_of_atms, int const ig_h2o) {
+	void jur_hydrostatic1d_CPU(ctl_t const *ctl, atm_t *atm, int const num_of_atms, int const ig_h2o) {
 			if(ctl->hydz < 0) return; // Check reference height
 			for(int i = 0; i < num_of_atms; i++) { // Apply hydrostatic equation to individual profiles
 				hydrostatic_1d_h2o(ctl, &atm[i], 0, atm[i].np, ig_h2o);
 			} // i
-	} // hydrostatic1d_CPU
+	} // jur_hydrostatic1d_CPU
   
 	// ################ end of CPU driver routines ##############
   
 	// The full forward model on the CPU ////////////////////////////////////////////
 	__host__
-	void formod_one_package_CPU(ctl_t const *ctl, atm_t *atm, obs_t *obs,
+	void jur_formod_one_package_CPU(ctl_t const *ctl, atm_t *atm, obs_t *obs,
                   int const *atm_id, aero_t const *aero) { // NULL == atm_id if all observations use the same atm
                                                            // otherwise |atm_id| == obs -> nr
-    printf("DEBUG #%d formod_one_package_CPU was called!\n", ctl->MPIglobrank);
+    printf("DEBUG #%d jur_formod_one_package_CPU was called!\n", ctl->MPIglobrank);
   
     if (ctl->checkmode) {
       printf("# %s: checkmode = %d, no actual computation is performed!\n", __func__, ctl->checkmode);
@@ -144,37 +144,37 @@
 		static int ig_h2o = -999;
 		if((ctl->ctm_h2o) && (-999 == ig_h2o)) ig_h2o = jur_find_emitter(ctl, "H2O");
 
-    hydrostatic1d_CPU(ctl, atm, jur_get_num_of_atms(obs->nr, atm_id), ig_h2o); // in this call atm might get modified
+    jur_hydrostatic1d_CPU(ctl, atm, jur_get_num_of_atms(obs->nr, atm_id), ig_h2o); // in this call atm might get modified
     // if formod function was NOT called from jurassic-scatter project
     if(NULL != aero && ctl->sca_n > 0) { // only if scattering is included
-      raytrace_rays_CPU(ctl, atm, obs, los, t_surf, np, atm_id, aero, 1);
+      jur_raytrace_rays_CPU(ctl, atm, obs, los, t_surf, np, atm_id, aero, 1);
     } else {  
-      raytrace_rays_CPU(ctl, atm, obs, los, t_surf, np, atm_id, NULL, 0);
+      jur_raytrace_rays_CPU(ctl, atm, obs, los, t_surf, np, atm_id, NULL, 0);
     }
 
     // "beta_a" -> 'a', "beta_e" -> 'e'
     char const beta_type = ctl->sca_ext[5];
 
-    apply_kernels_CPU(tbl, ctl, obs, los, np, 
+    jur_apply_kernels_CPU(tbl, ctl, obs, los, np, 
                       NULL == aero ? NULL : ('a' == beta_type ? aero->beta_a : aero->beta_e));
-    surface_terms_CPU(tbl, obs, t_surf, ctl->nd);
+    jur_surface_terms_CPU(tbl, obs, t_surf, ctl->nd);
 
 		free(los);
 		free(np);
 		free(t_surf);
 
     if(ctl->write_bbt && ctl->leaf_nr == -1)  // convert radiance to brightness (in-place)
-		  radiance_to_brightness_CPU(ctl, obs);
+		  jur_radiance_to_brightness_CPU(ctl, obs);
 
 		apply_mask(mask, obs, ctl);
-	} // formod_one_package_CPU
+	} // jur_formod_one_package_CPU
 
 	__host__
 	void jur_formod_multiple_packages_CPU(ctl_t const *ctl, atm_t *atm, obs_t *obs, int n, int const *atm_id, aero_t const *aero) {
     if(NULL == atm_id || 1 == n) {
       #pragma omp parallel for
       for(int i = 0; i < n; i++) {
-        formod_one_package_CPU(ctl, atm, &obs[i], atm_id, aero);
+        jur_formod_one_package_CPU(ctl, atm, &obs[i], atm_id, aero);
       }
     }
     else {
@@ -185,7 +185,7 @@
 
       #pragma omp parallel for
       for(int i = 0; i < n; i++) {
-        formod_one_package_CPU(ctl, divided_atms[i], &obs[i], divided_atm_ids[i], aero);
+        jur_formod_one_package_CPU(ctl, divided_atms[i], &obs[i], divided_atm_ids[i], aero);
       }
       
       for(int i = 0; i < n; i++) {
@@ -195,7 +195,7 @@
       free(divided_atms);
       free(divided_atm_ids);
     }
-  }
+  } // jur_formod_multiple_packages_CPU
 
   __host__ 
   void jur_formod_multiple_packages_GPU(ctl_t const *ctl, atm_t *atm, obs_t *obs,
@@ -221,7 +221,7 @@
             } // warnGPU
             jur_formod_multiple_packages_CPU(ctl, atm, obs, n, aero);
         } //
-    } // formod_multiple_packages_GPU
+    } // jur_formod_multiple_packages_GPU
 #endif
 
 	__host__
@@ -247,11 +247,11 @@ void jur_formod(ctl_t const *ctl, // function with the original parameters, with
     atm_t *atm, 
     obs_t *obs) {
       jur_formod_multiple_packages(ctl, atm, obs, 1, NULL, NULL);
-    }
+} // jur_formod
 
 //we could use the same trick as above but it's not necessary
 __host__
-trans_table_t* get_tbl_on_GPU(ctl_t const *ctl)
+trans_table_t* jur_get_tbl_on_GPU(ctl_t const *ctl)
 #ifdef hasGPU
     ; // declaration only, will be provided by GPUdrivers.o at link time 
 #else
@@ -274,7 +274,7 @@ trans_table_t* get_tbl_on_GPU(ctl_t const *ctl)
             printf("DEBUG #%d call initilaze CPU..\n", ctl->MPIglobrank);
             return get_tbl(ctl);
         } //
-    } // get_tbl_on_GPU
+    } // jur_get_tbl_on_GPU
 #endif
 
 __host__
@@ -283,7 +283,7 @@ void jur_table_initialization(ctl_t *ctl) {
   trans_table_t *tbl;
   if(ctl->useGPU) {
     printf("DEBUG #%d call initilaze GPU..\n", ctl->MPIglobrank);
-    tbl = get_tbl_on_GPU(ctl); 
+    tbl = jur_get_tbl_on_GPU(ctl); 
   }
   else {
     printf("DEBUG #%d call initilaze CPU..\n", ctl->MPIglobrank);
@@ -291,4 +291,4 @@ void jur_table_initialization(ctl_t *ctl) {
   }
   double toc = omp_get_wtime();
   printf("TIMER #%d jurassic-gpu table initialization time: %lf\n", ctl->MPIglobrank, toc - tic);
-}
+} // jur_table_initialization

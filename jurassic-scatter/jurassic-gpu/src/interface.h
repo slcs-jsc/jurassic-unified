@@ -16,7 +16,7 @@ trans_table_t* get_tbl(ctl_t const *ctl);
 
 double src_planck_core(trans_table_t const *tbl, double const t, int const id);
 
-double continua_core_CPU(ctl_t const *ctl, pos_t const *los, int const id);
+double jur_continua_core_CPU(ctl_t const *ctl, pos_t const *los, int const id);
 
 double apply_ega_core(trans_table_t const *tbl, pos_t const *los, double (*ptr tau_path), int const ng, int const id);
 
@@ -36,7 +36,7 @@ void jur_read_obs(char const *dirname, char const *filename, ctl_t *ctl, obs_t *
 
 void jur_write_obs(char const *dirname, char const *filename, ctl_t *ctl, obs_t *obs);
 
-void hydrostatic1d_CPU(ctl_t const *ctl, atm_t *atm, int const nr, int const ig_h2o);
+void jur_hydrostatic1d_CPU(ctl_t const *ctl, atm_t *atm, int const nr, int const ig_h2o);
 
 int jur_find_emitter(ctl_t const *ctl, char const *emitter);
 
