@@ -420,34 +420,6 @@ typedef struct {  /// Transposed emissivity look-up tables. - GPU version  /////
 } trans_table_t; ///////////////////////////////////////////////////////////////////////
 
 /// --------------------------------- for scattering -----------------------------------
-typedef struct { /// Emissivity look-up tables. ////////////////////////////////////////
-  int np[NGMAX][NDMAX];                                 /// Number of pressure levels.
-  int nt[NGMAX][NDMAX][TBLNPMAX];                       /// Number of temperatures.
-  int nu[NGMAX][NDMAX][TBLNPMAX][TBLNTMAX];             /// Number of column densities.
-  double p[NGMAX][NDMAX][TBLNPMAX];                     /// Pressure [hPa].
-  double t[NGMAX][NDMAX][TBLNPMAX][TBLNTMAX];           /// Temperature [K].
-  float u[NGMAX][NDMAX][TBLNPMAX][TBLNTMAX][TBLNUMAX];  /// Column density [molecules/cm^2].
-  float eps[NGMAX][NDMAX][TBLNPMAX][TBLNTMAX][TBLNUMAX];/// Emissivity.
-  double st[TBLNSMAX];                                  /// Source function temperature [K].
-  double sr[NDMAX][TBLNSMAX];                           /// Source function radiance [W/(m^2 sr cm^-1)].
-} tbl_t; ///////////////////////////////////////////////////////////////////////////////
-
-typedef struct { /// Line-of-sight data. ///////////////////////////////////////////////
-  int np;                 /// Number of LOS points.
-  double z[NLOS];         /// Altitude [km].
-  double lon[NLOS];       /// Longitude [deg].
-  double lat[NLOS];       /// Latitude [deg].
-  double p[NLOS];         /// Pressure [hPa].
-  double t[NLOS];         /// Temperature [K].
-  double q[NLOS][NGMAX];  /// Volume mixing ratio.
-  double k[NLOS][NWMAX];  /// Extinction [1/km].
-  int aeroi [NLOS];       /// Aerosol/cloud layer index
-  double aerofac[NLOS];   /// Aerosol/cloud layer scaling factor for transition layer
-  double tsurf;           /// Surface temperature [K].
-  double ds[NLOS];        /// Segment length [km].
-  double u[NLOS][NGMAX];  /// Column density [molecules/cm^2].
-} los_t; ///////////////////////////////////////////////////////////////////////////////
-
 typedef struct { /// Aerosol and Cloud properties. /////////////////////////////////////
   /// Aerosol and cloud input parameters
   int nm;                         /// Number of aerosol/cloud models
