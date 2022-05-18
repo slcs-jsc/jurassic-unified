@@ -78,9 +78,6 @@
 #define LIN(x0, y0, x1, y1, x)			\
   ((y0)+((y1)-(y0))/((x1)-(x0))*((x)-(x0)))
 
-/* Write log message. */
-#define LOGMSG(lev, cmd) {if(lev<=VERBLEV) cmd;}
-
 /* Execute netCDF library command and check result. */
 #define NC(cmd) {				     \
     if((cmd)!=NC_NOERR)				     \
@@ -120,15 +117,6 @@
       if(sscanf(tok, format, &(var))!=1) continue;	\
     } else ERRMSG("Error while reading!");		\
   }
-
-/* ------------------------------------------------------------
-   Redefinable constants...
-   ------------------------------------------------------------ */
-
-/* Verbosity level. */
-#ifndef VERBLEV
-#define VERBLEV 2
-#endif
 
 /* ------------------------------------------------------------
    Constants...
