@@ -1,63 +1,10 @@
-/*
-	 This file is part of JURASSIC.
-
-	 JURASSIC is free software: you can redistribute it and/or modify
-	 it under the terms of the GNU General Public License as published by
-	 the Free Software Foundation, either version 3 of the License, or
-	 (at your option) any later version.
-
-	 JURASSIC is distributed in the hope that it will be useful,
-	 but WITHOUT ANY WARRANTY; without even the implied warranty of
-	 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	 GNU General Public License for more details.
-
-	 You should have received a copy of the GNU General Public License
-	 along with JURASSIC. If not, see <http://www.gnu.org/licenses/>.
-
-	 Copright (C) 2003-2015 Forschungszentrum Juelich GmbH
-	 */
-
-/*!
-	\file
-	JURASSIC library definitions.
-	*/
 #include "jurassic.h"
 #include "jr_binary_tables_io.h" // jr_write_binary_tables, jr_read_binary_tables
 
-    double jur_gravity(double const z, double const lat);
-//     {
-//         double const deg2rad = M_PI/180., x = sin(lat*deg2rad), y = sin(2*lat*deg2rad);
-//         return 9.780318*(1. + 0.0053024*x*x - 5.8e-6*y*y) - 3.086e-3*z;
-//     } // gravity
-
-	int jur_locate(double const *xx, int const n, double const x); 
-//     {
-//         int ilo = 0, ihi = n - 1, i = (n - 1) >> 1;
-//         if(xx[i] < xx[i + 1]) {
-//             while (ihi > ilo + 1) { // divergent execution on GPU happens here
-//                 i = (ihi + ilo) >> 1;
-//                 if(xx[i] > x) ihi = i;
-//                 else					ilo = i;
-//             } // while
-//         } else {
-//             while (ihi > ilo + 1) {
-//                 i = (ihi + ilo) >> 1;
-//                 if(xx[i] <= x) ihi = i;
-//                 else					 ilo = i;
-//             } // while
-//         } // if
-//         return ilo;
-//     } // locate
-
-// #define grd2rad (M_PI/180)
-	void jur_geo2cart(double const alt, double const lon, double const lat, double x[]);
-//     {
-// 		double const radius = alt + RE, clat = cos(lat*grd2rad);
-// 		x[0] = radius*clat*cos(lon*grd2rad);
-// 		x[1] = radius*clat*sin(lon*grd2rad);
-// 		x[2] = radius*sin(lat*grd2rad);
-// 	} // geo2cart
-    
+// declarations of functions from jr_common.h:
+double jur_gravity(double const z, double const lat);
+int jur_locate(double const *xx, int const n, double const x); 
+void jur_geo2cart(double const alt, double const lon, double const lat, double x[]);
 
 #define rad2grd (180/M_PI)
 #define grd2rad (M_PI/180)
