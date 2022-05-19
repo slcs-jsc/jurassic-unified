@@ -16,4 +16,4 @@ for val in ${structs[@]}; do
   find ./ -type f -exec sed -i -e 's/'$val'/jur_'$val'/g' {} \;
 done
 
-make
+make libjurassic_unified.a
