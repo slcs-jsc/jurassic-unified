@@ -17,7 +17,7 @@ void jur_sca_copy_obs_row(obs_t const *source, int rs, obs_t *dest, int rd) {
   dest->tpz[rd] = source->tpz[rs];
   dest->tplon[rd] = source->tplon[rs];
   dest->tplat[rd] = source->tplat[rs];
-  for(int i=0; i<ND; i++) {
+  for(int i=0; i<NDMAX; i++) {
     dest->tau[rd][i] = source->tau[rs][i]; //CHANGED
     dest->rad[rd][i] = source->rad[rs][i]; //CHANGED
   }
@@ -35,7 +35,7 @@ void jur_sca_advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs,
 
   int sum_sizes = pref_sizes[nr - 1] + qs[nr - 1].end - qs[nr - 1].begin;
   
-  int number_of_packages = (sum_sizes + NR - 1) / NR;
+  int number_of_packages = (sum_sizes + NRMAX - 1) / NRMAX;
  
   double tic, toc;
   tic = omp_get_wtime();
@@ -43,12 +43,12 @@ void jur_sca_advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs,
   obs_t *obs_packages;
   ALLOC(obs_packages, obs_t, number_of_packages);
  
-  int last_package_size = sum_sizes % NR;
+  int last_package_size = sum_sizes % NRMAX;
   for(int i = 0; i < number_of_packages; i++)
     if(i == number_of_packages - 1 && last_package_size > 0)
       obs_packages[i].nr = last_package_size;
     else
-      obs_packages[i].nr = NR;
+      obs_packages[i].nr = NRMAX;
 
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -57,8 +57,8 @@ void jur_sca_advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs,
     for(int j = 0; j < qs[i].end - qs[i].begin; j++) {
       int ind;
       obs_t *obs;
-      int package_id = (pref_sizes[i] + j) / NR;
-      int obs_row = (pref_sizes[i] + j) % NR;
+      int package_id = (pref_sizes[i] + j) / NRMAX;
+      int obs_row = (pref_sizes[i] + j) % NRMAX;
       jur_sca_get_queue_item(&qs[i], (void*)&obs, &ind, qs[i].begin + j);
       jur_sca_copy_obs_row(obs, ind, &obs_packages[package_id], obs_row);
     }
@@ -84,8 +84,8 @@ void jur_sca_advanced_execute(ctl_t *ctl, atm_t *atm, aero_t *aero, queue_t *qs,
     for(int j = 0; j < qs[i].end - qs[i].begin; j++) {
       int ind;
       obs_t *obs; 
-      int package_id = (pref_sizes[i] + j) / NR;
-      int obs_row = (pref_sizes[i] + j) % NR;
+      int package_id = (pref_sizes[i] + j) / NRMAX;
+      int obs_row = (pref_sizes[i] + j) % NRMAX;
       jur_sca_get_queue_item(&qs[i], (void*)&obs, &ind, qs[i].begin + j);
       jur_sca_copy_obs_row(&obs_packages[package_id], obs_row, obs, ind);
     }
@@ -283,8 +283,8 @@ void jur_sca_formod_fov(ctl_t *ctl,
   
   static obs_t obs2;
   
-  static double dz[NSHAPE], rad[NDMAX][NRMAX], tau[NDMAX][NRMAX],
-    w[NSHAPE], wsum, z[NRMAX], zfov;
+  static double dz[NSHAPEMAX], rad[NDMAX][NRMAX], tau[NDMAX][NRMAX],
+    w[NSHAPEMAX], wsum, z[NRMAX], zfov;
   
   static int init=0, i, id, idx, ir, ir2, n, nz;
   
@@ -306,7 +306,7 @@ void jur_sca_formod_fov(ctl_t *ctl,
     
     /* Get radiance and transmittance profiles... */
     nz=0;
-    for(ir2=GSL_MAX(ir-NFOV, 0); ir2<GSL_MIN(ir+1+NFOV, obs->nr); ir2++)
+    for(ir2=GSL_MAX(ir-NFOVMAX, 0); ir2<GSL_MIN(ir+1+NFOVMAX, obs->nr); ir2++)
       if(obs->time[ir2]==obs->time[ir]) {
 	z[nz]=obs2.tpz[ir2];
 	for(id=0; id<ctl->nd; id++) {
@@ -387,7 +387,7 @@ void jur_sca_formod_pencil(ctl_t *ctl,
   
 if ((Queue_Collect|Queue_Prepare) & queue_mode) { /* CPp */
   /* Allocate... */
-  los = (pos_t*) malloc((NLOS) * sizeof(pos_t));
+  los = (pos_t*) malloc((NLOSMAX) * sizeof(pos_t));
 
   /* Raytracing... */
   np = jur_traceray(ctl, atm, obs, ir, los, &tsurf, aero, 1); // with scattering
@@ -415,7 +415,7 @@ if (Queue_Collect_Leaf == queue_mode) { /* ==c */
 
 if (Queue_Execute_Leaf == queue_mode) { /* ==x */
   jur_sca_get_queue_item(q, (void*)&obs, &ir, ir); /* get input */
-  los = (pos_t*) malloc((NLOS) * sizeof(pos_t));
+  los = (pos_t*) malloc((NLOSMAX) * sizeof(pos_t));
   np = jur_traceray(ctl, atm, obs, ir, los, &tsurf, aero, 1); // with scattering
 } /* ==x */
 
@@ -431,7 +431,7 @@ if ((Queue_Collect|Queue_Execute_Leaf) & queue_mode) { /* Cx */
     obs->rad[ir][id]=0.0; //CHANGED
     obs->tau[ir][id]=1.0; //CHANGED
     // added for jurassic-gpu tau_gas
-    for(ig = 0; ig < NG; ig++) { // loop over gases
+    for(ig = 0; ig < NGMAX; ig++) { // loop over gases
       tau_path[id][ig] = 1.0;
     } // ig
   }
@@ -564,7 +564,7 @@ void jur_sca_read_shape(const char *filename,
   
   FILE *in;
   
-  char line[LEN];
+  char line[LENMAX];
   
   /* Write info... */
   /*printf("Read shape function: %s\n", filename); */
@@ -575,9 +575,9 @@ void jur_sca_read_shape(const char *filename,
   
   /* Read data... */
   *n=0;
-  while(fgets(line, LEN, in))
+  while(fgets(line, LENMAX, in))
     if(sscanf(line,"%lg %lg", &x[*n], &y[*n])==2)
-      if((++(*n))>NSHAPE)
+      if((++(*n))>NSHAPEMAX)
         ERRMSG("Too many data points!");
   
   /* Check number of points... */

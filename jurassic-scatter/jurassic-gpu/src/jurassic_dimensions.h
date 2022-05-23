@@ -6,90 +6,72 @@
    ------------------------------------------------------------ */
 
 /* Maximum length of ASCII data lines. */
-#define LEN 5000 //Ok!
+#define LENMAX 5000
 
 /* Maximum size of measurement vector. */
-#define MMAX (NRMAX*NDMAX) //TODO: M (NR*ND)
-#define M MMAX
+#define MMAX (NRMAX*NDMAX)
 
 /* Maximum size of state vector. */
-#define NMAX (NQMAX*NPMAX) //TODO: N (NQ*NP)
-#define N NMAX
+#define NMAX (NQMAX*NPMAX)
 
 /* Maximum number of quantities. */
-#define NQMAX (2+NGMAX+NWMAX) //TODO: NQ (2+NG+NW)
-#define NQ NQMAX
+#define NQMAX (2+NGMAX+NWMAX)
 
 /* Maximum number of spectral windows. */
-#define NWMAX 5 //TODO: NW 1 
-#define NW NWMAX
+#define NWMAX 5
 
 /* Maximum number of radiance channels. */
-#define NDMAX 70 //TODO: ifndef ND 100
-#ifndef ND
-  #define ND NDMAX 
-#endif
+#define NDMAX 70
 
 /* Maximum number of emitters. */
-#define NGMAX 23 //TODO: ifndef NG 30
-#ifndef NG
-  #define NG NGMAX
-#endif  
+#define NGMAX 23
 
 /* Maximum number of LOS points. */
-#define NLOS 10000 //TODO: NLOS 400
+#define NLOSMAX 10000
 
 /* Maximum number of atmospheric data points. */
-#define NPMAX 1000 //TODO: NP 9600
-#define NP NPMAX
+#define NPMAX 1000
 
 /* Maximum number of ray paths. */
-#define NRMAX 1000 //TODO: NR 1088
-#define NR NRMAX
+#define NRMAX 1000
 
 /* Maximum number of shape function grid points. */
-#define NSHAPE 10000 //TODO: NSHAPE 2048 | TODO: ?
+#define NSHAPEMAX 10000
 
 /* Number of ray paths used for FOV calculations. */
-#define NFOV 50 //TODO: NFOV 5
+#define NFOVMAX 50
 
 /* Maximum number of pressure levels in emissivity tables. */
-#define TBLNPMAX 45 //TODO: TBLNP 40
-#define TBLNP TBLNPMAX
+#define TBLNPMAX 45
 
 /* Maximum number of source function temperature levels. */
-#define TBLNSMAX 1201 //TODO: TBLNS 1201
-#define TBLNS TBLNSMAX
+#define TBLNSMAX 1201
 
 /* Maximum number of temperatures in emissivity tables. */
-#define TBLNTMAX 30 //TODO: TBLNT 30
-#define TBLNT TBLNTMAX
+#define TBLNTMAX 30
 
 /* Maximum number of column densities in emissivity tables. */
-#define TBLNUMAX 430 //TODO: TBLNU 304
-#define TBLNU TBLNUMAX
+#define TBLNUMAX 430
 
 /* Maximum number of scattering models. */
-#define SCAMOD 30
+#define SCAMODMAX 30
 
 /* Maximum number of aerosol/cloud layers */
 #define NLMAX 10
 
 /* Number of scattering angles (from 0 to 180 deg). */
-#define NTHETA 181
+#define NTHETAMAX 181
 
 /* Number of points for Gauss-Hermite integration. */
-#define NRAD 170
+#define NRADMAX 170
 
 /* Maximum number of refractive indices. */
 #define REFMAX 5000
 
-//Added:
-
 /* Maximum number of RFM spectral grid points. */
-#define RFMNPTS 10000000
+#define RFMNPTSMAX 10000000
 
 /* Maximum length of RFM data lines. */
-#define RFMLINE 100000
+#define RFMLINEMAX 100000
 
 #endif

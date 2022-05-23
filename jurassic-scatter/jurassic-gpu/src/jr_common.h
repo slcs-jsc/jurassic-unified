@@ -104,7 +104,7 @@
     } // jur_locate
 
 	__host__ __device__ __ext_inline__
-    int jur_locate_id(double const (*ptr xx)[ND], int const n, double const x, int const id) {
+    int jur_locate_id(double const (*ptr xx)[NDMAX], int const n, double const x, int const id) {
         int ilo = 0, ihi = n - 1;
         while (ihi > ilo + 1) { // divergent execution on GPU happens here
             int i = (ihi + ilo) >> 1;
@@ -114,7 +114,7 @@
     } // jur_locate_id
 
 	__host__ __device__ __ext_inline__
-    int jur_locate_tbl_id(real_tblND_t const (*ptr xx)[ND], int const n, double const x, int const id, int const i0) {
+    int jur_locate_tbl_id(real_tblND_t const (*ptr xx)[NDMAX], int const n, double const x, int const id, int const i0) {
         int ilo = i0, ihi = n - 1;
         while (ihi > ilo + 1) { // divergent execution on GPU happens here
             int i = (ihi + ilo) >> 1;
@@ -194,7 +194,7 @@
 
 	// Save observation mask prior to formod ////////////////////////////////////
 	__host__ __ext_inline__
-    void jur_save_mask(char mask[NR][ND], obs_t const *obs, ctl_t const *ctl) {
+    void jur_save_mask(char mask[NRMAX][NDMAX], obs_t const *obs, ctl_t const *ctl) {
 		for(int ir = 0; ir < obs->nr; ir++) {
 			for(int id = 0; id < ctl->nd; id++) {
 				mask[ir][id] = !gsl_finite(obs->rad[ir][id]);
@@ -204,7 +204,7 @@
 
 	// Apply observation mask after formod ///////////////////////////////////////
 	__host__ __ext_inline__
-	void jur_apply_mask(char mask[NR][ND], obs_t *obs, ctl_t const *ctl) {
+	void jur_apply_mask(char mask[NRMAX][NDMAX], obs_t *obs, ctl_t const *ctl) {
 		for(int ir = 0; ir < obs->nr; ir++) {
 			for(int id = 0; id < ctl->nd; id++) {
 				if (mask[ir][id]) obs->rad[ir][id] = GSL_NAN;
@@ -222,7 +222,7 @@
 	// Black body radiation //////////////////////////////////////////////////////
 	__host__ __device__ __ext_inline__
     double jur_src_planck_core(trans_table_t const *tbl, double const t, int const id) {
-        int const it = jur_locate_st(tbl->st, TBLNS, t);
+        int const it = jur_locate_st(tbl->st, TBLNSMAX, t);
         return jur_lip(tbl->st[it], tbl->sr[it][id], tbl->st[it + 1], tbl->sr[it + 1][id], t);
     } // jur_src_planck_core
 
@@ -230,7 +230,7 @@
 	__host__ __device__ __ext_inline__ 
     void jur_add_surface_core(obs_t *obs, trans_table_t const *tbl, double const tsurf, int const ir, int const id) {
         if(tsurf > 0.) {
-            int const it = jur_locate_st(tbl->st, TBLNS, tsurf);
+            int const it = jur_locate_st(tbl->st, TBLNSMAX, tsurf);
             double const src = jur_lip(tbl->st[it], tbl->sr[it][id], tbl->st[it + 1], tbl->sr[it + 1][id], tsurf);
             obs->rad[ir][id] += src*obs->tau[ir][id];
         } // if
@@ -273,7 +273,7 @@
 	__host__ __device__ __ext_inline__
     double jur_apply_ega_core(trans_table_t const *tbl, pos_t const *los, double (*ptr tau_path), int const ng, int const id) {
         double tau_gas = 1.0;
-        for(int ig = 0; ig < NG; ig++) { // to enable unrolling of this loop, static indexing into tau_path, so tau_path can stay in regfile
+        for(int ig = 0; ig < NGMAX; ig++) { // to enable unrolling of this loop, static indexing into tau_path, so tau_path can stay in regfile
             double eps = 1.0;
             if (ig < ng) eps = jur_ega_eps(tbl, tau_path[ig], los->t, los->u[ig], los->p, ig, id);
             tau_path[ig] *= eps;
@@ -284,8 +284,8 @@
 
 	__host__ __device__ __ext_inline__
     void jur_apply_ega_kernel(trans_table_t const *tbl, pos_t const *los,
-            double (*ptr tau_path)[NG], // tau_path[id][ig] gets modified as well
-            double *ptr tau_gas, // [ND] result
+            double (*ptr tau_path)[NGMAX], // tau_path[id][ig] gets modified as well
+            double *ptr tau_gas, // [NDMAX] result
             int const ng, int const nd) {
         for(int id = 0; id < nd; id++) {
             tau_gas[id] = jur_apply_ega_core(tbl, los, tau_path[id], ng, id);
@@ -426,8 +426,8 @@
 		los->z = z;
 		los->p = p;
 		los->t = t;
-		for(int ig = 0; ig < NG; ig++) los->q[ig] = q[ig];
-		for(int iw = 0; iw < NW; iw++) los->k[iw] = k[iw];
+		for(int ig = 0; ig < NGMAX; ig++) los->q[ig] = q[ig];
+		for(int iw = 0; iw < NWMAX; iw++) los->k[iw] = k[iw];
 		los->ds = ds;
 	} // jur_write_pos_point
 
@@ -736,9 +736,9 @@
     dest -> ds  = source -> ds;  
     dest -> t   = source -> t;
     dest -> p   = source -> p;
-    for(int ig = 0; ig < NG; ig++)
+    for(int ig = 0; ig < NGMAX; ig++)
       dest -> q[ig] = source -> q[ig];
-    for(int iw = 0; iw < NW; iw++)
+    for(int iw = 0; iw < NWMAX; iw++)
       dest -> k[iw] = source -> k[iw];
   } // jur_copy_pos
 
@@ -791,9 +791,9 @@
 
     int los_aero_np = 0;
     for(int i = 0; i < np; i++) {
-      jur_copy_pos(&los[i], &los[NLOS - np + i]);
+      jur_copy_pos(&los[i], &los[NLOSMAX - np + i]);
     }
-    jur_copy_pos(&los[NLOS - np + 0], &los[0]);
+    jur_copy_pos(&los[NLOSMAX - np + 0], &los[0]);
     los_aero_np = 1;
 
     int prev_pos_index = 0;
@@ -801,31 +801,31 @@
     for (ip=1; ip<np; ip++){
 
       /* add new los points around cloud edges */
-      if ( (los[prev_pos_index].z < altimax || los[NLOS - np + ip].z < altimax) &&
-          (los[prev_pos_index].z > altimin || los[NLOS - np + ip].z > altimin) ) { 
+      if ( (los[prev_pos_index].z < altimax || los[NLOSMAX - np + ip].z < altimax) &&
+          (los[prev_pos_index].z > altimin || los[NLOSMAX - np + ip].z > altimin) ) { 
         for (il=0; il<jl;il++){ /* loop over cloud edges */
           /* von oben */
-          if(los[prev_pos_index].z > alti[il] && los[NLOS - np + ip].z < alti[il]){
-            assert(los_aero_np < NLOS - np + ip && "Too many LOS points!");
-            jur_intersection_point(ctl, atm, &alti[il], los, NLOS - np + ip, los, los_aero_np, atmIdx, atmNp);
+          if(los[prev_pos_index].z > alti[il] && los[NLOSMAX - np + ip].z < alti[il]){
+            assert(los_aero_np < NLOSMAX - np + ip && "Too many LOS points!");
+            jur_intersection_point(ctl, atm, &alti[il], los, NLOSMAX - np + ip, los, los_aero_np, atmIdx, atmNp);
             los_aero_np++; 
           }
           /* von unten */
-          if(los[prev_pos_index].z < alti[jl-il-1] && los[NLOS - np + ip].z > alti[jl-il-1]){
-            assert(los_aero_np < NLOS - np + ip && "Too many LOS points!");
-            jur_intersection_point(ctl, atm, &alti[jl-il-1], los, NLOS - np + ip, los, los_aero_np, atmIdx, atmNp);
+          if(los[prev_pos_index].z < alti[jl-il-1] && los[NLOSMAX - np + ip].z > alti[jl-il-1]){
+            assert(los_aero_np < NLOSMAX - np + ip && "Too many LOS points!");
+            jur_intersection_point(ctl, atm, &alti[jl-il-1], los, NLOSMAX - np + ip, los, los_aero_np, atmIdx, atmNp);
             los_aero_np++;
           }
         }
       }
-      jur_copy_pos(&los[NLOS - np + ip], &los[los_aero_np]);
+      jur_copy_pos(&los[NLOSMAX - np + ip], &los[los_aero_np]);
       prev_pos_index = los_aero_np;
 
-    assert(los_aero_np < NLOS - np + ip && "Too many LOS points!");
+    assert(los_aero_np < NLOSMAX - np + ip && "Too many LOS points!");
 
       /* Increment and check number of new LOS points */
       los_aero_np++;
-      assert(los_aero_np < NLOS && "Too many LOS points!");
+      assert(los_aero_np < NLOSMAX && "Too many LOS points!");
     }
 
     /* Compute segment length following trapezoidal rule */
@@ -896,12 +896,12 @@
   __host__ __device__ __ext_inline__
   int jur_traceray(ctl_t const *ctl, atm_t const *atm, obs_t *obs, int const ir, pos_t los[], double *tsurf, aero_t const *aero, int scattering_included) {
 #endif
-    double ex0[3], ex1[3], q[NG], k[NW], lat, lon, p, t, x[3], xobs[3], xvp[3], z = 1e99, z_low=z, zmax, zmin, zrefrac = 60;
+    double ex0[3], ex1[3], q[NGMAX], k[NWMAX], lat, lon, p, t, x[3], xobs[3], xvp[3], z = 1e99, z_low=z, zmax, zmin, zrefrac = 60;
 
     // Initialize
     *tsurf = -999;
-    for(int ig = 0; ig < NG; ig++) q[ig] = 0;
-    for(int iw = 0; iw < NW; iw++) k[iw] = 0;
+    for(int ig = 0; ig < NGMAX; ig++) q[ig] = 0;
+    for(int iw = 0; iw < NWMAX; iw++) k[iw] = 0;
     obs->tpz[ir]   = obs->vpz[ir];
     obs->tplon[ir] = obs->vplon[ir];
     obs->tplat[ir] = obs->vplat[ir];
@@ -939,7 +939,7 @@
     }
 
     int np = 0, z_low_idx=-1;
-    for(int stop = 0; np < NLOS; ++np) {																				// Ray-tracing
+    for(int stop = 0; np < NLOSMAX; ++np) {																				// Ray-tracing
       double ds = ctl->rayds, dz = ctl->raydz;																	// Set step length
       if(dz > 0.) {
         double const norm_x = 1.0/NORM(x);
@@ -1020,7 +1020,7 @@
       } // i
     } // np
     ++np;
-    assert(np < NLOS && "Too many LOS points!");
+    assert(np < NLOSMAX && "Too many LOS points!");
 
     // FIXME: added..
     if(scattering_included) {
@@ -1036,8 +1036,8 @@
   #ifdef CURTIS_GODSON
     if(ctl->formod == 1) jur_curtis_godson(ctl, los, np);
     // this could be done during the while loop using the aux-variables:
-    //					double cgpxu[NG];	/*! Curtis-Godson pressure times column density */
-    //					double cgtxu[NG];	/*! Curtis-Godson temperature times column density */
+    //					double cgpxu[NGMAX];	/*! Curtis-Godson pressure times column density */
+    //					double cgtxu[NGMAX];	/*! Curtis-Godson temperature times column density */
   #else
     assert(1 != ctl->formod);
   #endif

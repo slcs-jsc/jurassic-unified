@@ -12,7 +12,7 @@
 void jr_binary_tables_filename(char *filename) {
     // convention for file naming binary table files
     sprintf(filename, "bin.jurassic-fp%d-tables-g%d-p%d-T%d-u%d-d%d",
-        (int)(sizeof(real_tblND_t)*8), NG, TBLNP, TBLNT, TBLNU, ND);
+        (int)(sizeof(real_tblND_t)*8), NGMAX, TBLNPMAX, TBLNTMAX, TBLNUMAX, NDMAX);
 } // jr_binary_tables_filename
 
 int jr_binary_tables_header(char header[], size_t const header_length, ctl_t const *ctl) {
@@ -26,15 +26,15 @@ int jr_binary_tables_header(char header[], size_t const header_length, ctl_t con
        "git_key 0 " xstr(SHOW_GIT_KEY) "\n"
 #endif
        "%s   %d\n"
-       "NG     %d gases\n"
-       "TBLNP  %d pressures\n"
-       "TBLNT  %d temperatures\n"
-       "TBLNU  %d column_densities\n"
-       "ND     %d detector_channels\n"
-       "TBLNS  %d radiances",
+       "NGMAX     %d gases\n"
+       "TBLNPMAX  %d pressures\n"
+       "TBLNTMAX  %d temperatures\n"
+       "TBLNUMAX  %d column_densities\n"
+       "NDMAX     %d detector_channels\n"
+       "TBLNSMAX  %d radiances",
        BINARY_TABLES_VERSION,
        (sizeof(real_tblND_t) > 4)?"double":"float", (int)sizeof(real_tblND_t),
-       NG, TBLNP, TBLNT, TBLNU, ND, TBLNS);
+       NGMAX, TBLNPMAX, TBLNTMAX, TBLNUMAX, NDMAX, TBLNSMAX);
 
   h += sprintf(h, "\n\nfile_size   %lld\nheader_size %lld\ntable_size  %lld",
           header_length + sizeof(trans_table_t), header_length, sizeof(trans_table_t));
@@ -70,8 +70,8 @@ int jr_binary_tables_check_header(ctl_t const *ctl, char const header[], size_t 
     size_t header_size = 0, table_size = 0;
     if(header_length) *header_length = 0;
     int linenumber = 1;
-    char gas_found[NG]; for(int ig = 0; ig < NG; ++ig) gas_found[ig] = 0;
-    char nu_found[ND];  for(int id = 0; id < ND; ++id) nu_found[id] = 0;
+    char gas_found[NGMAX]; for(int ig = 0; ig < NGMAX; ++ig) gas_found[ig] = 0;
+    char nu_found[NDMAX];  for(int id = 0; id < NDMAX; ++id) nu_found[id] = 0;
     char *h = header; // set to the beginning of the header
     char varname[32];
     while (*h) { // Read from the buffer up to a null-char
@@ -92,12 +92,12 @@ int jr_binary_tables_check_header(ctl_t const *ctl, char const header[], size_t 
               break; case 0xd0b2f9c4c031: // "git_key" (only for reference)
               break; case 0x310f71e19b:   err = sizeof(real_tblND_t) - 4; assert(4 == lli); // "float"  4
               break; case 0x652f93d5b20:  err = sizeof(real_tblND_t) - 8; assert(8 == lli); // "double" 8
-              break; case 0x59749a:       err = NG - lli; // "NG"
-              break; case 0x310e148925:   err = TBLNP - lli; // "TBLNP"
-              break; case 0x310e148929:   err = TBLNT - lli; // "TBLNT"
-              break; case 0x310e14892a:   err = TBLNU - lli; // "TBLNU"
-              break; case 0x597497:       err = ND - lli; // "ND"
-              break; case 0x310e148928:   err = TBLNS - lli; // "TBLNS"
+              break; case 0x59749a:       err = NGMAX - lli; // "NGMAX"
+              break; case 0x310e148925:   err = TBLNPMAX - lli; // "TBLNPMAX"
+              break; case 0x310e148929:   err = TBLNTMAX - lli; // "TBLNTMAX"
+              break; case 0x310e14892a:   err = TBLNUMAX - lli; // "TBLNUMAX"
+              break; case 0x597497:       err = NDMAX - lli; // "NDMAX"
+              break; case 0x310e148928:   err = TBLNSMAX - lli; // "TBLNSMAX"
               break; case 0x377c80eaed4807f: // "file_size"
               break; case 0xc09431708dbaaba8: header_size = lli; // "header_size"
                     if (lli != BINARY_TABLES_HEADER_LEN)
@@ -146,8 +146,8 @@ int jr_binary_tables_check_header(ctl_t const *ctl, char const header[], size_t 
                   int const ig = (int)lli; // assume that lli is the gas index
                   if (ig < 0) {                 err = ig;
                       printf("# try to interpret %s as gas name but found index %i out of range\n", varname, ig);
-                  } else if (ig >= NG) {        err = ig;
-                      printf("# try to interpret %s as gas name but found index %i out of range %d=NG\n", varname, ig, NG);
+                  } else if (ig >= NGMAX) {        err = ig;
+                      printf("# try to interpret %s as gas name but found index %i out of range %d=NGMAX\n", varname, ig, NGMAX);
                   } else if (ig >= ctl->ng) { // this is NOT an error, we should be able to run with less gases
                       if (echo) printf("# interpret %s as gas name, found index %i larger than current setting ng=%d\n", varname, ig, ctl->ng);
                   } else {
@@ -165,8 +165,8 @@ int jr_binary_tables_check_header(ctl_t const *ctl, char const header[], size_t 
                   int const id = (int)lli; // assume that lli is the frequency index
                   if (id < 0) {                 err = id;
                       printf("# try to interpret %s as channel frequency but found index %i out of range\n", varname, id);
-                  } else if (id >= ND) {        err = id;
-                      printf("# try to interpret %s as channel frequency but found index %i out of range %d=ND\n", varname, id, ND);
+                  } else if (id >= NDMAX) {        err = id;
+                      printf("# try to interpret %s as channel frequency but found index %i out of range %d=NDMAX\n", varname, id, NDMAX);
                   } else if (id >= ctl->nd) { // this is NOT an error, we should be able to run with less channels
                      if (echo) printf("# interpret %s as channel frequency, found index %i larger than current setting nd=%d\n", varname, id, ctl->nd);
                   } else {

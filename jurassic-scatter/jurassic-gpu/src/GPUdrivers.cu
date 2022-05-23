@@ -139,16 +139,16 @@
   template<int CO2, int H2O, int N2, int O2>
     void __global__ // GPU-kernel
     jur_fusion_kernel_GPU(trans_table_t const *tbl, ctl_t const *ctl,
-        obs_t *obs, pos_t const (*restrict los)[NLOS],
+        obs_t *obs, pos_t const (*restrict los)[NLOSMAX],
         int const np[], int const ig_co2, int const ig_h2o,
-        double const (*restrict aero_beta)[ND]) {
-			double tau_path[NG];
+        double const (*restrict aero_beta)[NDMAX]) {
+			double tau_path[NGMAX];
 			for(int ir = blockIdx.x; ir < obs->nr; ir += gridDim.x) { // grid stride loop over blocks = rays
-				for(int id = threadIdx.x; id < ND; id += blockDim.x) { // grid stride loop over threads = detectors
+				for(int id = threadIdx.x; id < NDMAX; id += blockDim.x) { // grid stride loop over threads = detectors
 					obs->rad[ir][id] = 0.0;
 					obs->tau[ir][id] = 1.0;
 				} // id
-				for(int ig = 0; ig < NG; ++ig) {
+				for(int ig = 0; ig < NGMAX; ++ig) {
 					tau_path[ig] = 1.0;
 				} // ig
 				for(int ip = 0; ip < np[ir]; ++ip) {
@@ -171,9 +171,9 @@
 
     __host__
 	void jur_multi_version_GPU(char const fourbit, trans_table_t const *tbl, ctl_t const *ctl,
-			obs_t *obs, pos_t const (*restrict los)[NLOS],
+			obs_t *obs, pos_t const (*restrict los)[NLOSMAX],
 			int const np[], int const ig_co2, int const ig_h2o,
-      double const (*restrict aero_beta)[ND],
+      double const (*restrict aero_beta)[NDMAX],
 			unsigned const grid, unsigned const block, unsigned const shmem, cudaStream_t const stream) {
 #define LaunchKernel <<< grid, block, shmem, stream >>> (tbl, ctl, obs, los, np, ig_co2, ig_h2o, aero_beta)
 		switch (fourbit) {
@@ -201,7 +201,7 @@
   template<int scattering_included>
 	void __global__ // GPU-kernel
 		jur_raytrace_rays_GPU(ctl_t const *ctl, const atm_t *atm, obs_t *obs, pos_t
-    los[][NLOS], double *tsurf, int np[], int const *atm_id, aero_t const *aero) {
+    los[][NLOSMAX], double *tsurf, int np[], int const *atm_id, aero_t const *aero) {
 			for(int ir = blockIdx.x*blockDim.x + threadIdx.x; ir < obs->nr; ir += blockDim.x*gridDim.x) { // grid stride loop over rays
         np[ir] = jur_traceray<scattering_included>(ctl, &atm[(NULL == atm_id ? 0 : atm_id[ir])], obs, ir, los[ir], &tsurf[ir], aero);
 			} // ir
@@ -229,15 +229,15 @@
     aero_t *aero_G; // new
 		obs_t  *obs_G;
 		atm_t  *atm_G;
-		pos_t (*los_G)[NLOS];
+		pos_t (*los_G)[NLOSMAX];
 		double *tsurf_G;
 		int    *np_G;
-    double (*aero_beta_G)[ND];
+    double (*aero_beta_G)[NDMAX];
     int *atm_id_G; 
 		cudaStream_t stream;
 	} gpuLane_t;
 
-	// The full forward model working on one package of NR rays
+	// The full forward model working on one package of NRMAX rays
 	void jur_formod_one_package_GPU(ctl_t *ctl, ctl_t *ctl_G,
 			trans_table_t const *tbl_G,
 			atm_t *atm, // can be made const if we do not get the atms back
@@ -251,14 +251,14 @@
                " Rays:    %9d (max %d)\n"
                " Gases:   %9d (max %d)\n"
                " Channels:%9d (max %d)\n",
-               __func__, obs->nr, NR, ctl->ng, NG, ctl->nd, ND);
+               __func__, obs->nr, NRMAX, ctl->ng, NGMAX, ctl->nd, NDMAX);
         
 		atm_t *atm_G = gpu->atm_G;
     int *atm_id_G = gpu->atm_id_G;
     aero_t *aero_G = gpu->aero_G;
 		obs_t *obs_G = gpu->obs_G;
-    double (*aero_beta_G)[ND] = gpu->aero_beta_G;
-    pos_t (* los_G)[NLOS] = gpu->los_G;
+    double (*aero_beta_G)[NDMAX] = gpu->aero_beta_G;
+    pos_t (* los_G)[NLOSMAX] = gpu->los_G;
 		double *tsurf_G = gpu->tsurf_G;
 		int *np_G = gpu->np_G;
 	  cudaSetDevice(0);
@@ -288,7 +288,7 @@
     if(NULL != aero) { // only if scattering is included
       copy_data_to_GPU(aero_G, aero, 1*sizeof(aero_t), stream);
       copy_data_to_GPU(aero_beta_G, ('a' == beta_type) ? aero->beta_a :
-                       aero->beta_e, NLMAX * ND * sizeof(double), stream);
+                       aero->beta_e, NLMAX * NDMAX * sizeof(double), stream);
     }
     if(NULL != atm_id) {
       copy_data_to_GPU(atm_id_G, atm_id, nr * sizeof(int), stream);
@@ -323,7 +323,7 @@
     } // write_bbt
 
 // 		get_data_from_GPU(atm, atm_G, 1*sizeof(atm_t), stream); // do we really need to get the atms back?
-		get_data_from_GPU(obs, obs_G, 1*sizeof(obs_t), stream); // always transfer NR rays
+		get_data_from_GPU(obs, obs_G, 1*sizeof(obs_t), stream); // always transfer NRMAX rays
     
     printf("Heisenbug :) %lf\n", obs->rad[0][0]);
 
@@ -369,10 +369,10 @@
 		{
 			if (do_init || (!do_init && multi_atm_before != multi_atm_now)) {
               double tic = omp_get_wtime();
-              size_t sizePerLane = sizeof(aero_t) + sizeof(obs_t) + sizeof(atm_t) + NR * (NLOS * sizeof(pos_t) + sizeof(double) + sizeof(int));
-              // in this case we have NR * atm_t instead of the only one and one additional atm_id array
+              size_t sizePerLane = sizeof(aero_t) + sizeof(obs_t) + sizeof(atm_t) + NRMAX * (NLOSMAX * sizeof(pos_t) + sizeof(double) + sizeof(int));
+              // in this case we have NRMAX * atm_t instead of the only one and one additional atm_id array
               if(multi_atm_now)
-                sizePerLane = sizeof(aero_t) + sizeof(obs_t) + NR * (sizeof(atm_t) + NLOS * sizeof(pos_t) + sizeof(double) + 2 * sizeof(int));
+                sizePerLane = sizeof(aero_t) + sizeof(obs_t) + NRMAX * (sizeof(atm_t) + NLOSMAX * sizeof(pos_t) + sizeof(double) + 2 * sizeof(int));
  
               if (ctl->checkmode) {
                 printf("# %s: GPU memory requirement per lane is %.3f MByte\n", __func__, 1e-6*sizePerLane);
@@ -431,13 +431,13 @@
                   // Allocation of GPU memory
                   gpu->aero_G		   = malloc_GPU(aero_t, 1);
                   gpu->obs_G		   = malloc_GPU(obs_t, 1);
-                  gpu->tsurf_G	   = malloc_GPU(double, NR);
-                  gpu->np_G		     = malloc_GPU(int, NR);
-                  gpu->los_G		   = (pos_t (*)[NLOS])__allocate_on_GPU(NR*NLOS*sizeof(pos_t), __FILE__, __LINE__); 
-                  gpu->aero_beta_G = (double(*)[ND])__allocate_on_GPU(NLMAX*ND*sizeof(double), __FILE__, __LINE__);
+                  gpu->tsurf_G	   = malloc_GPU(double, NRMAX);
+                  gpu->np_G		     = malloc_GPU(int, NRMAX);
+                  gpu->los_G		   = (pos_t (*)[NLOSMAX])__allocate_on_GPU(NRMAX*NLOSMAX*sizeof(pos_t), __FILE__, __LINE__); 
+                  gpu->aero_beta_G = (double(*)[NDMAX])__allocate_on_GPU(NLMAX*NDMAX*sizeof(double), __FILE__, __LINE__);
                   if(multi_atm_now) {
-                    gpu->atm_id_G  = malloc_GPU(int, NR);
-                    gpu->atm_G     = malloc_GPU(atm_t, NR);
+                    gpu->atm_id_G  = malloc_GPU(int, NRMAX);
+                    gpu->atm_G     = malloc_GPU(atm_t, NRMAX);
                   }
                   else {
                     gpu->atm_id_G  = NULL;
@@ -476,7 +476,7 @@
     {
       int const myLane = omp_get_thread_num();
       assert(myLane < numLanes);
-      char mask[NR][ND];
+      char mask[NRMAX][NDMAX];
       jur_save_mask(mask, &obs[i], ctl);
       copy_data_to_GPU(ctl_G, ctl, sizeof(ctl_t), gpuLanes[myLane].stream); // controls might change, update
       if(multi_atm_now)

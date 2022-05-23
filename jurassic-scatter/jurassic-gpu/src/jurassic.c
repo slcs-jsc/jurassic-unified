@@ -13,7 +13,7 @@ void jur_geo2cart(double const alt, double const lon, double const lat, double x
 // /////////////////////////////////////////////////////////////////////////
 FILE* jur_mkFile(char const* dn, char const* fn, char const* acc) {
 	FILE* out;
-	char file[LEN];
+	char file[LENMAX];
 	if(dn) sprintf(file, "%s/%s", dn, fn);
 	else	 sprintf(file, "%s", fn);
 	if(!(out = fopen(file, acc))) ERRMSG(file);
@@ -27,7 +27,7 @@ void jur_climatology(ctl_t const *ctl, atm_t *atm) {
     #include "climatology.tbl"
 	static int ig_co2 = -999;
 	double co2;
-    double const *q[NG] = { NULL };
+    double const *q[NGMAX] = { NULL };
 	// Find emitter index of CO2
 	if (ig_co2 == -999) ig_co2 = jur_find_emitter(ctl, "CO2");
 	// Identify variable
@@ -155,10 +155,10 @@ int jur_find_emitter(ctl_t const *ctl, char const *emitter) {
 
 //***************************************************************************
 void jur_formod_fov(ctl_t const *const ctl, obs_t *obs) {
-	static double dz[NSHAPE], w[NSHAPE];
+	static double dz[NSHAPEMAX], w[NSHAPEMAX];
 	static int init = 0, n;
 	obs_t obs2;
-	double rad[NR][ND], tau[NR][ND], z[NR], zfov;
+	double rad[NRMAX][NDMAX], tau[NRMAX][NDMAX], z[NRMAX], zfov;
 	if(ctl->fov[0] == '-') return;							// Do not take into account FOV
 	if(!init) {										// Initialize FOV data
 		init = 1;
@@ -167,7 +167,7 @@ void jur_formod_fov(ctl_t const *const ctl, obs_t *obs) {
 	jur_copy_obs(ctl, &obs2, obs, 0);								// Copy observation data
 	for(int ir = 0; ir < obs->nr; ir++) {							// Loop over ray paths
 		int nz = 0;
-		for(int ir2 = GSL_MAX(ir - NFOV, 0); ir2 < GSL_MIN(ir + 1 + NFOV, obs->nr); ir2++)	// Get radiance and transmittance profiles
+		for(int ir2 = GSL_MAX(ir - NFOVMAX, 0); ir2 < GSL_MIN(ir + 1 + NFOVMAX, obs->nr); ir2++)	// Get radiance and transmittance profiles
 			if(obs->time[ir2] == obs->time[ir]) {
 				z[nz] = obs2.vpz[ir2];
 				for(int id = 0; id < ctl->nd; id++) {
@@ -273,7 +273,7 @@ void jur_init_tbl(ctl_t const *ctl, trans_table_t *tbl) {
 #pragma omp parallel for
 		for(int id = 0; id < ctl->nd; id++) {
           
-			char filename[LEN];
+			char filename[LENMAX];
 #ifdef      DIRECTORY_WITH_GAS_NAME
 			sprintf(filename, "%s/%s_%s/boxcar_%.4f_%s.tab", ctl->tblbase, 
                     ctl->tblbase, ctl->emitter[ig], ctl->nu[id], ctl->emitter[ig]);
@@ -293,20 +293,20 @@ void jur_init_tbl(ctl_t const *ctl, trans_table_t *tbl) {
 			// Initialize
 			IDX_P = -1;
 			if(logg) printf("Read emissivity table: %s\n", filename);
-            char line[LEN];
+            char line[LENMAX];
 			double eps_old = -999, press_old = -999, temp_old = -999, u_old = -999;
             int iu_max = 0;
-			while (fgets(line, LEN, in)) {							// Read data
+			while (fgets(line, LENMAX, in)) {							// Read data
                 double eps = 0, press = 0, temp = 0, u = 0;
 				if(sscanf(line, "%lg %lg %lg %lg", &press, &temp, &u, &eps) != 4) continue;	// Parse line
 				if(press != press_old) {							// Determine pressure index
 					press_old = press;
-					if((++IDX_P) >= TBLNP) ERRMSG("Too many pressure levels! max. " xstr(TBLNP) " defined in jurassic.h");
+					if((++IDX_P) >= TBLNPMAX) ERRMSG("Too many pressure levels! max. " xstr(TBLNPMAX) " defined in jurassic.h");
 					IDX_T = -1;
 				}
 				if(temp != temp_old) {								// Determine temperature index
 					temp_old = temp;
-					if((++IDX_T) >= TBLNT) ERRMSG("Too many temperatures! max. " xstr(TBLNT) " defined in jurassic.h");
+					if((++IDX_T) >= TBLNTMAX) ERRMSG("Too many temperatures! max. " xstr(TBLNTMAX) " defined in jurassic.h");
 					IDX_U = -1;
                     iu_max = 0;
 				}
@@ -314,7 +314,7 @@ void jur_init_tbl(ctl_t const *ctl, trans_table_t *tbl) {
 					eps_old = eps;
 					u_old = u;
                     ++iu_max;
-					if((++IDX_U) >= TBLNU) { 
+					if((++IDX_U) >= TBLNUMAX) { 
                         ++warn_nu_ignored; // warning will be shown later
                         max_nu_in_file = GSL_MAX(max_nu_in_file, iu_max);
                         IDX_U--; 
@@ -343,7 +343,7 @@ void jur_init_tbl(ctl_t const *ctl, trans_table_t *tbl) {
 
 		} // id
       } else { // checkmode
-			char filenames[LEN];
+			char filenames[LENMAX];
 #ifdef      DIRECTORY_WITH_GAS_NAME
 			sprintf(filenames, "%s/%s_%s/boxcar_%s_%s.tab", ctl->tblbase, 
                     ctl->tblbase, ctl->emitter[ig], "<nu.4>", ctl->emitter[ig]);
@@ -353,7 +353,7 @@ void jur_init_tbl(ctl_t const *ctl, trans_table_t *tbl) {
             printf("# try to initialize tables for gas %d %s from filenames %s\n", 
                    ig, ctl->emitter[ig], filenames);
             printf("# jurassic.h: max dim for table[%d g][%d p][%d T][%d u][%d nu]\n",
-                                                     NG, TBLNP, TBLNT, TBLNU, ND);
+                                                     NGMAX, TBLNPMAX, TBLNTMAX, TBLNUMAX, NDMAX);
       } // checkmode
       if (warn_missing_file_gas > 0) printf("%d missing emissivity tables for gas %i %s\n", 
                                               warn_missing_file_gas, ig, ctl->emitter[ig]);
@@ -361,8 +361,8 @@ void jur_init_tbl(ctl_t const *ctl, trans_table_t *tbl) {
     TIMER("INIT_TBL", 3); // stop timer
 
 	if (warn_nu_ignored > 0) {
-        fprintf(stderr, "Warning! %ld table entries ignored, increase TBLNU from %d to %d\n", warn_nu_ignored, TBLNU, max_nu_in_file);
-        fprintf(stdout, "Warning! %ld table entries ignored, increase TBLNU from %d to %d\n", warn_nu_ignored, TBLNU, max_nu_in_file);
+        fprintf(stderr, "Warning! %ld table entries ignored, increase TBLNUMAX from %d to %d\n", warn_nu_ignored, TBLNUMAX, max_nu_in_file);
+        fprintf(stdout, "Warning! %ld table entries ignored, increase TBLNUMAX from %d to %d\n", warn_nu_ignored, TBLNUMAX, max_nu_in_file);
     }
 
 	if (warn_missing_file > 0) {
@@ -370,7 +370,7 @@ void jur_init_tbl(ctl_t const *ctl, trans_table_t *tbl) {
         fprintf(stderr, "Warning! %d files were not found!\n", warn_missing_file);
     }
     
-	if (0 == ctl->checkmode) { // scope: show how far we can reduce the limits TBLNP, TBLNT and TBLNU in jurassic.h
+	if (0 == ctl->checkmode) { // scope: show how far we can reduce the limits TBLNPMAX, TBLNTMAX and TBLNUMAX in jurassic.h
         int np_max = 0, np_gd[2]   = {0,0};
         int nt_max = 0, nt_gdp[3]  = {0,0,0};
         int nu_max = 0, nu_gdpt[4] = {0,0,0,0};
@@ -401,25 +401,25 @@ void jur_init_tbl(ctl_t const *ctl, trans_table_t *tbl) {
         } // id
 
         printf("\n# jurassic.h could be configured minimally with\n");
-        printf("# NG = %d  \t now %d\n", ctl->ng, NG);
-        printf("# ND = %d  \t now %d\n", ctl->nd, ND);
+        printf("# NGMAX = %d  \t now %d\n", ctl->ng, NGMAX);
+        printf("# NDMAX = %d  \t now %d\n", ctl->nd, NDMAX);
         {   
             int const ig = np_gd[0], id = np_gd[1];
-            printf("# TBLNP = %d  \t now %d \t(gas[%d]=%s  nu[%d]=%.4f)\n", 
-                   np_max, TBLNP,  ig, ctl->emitter[ig],  id, ctl->nu[id]);
+            printf("# TBLNPMAX = %d  \t now %d \t(gas[%d]=%s  nu[%d]=%.4f)\n", 
+                   np_max, TBLNPMAX,  ig, ctl->emitter[ig],  id, ctl->nu[id]);
         }
         {   
             int const ig = nt_gdp[0], id = nt_gdp[1], ip = nt_gdp[2];
-            printf("# TBLNT = %d  \t now %d \t(gas[%d]=%s  nu[%d]=%.4f  pressure[%d]=%.2e)\n",
-                    nt_max, TBLNT,  ig, ctl->emitter[ig],  id, ctl->nu[id],  ip, tbl->p[ig][ip][id]);
+            printf("# TBLNTMAX = %d  \t now %d \t(gas[%d]=%s  nu[%d]=%.4f  pressure[%d]=%.2e)\n",
+                    nt_max, TBLNTMAX,  ig, ctl->emitter[ig],  id, ctl->nu[id],  ip, tbl->p[ig][ip][id]);
         }
         {
             int const ig = nt_gdp[0], id = nt_gdp[1], ip = nt_gdp[2], it = nu_gdpt[3];
-            printf("# TBLNU = %d  \t now %d \t(gas[%d]=%s  nu[%d]=%.4f  pressure[%d]=%.2e  temperature[%d]=%g)\n",
-                    nu_max, TBLNU,  ig, ctl->emitter[ig],  id, ctl->nu[id],  ip, tbl->p[ig][ip][id],  it, tbl->t[ig][ip][it][id]);
+            printf("# TBLNUMAX = %d  \t now %d \t(gas[%d]=%s  nu[%d]=%.4f  pressure[%d]=%.2e  temperature[%d]=%g)\n",
+                    nu_max, TBLNUMAX,  ig, ctl->emitter[ig],  id, ctl->nu[id],  ip, tbl->p[ig][ip][id],  it, tbl->t[ig][ip][it][id]);
         }
-        double const f = 1e-9*sizeof(real_tblND_t)*2; // two arrays: u/eps[NG][TBLNP][TBLNT][TBLNU][ND]
-        double const total_now = NG*TBLNP*f*TBLNT*TBLNU*ND;
+        double const f = 1e-9*sizeof(real_tblND_t)*2; // two arrays: u/eps[NGMAX][TBLNPMAX][TBLNTMAX][TBLNUMAX][NDMAX]
+        double const total_now = NGMAX*TBLNPMAX*f*TBLNTMAX*TBLNUMAX*NDMAX;
         printf("# now main table arrays (tbl->u + tbl->eps) consume %.6f GByte\n", total_now);
         double const total_min = (ctl->ng)*np_max*f*nt_max*nu_max*(ctl->nd);
         printf("# main table arrays could consume %.6f GByte\n", total_min);
@@ -554,8 +554,8 @@ void jur_init_tbl(ctl_t const *ctl, trans_table_t *tbl) {
 	
 
 	printf("Initialize source function table...\n");
-	for(int it = 0; it < TBLNS; it++) {																	// Compute source function table
-		tbl->st[it] = LIN(0.0, 100, TBLNS - 1.0, 400, (double) it); // Set temperature axis: equidistant steps of 300/(TBLNS - 1) Kelvin	, e.g. 0.25 K if TBLNS == 1201
+	for(int it = 0; it < TBLNSMAX; it++) {																	// Compute source function table
+		tbl->st[it] = LIN(0.0, 100, TBLNSMAX - 1.0, 400, (double) it); // Set temperature axis: equidistant steps of 300/(TBLNSMAX - 1) Kelvin	, e.g. 0.25 K if TBLNSMAX == 1201
 	}
 
 	
@@ -588,17 +588,17 @@ void jur_init_tbl(ctl_t const *ctl, trans_table_t *tbl) {
 	
 #pragma omp parallel for if(0 == ctl->checkmode)
 	for(int id = 0; id < ctl->nd; id++) {
-		char filename[LEN];
+		char filename[LENMAX];
 #ifdef  DIRECTORY_WITH_GAS_NAME
         sprintf(filename, "%s/%s_%s/boxcar_%.4f.filt", ctl->tblbase, ctl->tblbase, "CO2", ctl->nu[id]);
 #else        
 	sprintf(filename, "%s_%.4f.filt", ctl->tblbase, ctl->nu[id]);				// Read filter function
 #endif
-		double f[NSHAPE], nu[NSHAPE];																 // Arguments for read_shape
+		double f[NSHAPEMAX], nu[NSHAPEMAX];																 // Arguments for read_shape
 		int const n = jur_read_shape(filename, nu, f, ctl->checkmode);
-		if (n > NSHAPE) ERRMSG("Increase NSHAPE defined as " xstr(NSHAPE) " in jurassic.h");
+		if (n > NSHAPEMAX) ERRMSG("Increase NSHAPEMAX defined as " xstr(NSHAPEMAX) " in jurassic.h");
       if (0 == ctl->checkmode) {
-		for(int it = 0; it < TBLNS; it++) {																	// Compute source function table
+		for(int it = 0; it < TBLNSMAX; it++) {																	// Compute source function table
 			// Integrate Planck function
 			double fsum = 0, fpsum = 0;
 			for(int i = 0; i < n; i++) {
@@ -618,7 +618,7 @@ void jur_init_tbl(ctl_t const *ctl, trans_table_t *tbl) {
 //***************************************************************************
 void jur_intpol_atm(ctl_t *ctl, atm_t *atm_dest, atm_t *atm_src) {
 	for(int ip = 0; ip < atm_dest->np; ip++) {	 // Interpolate atmospheric data
-		double k[NW], q[NG];
+		double k[NWMAX], q[NGMAX];
 		jur_intpol_atm_geo(ctl, atm_src, atm_dest->z[ip], atm_dest->lon[ip], atm_dest->lat[ip], &atm_dest->p[ip], &atm_dest->t[ip], q, k);
 		for(int ig = 0; ig < ctl->ng; ig++) atm_dest->q[ig][ip] = q[ig];
 		for(int iw = 0; iw < ctl->nw; iw++) atm_dest->k[iw][ip] = k[iw];
@@ -648,9 +648,9 @@ void jur_intpol_atm_1d(ctl_t const *const ctl, atm_t const *const atm, int const
 void jur_intpol_atm_2d(ctl_t const *const ctl, atm_t * atm,
 		double const z0, double const lon0, double const lat0,
 		double *p, double *t, double *q, double *k) {
-	static double x1[NP][3];
-	static int idx[NP], nx, nz[NP];
-	double dhmin0 = 1e99, dhmin1 = 1e99, dlat = 10, k0[NW], k1[NW], lat1 = -999, lon1 = -999, p0, p1, q0[NG], q1[NG], r, t0, t1, x0[3];
+	static double x1[NPMAX][3];
+	static int idx[NPMAX], nx, nz[NPMAX];
+	double dhmin0 = 1e99, dhmin1 = 1e99, dlat = 10, k0[NWMAX], k1[NWMAX], lat1 = -999, lon1 = -999, p0, p1, q0[NGMAX], q1[NGMAX], r, t0, t1, x0[3];
 	int ix0 = 0, ix1 = 0;
 	if(!atm->init) {																													 // Initialize
 		atm->init = 1;
@@ -658,7 +658,7 @@ void jur_intpol_atm_2d(ctl_t const *const ctl, atm_t * atm,
 		nx = 0;
 		for(int ip = 0; ip < atm->np; ip++) {
 			if((atm->lon[ip] != lon1) || (atm->lat[ip] != lat1)) {
-				if((++nx) > NP) ERRMSG("Too many profiles!");
+				if((++nx) > NPMAX) ERRMSG("Too many profiles!");
 				nz[nx - 1] = 0;
 				lon1 = atm->lon[ip];
 				lat1 = atm->lat[ip];
@@ -707,7 +707,7 @@ void jur_intpol_atm_2d(ctl_t const *const ctl, atm_t * atm,
 void jur_intpol_atm_3d(ctl_t const *const ctl, atm_t *atm,
 		double const z0, double const lon0, double const lat0,
 		double *p, double *t, double *q, double *k) {
-	static double rm2, x1[NP][3];
+	static double rm2, x1[NPMAX][3];
 	if(!atm->init) {						// Initialize
 		atm->init = 1;
 		// Get Cartesian coordinates
@@ -754,7 +754,7 @@ void jur_intpol_atm_3d(ctl_t const *const ctl, atm_t *atm,
 
 //***************************************************************************
 void jur_kernel(ctl_t const *const ctl, atm_t *atm, obs_t *obs, gsl_matrix *k) {
-	int iqa[N];
+	int iqa[NMAX];
 	jur_formod(ctl, atm, obs);	// Compute radiance for undisturbed atmospheric data
 	// Compose vectors
 	size_t m = k->size1, n = k->size2;
@@ -825,7 +825,7 @@ void jur_trapezoid_rule(int const np, double ds[]) {
 //***************************************************************************
 void jur_read_atm(char const *dirname, char const *filename, ctl_t *ctl, atm_t *atm) {
 	FILE *in;
-	char line[LEN], *tok, *saveptr;
+	char line[LENMAX], *tok, *saveptr;
 	int ig, iw;
 	// Init
 	atm->init = 0;
@@ -834,12 +834,12 @@ void jur_read_atm(char const *dirname, char const *filename, ctl_t *ctl, atm_t *
 	// Open file
 	in = jur_mkFile(dirname, filename, "r");
     if (ctl->checkmode) { 
-        printf("# read_atm can read max %d points\n", NP); 
+        printf("# read_atm can read max %d points\n", NPMAX); 
         printf("# read_atm found file %s/%s but skip\n", dirname, filename); 
         fclose(in); return; 
     } // checkmode
 	// Read line
-	while (fgets(line, LEN, in)) {
+	while (fgets(line, LENMAX, in)) {
 		// Read data
 		TOK_FIVE_ARGS(line, tok, "%lg", atm->time[atm->np], &saveptr);
 		TOK_FIVE_ARGS(NULL, tok, "%lg", atm->z[atm->np], &saveptr);
@@ -850,13 +850,13 @@ void jur_read_atm(char const *dirname, char const *filename, ctl_t *ctl, atm_t *
 		for(ig = 0; ig < ctl->ng; ig++) TOK_FIVE_ARGS(NULL, tok, "%lg", atm->q[ig][atm->np], &saveptr);
 		for(iw = 0; iw < ctl->nw; iw++) TOK_FIVE_ARGS(NULL, tok, "%lg", atm->k[iw][atm->np], &saveptr);
 		// Increment data point counter
-		if((++atm->np) > NP) ERRMSG("Too many data points!");
+		if((++atm->np) > NPMAX) ERRMSG("Too many data points!");
 	}
 	// Close file
 	fclose(in);
 	// Check number of points
 	if(atm->np < 1) ERRMSG("Could not read any data!");
-	printf("Read atmospheric data found %d height levels, max %d\n", atm->np, NP);
+	printf("Read atmospheric data found %d height levels, max %d\n", atm->np, NPMAX);
 }
 
 
@@ -870,19 +870,19 @@ void jur_read_ctl(int argc, char *argv[], ctl_t *ctl) {
 #endif
 	// Emitters
 	ctl->ng = (int) jur_scan_ctl(argc, argv, "NG", -1, "0", NULL);
-	if(ctl->ng < 0 || ctl->ng > NG) ERRMSG("Set 0 <= NG <= " xstr(NG) " (max. defined in jurassic.h)");
+	if(ctl->ng < 0 || ctl->ng > NGMAX) ERRMSG("Set 0 <= NGMAX <= " xstr(NGMAX) " (max. defined in jurassic.h)");
 	for(int ig = 0; ig < ctl->ng; ig++) {
         jur_scan_ctl(argc, argv, "EMITTER", ig, "", ctl->emitter[ig]);
     } // ig
 	// Radiance channels
 	ctl->nd = (int) jur_scan_ctl(argc, argv, "ND", -1, "0", NULL);
-	if(ctl->nd < 0 || ctl->nd > ND) ERRMSG("Set 0 <= ND <= " xstr(ND) " (max. defined in jurassic.h)");
+	if(ctl->nd < 0 || ctl->nd > NDMAX) ERRMSG("Set 0 <= NDMAX <= " xstr(NDMAX) " (max. defined in jurassic.h)");
 	for(int id = 0; id < ctl->nd; id++) {
         ctl->nu[id] = jur_scan_ctl(argc, argv, "NU", id, "", NULL);
     } // id
 	// Spectral windows
 	ctl->nw = (int) jur_scan_ctl(argc, argv, "NW", -1, "1", NULL);
-	if(ctl->nw < 0 || ctl->nw > NW) ERRMSG("Set 0 <= NW <= " xstr(NW) " (max. defined in jurassic.h)");
+	if(ctl->nw < 0 || ctl->nw > NWMAX) ERRMSG("Set 0 <= NWMAX <= " xstr(NWMAX) " (max. defined in jurassic.h)");
 	for(int id = 0; id < ctl->nd; id++) {
         ctl->window[id] = (int) jur_scan_ctl(argc, argv, "WINDOW", id, "0", NULL);
     } // id
@@ -914,7 +914,7 @@ void jur_read_ctl(int argc, char *argv[], ctl_t *ctl) {
   // TODO: new! needs to be tested!
   /* Scattering on Aerosol/Clouds ... */
   ctl->sca_n=(int)jur_scan_ctl(argc, argv, "SCA_N", -1, "0", NULL);
-  if(ctl->sca_n<0 || ctl->sca_n>SCAMOD)
+  if(ctl->sca_n<0 || ctl->sca_n>SCAMODMAX)
     ERRMSG("Set 0 <= SCA_NMOD <= MAX!");
   ctl->sca_mult=(int)jur_scan_ctl(argc, argv, "SCA_MULT", -1, "1", NULL);
   jur_scan_ctl(argc, argv, "SCA_EXT", -1, "beta_a", ctl->sca_ext);
@@ -992,14 +992,14 @@ void jur_read_ctl(int argc, char *argv[], ctl_t *ctl) {
 
 //***************************************************************************
 void jur_read_matrix(char const *dirname, char const *filename, gsl_matrix *matrix) {
-	char dum[LEN], line[LEN];
+	char dum[LENMAX], line[LENMAX];
 	double value;
 	int i, j;
 	printf("Read matrix: %s/%s\n", dirname, filename);
 	FILE* in = jur_mkFile(dirname, filename, "r");
 	// Read data
 	gsl_matrix_set_zero(matrix);
-	while (fgets(line, LEN, in))
+	while (fgets(line, LENMAX, in))
 		if(sscanf(line, "%d %s %s %s %s %s %d %s %s %s %s %s %lg",
 					&i, dum, dum, dum, dum, dum,
 					&j, dum, dum, dum, dum, dum, &value) == 13) gsl_matrix_set(matrix, (size_t) i, (size_t) j, value);
@@ -1008,16 +1008,16 @@ void jur_read_matrix(char const *dirname, char const *filename, gsl_matrix *matr
 
 //***************************************************************************
 void jur_read_obs(char const *dirname, char const *filename, ctl_t *ctl, obs_t *obs) {
-	char line[LEN], *tok, *saveptr;
+	char line[LENMAX], *tok, *saveptr;
 	obs->nr = 0;						// Init
 	printf("Read observation data: %s/%s\n", dirname, filename);
 	FILE* in = jur_mkFile(dirname, filename, "r");
     if (ctl->checkmode > 0) { 
-        printf("# read_obs can read max %d rays\n", NR); 
+        printf("# read_obs can read max %d rays\n", NRMAX); 
         printf("# read_obs found file %s/%s but skip\n", dirname, filename); 
         fclose(in); return;
     } // checkmode
-	while (fgets(line, LEN, in)) {			// Read line
+	while (fgets(line, LENMAX, in)) {			// Read line
 		TOK_FIVE_ARGS(line, tok, "%lg", obs->time[obs->nr], &saveptr);		// Read data
 		TOK_FIVE_ARGS(NULL, tok, "%lg", obs->obsz[obs->nr], &saveptr);
 		TOK_FIVE_ARGS(NULL, tok, "%lg", obs->obslon[obs->nr], &saveptr);
@@ -1030,7 +1030,7 @@ void jur_read_obs(char const *dirname, char const *filename, ctl_t *ctl, obs_t *
 		TOK_FIVE_ARGS(NULL, tok, "%lg", obs->tplat[obs->nr], &saveptr);
 		for(int id = 0; id < ctl->nd; id++) TOK_FIVE_ARGS(NULL, tok, "%lg", obs->rad[obs->nr][id], &saveptr);
 		for(int id = 0; id < ctl->nd; id++) TOK_FIVE_ARGS(NULL, tok, "%lg", obs->tau[obs->nr][id], &saveptr);
-		if((++obs->nr) > NR) ERRMSG("Too many rays!");	// Increment counter
+		if((++obs->nr) > NRMAX) ERRMSG("Too many rays!");	// Increment counter
 	}
 	fclose(in);
 	if(obs->nr < 1) ERRMSG("Could not read any data!");		// Check number of points
@@ -1039,11 +1039,11 @@ void jur_read_obs(char const *dirname, char const *filename, ctl_t *ctl, obs_t *
 //***************************************************************************
 double jur_read_obs_rfm(char const *basename, double z, double *nu, double *f, int n) {
 	FILE *in;
-	char filename[LEN];
-	double filt, fsum = 0, nu2[NSHAPE], *nurfm, *rad, radsum = 0;
+	char filename[LENMAX];
+	double filt, fsum = 0, nu2[NSHAPEMAX], *nurfm, *rad, radsum = 0;
 	int npts;
-	ALLOC(nurfm, double, RFMNPTS);
-	ALLOC(rad,	 double, RFMNPTS);
+	ALLOC(nurfm, double, RFMNPTSMAX);
+	ALLOC(rad,	 double, RFMNPTSMAX);
 	// Search RFM spectrum
 	sprintf(filename, "%s_%05d.asc", basename, (int) (z *1000));
 	if(!(in = fopen(filename, "r"))) {
@@ -1074,19 +1074,19 @@ double jur_read_obs_rfm(char const *basename, double z, double *nu, double *f, i
 
 //***************************************************************************
 void jur_read_rfm_spec(char const *filename, double *nu, double *rad, int *npts) {
-	char line[RFMLINE], *tok;
+	char line[RFMLINEMAX], *tok;
 	double dnu, nu0, nu1;
 	int ipts = 0;
 	printf("Read RFM data: %s\n", filename);
 	FILE* in = jur_mkFile(NULL, filename, "r");
 	// Read header...
 	for(int i = 0; i < 4; i++) {
-		if(fgets(line, RFMLINE, in) == NULL) ERRMSG("Error while reading file header!");
+		if(fgets(line, RFMLINEMAX, in) == NULL) ERRMSG("Error while reading file header!");
 	}
 	sscanf(line, "%d %lg %lg %lg", npts, &nu0, &dnu, &nu1);
-	if(*npts > RFMNPTS) ERRMSG("Too many spectral grid points!");
+	if(*npts > RFMNPTSMAX) ERRMSG("Too many spectral grid points!");
 	// Read radiance data
-	while (fgets(line, RFMLINE, in) && ipts < *npts - 1) {
+	while (fgets(line, RFMLINEMAX, in) && ipts < *npts - 1) {
 		if((tok = strtok(line, " \t\n")))
 			if(sscanf(tok, "%lg", &rad[ipts]) == 1) ipts++;
 		while ((tok = strtok(NULL, " \t\n")))
@@ -1101,15 +1101,15 @@ void jur_read_rfm_spec(char const *filename, double *nu, double *rad, int *npts)
 //***************************************************************************
 
 int jur_read_shape(char const *filename, double *x, double *y, int const checkmode) {
-	char line[LEN];
+	char line[LENMAX];
 	printf("Read shape function: %s\n", filename);
 	FILE *in = jur_mkFile(NULL, filename, "r");
     if (checkmode) { fclose(in); printf("# read_shape found %s\n", filename); return 0; }
 	// Read data
 	int n = 0;
-	while (fgets(line, LEN, in)) {
+	while (fgets(line, LENMAX, in)) {
 		if(sscanf(line, "%lg %lg", &x[n], &y[n]) == 2) {
-			if((++n) > NSHAPE) ERRMSG("Too many data points!");
+			if((++n) > NSHAPEMAX) ERRMSG("Too many data points!");
 		}
 	}
 	// Check number of points
@@ -1121,7 +1121,7 @@ int jur_read_shape(char const *filename, double *x, double *y, int const checkmo
 //***************************************************************************
 double jur_scan_ctl(int argc, char *argv[], char const *varname, int arridx, char const *defvalue, char *value) {
 	FILE *in = NULL;
-	char dummy[LEN], fullname1[LEN], fullname2[LEN], line[LEN], msg[LEN], rvarname[LEN], rval[LEN];
+	char dummy[LENMAX], fullname1[LENMAX], fullname2[LENMAX], line[LENMAX], msg[LENMAX], rvarname[LENMAX], rval[LENMAX];
 	int contain = 0;
 	// Open file
 	if((argv[1][0] != '-')) in = jur_mkFile(NULL, argv[1], "r");
@@ -1134,7 +1134,7 @@ double jur_scan_ctl(int argc, char *argv[], char const *varname, int arridx, cha
 		sprintf(fullname2, "%s", varname);
 	}
 	if(in) {	 // Read data (TH: This check must be redundant, since mkFile checks for NULL)
-		while (fgets(line, LEN, in)) {
+		while (fgets(line, LENMAX, in)) {
 			if(sscanf(line, "%s %s %s", rvarname, dummy, rval) == 3) {
 				if(0 == strcasecmp(rvarname, fullname1) ||
 						0 == strcasecmp(rvarname, fullname2)) {
@@ -1279,19 +1279,19 @@ void jur_write_matrix(char const *dirname, char const *filename,
 		ctl_t *ctl, gsl_matrix *matrix,
 		atm_t *atm, obs_t *obs,
 		char const *rowspace, char const *colspace, char const *sort) {
-	char quantity[LEN];
+	char quantity[LENMAX];
 	int *cida, *ciqa, *cipa, *cira, *rida, *riqa, *ripa, *rira;
 	size_t i, j, nc, nr;
 	// Check output flag
 	if(!ctl->write_matrix) return;
-	ALLOC(cida, int, M);
-	ALLOC(ciqa, int, N);
-	ALLOC(cipa, int, N);
-	ALLOC(cira, int, M);
-	ALLOC(rida, int, M);
-	ALLOC(riqa, int, N);
-	ALLOC(ripa, int, N);
-	ALLOC(rira, int, M);
+	ALLOC(cida, int, MMAX);
+	ALLOC(ciqa, int, NMAX);
+	ALLOC(cipa, int, NMAX);
+	ALLOC(cira, int, MMAX);
+	ALLOC(rida, int, MMAX);
+	ALLOC(riqa, int, NMAX);
+	ALLOC(ripa, int, NMAX);
+	ALLOC(rira, int, MMAX);
 	// Open output file
 	printf("Write matrix: %s/%s", dirname, filename);
 	FILE *out = jur_mkFile(dirname, filename, "w");
@@ -1425,7 +1425,7 @@ void jur_write_obs(char const *dirname, char const *filename, ctl_t *ctl, obs_t 
         }
     } // id
 	for(int ir = 0; ir < obs->nr; ir++) { // Write data
-		if(ir == 0 || (NR > 1 && obs->time[ir] != obs->time[ir - 1])) fprintf(out, "\n");
+		if(ir == 0 || (NRMAX > 1 && obs->time[ir] != obs->time[ir - 1])) fprintf(out, "\n");
 		fprintf(out, "%.2f %g %g %g %g %g %g %g %g %g",
 				obs->time[ir],
 				obs->obsz[ir], obs->obslon[ir], obs->obslat[ir],

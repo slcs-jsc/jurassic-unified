@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
   
   FILE *in;
   
-  char dirlist[LEN], wrkdir[LEN], task[LEN], aerofile[LEN];
+  char dirlist[LENMAX], wrkdir[LENMAX], task[LENMAX], aerofile[LENMAX];
 
   /* ###################################################################### */  
   int myrank=0, node_local_rank=0, numprocs=1, nfiles=-1;
@@ -134,7 +134,7 @@ void jur_sca_call_formod(ctl_t *ctl,
 
   static aero_t aero;
   
-  char filename[LEN];
+  char filename[LENMAX];
   
   int ig, ig2, ip, iw;
   

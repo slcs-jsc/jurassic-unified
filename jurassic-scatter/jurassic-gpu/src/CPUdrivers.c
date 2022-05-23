@@ -57,16 +57,16 @@
 
 	__host__
 	void jur_apply_kernels_CPU(trans_table_t const *tbl, ctl_t const *ctl, obs_t *obs, 
-        pos_t const (*restrict los)[NLOS], int const np[], 
-        double const (*restrict aero_beta)[ND]) { // aero_beta is added
+        pos_t const (*restrict los)[NLOSMAX], int const np[], 
+        double const (*restrict aero_beta)[NDMAX]) { // aero_beta is added
 
 #pragma omp parallel for
 		for(int ir = 0; ir < obs->nr; ir++) { // loop over independent rays
-			double tau_path[ND][NG]; // private for each ray
-			for(int id = 0; id < ND; id++) { // loop over detectors
+			double tau_path[NDMAX][NGMAX]; // private for each ray
+			for(int id = 0; id < NDMAX; id++) { // loop over detectors
 				obs->rad[ir][id] = 0.0;
 				obs->tau[ir][id] = 1.0;
-				for(int ig = 0; ig < NG; ig++) { // loop over gases
+				for(int ig = 0; ig < NGMAX; ig++) { // loop over gases
 					tau_path[id][ig] = 1.0;
 				} // ig
 			} //  id
@@ -101,7 +101,7 @@
 
 	__host__
 	void jur_raytrace_rays_CPU(ctl_t const *ctl, atm_t const *atm, obs_t *obs, 
-                           pos_t los[NR][NLOS], double tsurf[], int np[], 
+                           pos_t los[NRMAX][NLOSMAX], double tsurf[], int np[], 
                            int const *atm_id, aero_t const *aero, int scattering_included) {
 #pragma omp parallel for
 		for(int ir = 0; ir < obs->nr; ir++) { // loop over rays
@@ -133,13 +133,13 @@
 
 		assert(obs);
 
-		char mask[NR][ND];
+		char mask[NRMAX][NDMAX];
 		jur_save_mask(mask, obs, ctl);
 
 		trans_table_t const *tbl = jur_get_tbl(ctl);
 		double *t_surf = (double*)malloc((obs->nr)*sizeof(double));
 		int *np = (int*)malloc((obs->nr)*sizeof(int));
-		pos_t (*los)[NLOS] = (pos_t (*)[NLOS])malloc((obs->nr)*(NLOS)*sizeof(pos_t));
+		pos_t (*los)[NLOSMAX] = (pos_t (*)[NLOSMAX])malloc((obs->nr)*(NLOSMAX)*sizeof(pos_t));
 
 		static int ig_h2o = -999;
 		if((ctl->ctm_h2o) && (-999 == ig_h2o)) ig_h2o = jur_find_emitter(ctl, "H2O");
@@ -231,7 +231,7 @@
             static int nr_last_time = -999;
             if (obs->nr != nr_last_time) {
                 printf("# %s: %d max %d rays , %d of max %d gases, %d of max %d channels\n", 
-                        __func__, obs->nr, NR, ctl->ng, NG, ctl->nd, ND);
+                        __func__, obs->nr, NRMAX, ctl->ng, NGMAX, ctl->nd, NDMAX);
                 // the number of rays can be zero if we skipped to read obs.tab, checkmode=1
                 nr_last_time = obs->nr;
             } // only report if nr changed

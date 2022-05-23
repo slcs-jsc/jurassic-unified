@@ -46,7 +46,7 @@ void jur_sca_opt_prop_mie_log(ctl_t *ctl,
 		    int count,
 		    double *beta_ext,
 		    double *beta_sca,
-		    double phase[NDMAX][NTHETA]);
+		    double phase[NDMAX][NTHETAMAX]);
 
 /* Get optical properties from external database. - New */
 void jur_sca_opt_prop_external(ctl_t *ctl,
@@ -54,7 +54,7 @@ void jur_sca_opt_prop_external(ctl_t *ctl,
 		      int count,
 		      double *beta_ext,
 		      double *beta_sca,
-		      double phase[NDMAX][NTHETA]);
+		      double phase[NDMAX][NTHETAMAX]);
 
 /* Read aerosol/cloud data. */
 void jur_sca_read_aero(const char *dirname,

@@ -17,26 +17,26 @@ typedef struct {
 } queue_t;
 
 typedef struct { /// Atmospheric data. /////////////////////////////////////////
-	double time[NP];			 /// Time (seconds since 2000-01-01T00:00Z).
-	double z[NP];					 /// Altitude [km].
-	double lon[NP];				 /// Longitude [deg].
-	double lat[NP];				 /// Latitude [deg].
-	double p[NP];					 /// Pressure [hPa].
-	double t[NP];					 /// Temperature [K].
-	double q[NG][NP];			 /// Volume mixing ratio.
-	double k[NW][NP];			 /// Extinction [1/km].
+	double time[NPMAX];			 /// Time (seconds since 2000-01-01T00:00Z).
+	double z[NPMAX];					 /// Altitude [km].
+	double lon[NPMAX];				 /// Longitude [deg].
+	double lat[NPMAX];				 /// Latitude [deg].
+	double p[NPMAX];					 /// Pressure [hPa].
+	double t[NPMAX];					 /// Temperature [K].
+	double q[NGMAX][NPMAX];			 /// Volume mixing ratio.
+	double k[NWMAX][NPMAX];			 /// Extinction [1/km].
 	int np;                /// Number of data points.
 	int init;							 /// Init flag for interpolation (0=no, 1=yes).
 } atm_t; ///////////////////////////////////////////////////////////////////////
 
 typedef struct { /// Forward model control parameters. /////////////////////////
 	int ng;                 /// Number of emitters.
-	char emitter[NG][LEN];  /// Name of each emitter.
+	char emitter[NGMAX][LENMAX];  /// Name of each emitter.
   int nd;                 /// Number of radiance channels.
 	int nw;                 /// Number of spectral windows.
-	double nu[ND];          /// Centroid wavenumber of each channel [cm^-1].
-	int window[ND];         /// Window index of each channel. 
-	char tblbase[LEN];      /// Basename for table files and filter function files.
+	double nu[NDMAX];          /// Centroid wavenumber of each channel [cm^-1].
+	int window[NDMAX];         /// Window index of each channel. 
+	char tblbase[LENMAX];      /// Basename for table files and filter function files.
 	double hydz;            /// Reference height for hydrostatic pressure profile (-999 to skip) [km].
 	int ctm_co2;            /// Compute CO2 continuum (0=no, 1=yes).
 	int ctm_h2o;            /// Compute H2O continuum (0=no, 1=yes).
@@ -48,21 +48,21 @@ typedef struct { /// Forward model control parameters. /////////////////////////
 	int refrac;             /// Take into account refractivity (0=no, 1=yes).
 	double rayds;           /// Maximum step length for raytracing [km].
 	double raydz;           /// Vertical step length for raytracing [km].
-	char fov[LEN];          /// Field-of-view data file.
+	char fov[LENMAX];          /// Field-of-view data file.
 	double retp_zmin;       /// Minimum altitude for pressure retrieval [km].
 	double retp_zmax;       /// Maximum altitude for pressure retrieval [km].
 	double rett_zmin;       /// Minimum altitude for temperature retrieval [km].
 	double rett_zmax;       /// Maximum altitude for temperature retrieval [km].
-	double retq_zmin[NG];   /// Minimum altitude for volume mixing ratio retrieval [km].
-	double retq_zmax[NG];   /// Maximum altitude for volume mixing ratio retrieval [km].
-	double retk_zmin[NW];   /// Minimum altitude for extinction retrieval [km].
-	double retk_zmax[NW];   /// Maximum altitude for extinction retrieval [km].
+	double retq_zmin[NGMAX];   /// Minimum altitude for volume mixing ratio retrieval [km].
+	double retq_zmax[NGMAX];   /// Maximum altitude for volume mixing ratio retrieval [km].
+	double retk_zmin[NWMAX];   /// Minimum altitude for extinction retrieval [km].
+	double retk_zmax[NWMAX];   /// Maximum altitude for extinction retrieval [km].
 	int write_bbt;          /// Use brightness temperature instead of radiance (0=no, 1=yes).
 	int write_matrix;       /// Write matrix file (0=no, 1=yes).
 	int formod;             /// Forward model (1=CGA, 2=EGA, 3=RFM).
-	char rfmbin[LEN];       /// Path to RFM binary.
-	char rfmhit[LEN];       /// HITRAN file for RFM.
-	char rfmxsc[NG][LEN];   /// Emitter cross-section files for RFM.
+	char rfmbin[LENMAX];       /// Path to RFM binary.
+	char rfmhit[LENMAX];       /// HITRAN file for RFM.
+	char rfmxsc[NGMAX][LENMAX];   /// Emitter cross-section files for RFM.
 	int useGPU;             /// Use GPU-accelerated formod implementation (0=no, 1=yes)
 	int checkmode;          /// do not perform input, computation, nor output, just make sure files are there 
 	int MPIglobrank;        /// MPI global rank
@@ -75,7 +75,7 @@ typedef struct { /// Forward model control parameters. /////////////////////////
   int sca_n;              /// Number of scattering models.
   int sca_mult;           /// Number of recursions for multiple scattering.
                           /// (0=no scattering, 1=single scattering, 2<=multiple scattering)
-  char sca_ext[LEN];      /// Extinction coefficient type if sca_mult=0
+  char sca_ext[LENMAX];      /// Extinction coefficient type if sca_mult=0
   double transs;          /// Sampling step for transition layers [km].
   double retnn_zmin;      /// Minimum altitude for particle [km].
   double retnn_zmax;      /// Maximum altitude for particle retrieval [km].
@@ -92,16 +92,16 @@ typedef struct {    /// Point on the Line-of-sight data without storing ////////
 	double lat;	      /// Latitude [deg].
 	double p;		      /// Pressure [hPa].
 	double t;		      /// Temperature [K].
-	double q[NG];	    /// Volume mixing ratio.
-	double k[NW];	    /// Extinction [1/km].
+	double q[NGMAX];	    /// Volume mixing ratio.
+	double k[NWMAX];	    /// Extinction [1/km].
   int aeroi;        /// Aerosol/cloud layer index
   double aerofac;   /// Aerosol/cloud layer scaling factor for transition layer
   double ds;	      /// Segment length [km].
-	double u[NG];	    /// Column density [molecules/cm^2].
+	double u[NGMAX];	    /// Column density [molecules/cm^2].
 #ifdef CURTIS_GODSON
-	double cgp[NG];	  /// Curtis-Godson pressure [hPa].
-	double cgt[NG];	  /// Curtis-Godson temperature [K].
-	double cgu[NG];	  /// Curtis-Godson column density [molecules/cm^2].
+	double cgp[NGMAX];	  /// Curtis-Godson pressure [hPa].
+	double cgt[NGMAX];	  /// Curtis-Godson temperature [K].
+	double cgu[NGMAX];	  /// Curtis-Godson column density [molecules/cm^2].
 #endif
 #ifdef GPUDEBUG
 	int ip, ir;       /// debug helpers
@@ -109,36 +109,36 @@ typedef struct {    /// Point on the Line-of-sight data without storing ////////
 } pos_t; //////////////////////////////////////////////////////////////////////
 
 typedef struct { /// Observation geometry and radiance data. //////////////////
-	double time[NR];		/// Time (seconds since 2000-01-01T00:00Z). 
-	double obsz[NR];		/// Observer altitude [km]. 
-	double obslon[NR];	/// Observer longitude [deg]. 
-	double obslat[NR];	/// Observer latitude [deg]. 
-	double vpz[NR];			/// View point altitude [km]. 
-	double vplon[NR];		/// View point longitude [deg]. 
-	double vplat[NR];		/// View point latitude [deg]. 
-	double tpz[NR];			/// Tangent point altitude [km]. 
-	double tplon[NR];		/// Tangent point longitude [deg]. 
-	double tplat[NR];		/// Tangent point latitude [deg]. 
-	double tau[NR][ND]; /// Transmittance of ray path.		// transposed
-	double rad[NR][ND]; /// Radiance [W/(m^2 sr cm^-1)].	// transposed
+	double time[NRMAX];		/// Time (seconds since 2000-01-01T00:00Z). 
+	double obsz[NRMAX];		/// Observer altitude [km]. 
+	double obslon[NRMAX];	/// Observer longitude [deg]. 
+	double obslat[NRMAX];	/// Observer latitude [deg]. 
+	double vpz[NRMAX];			/// View point altitude [km]. 
+	double vplon[NRMAX];		/// View point longitude [deg]. 
+	double vplat[NRMAX];		/// View point latitude [deg]. 
+	double tpz[NRMAX];			/// Tangent point altitude [km]. 
+	double tplon[NRMAX];		/// Tangent point longitude [deg]. 
+	double tplat[NRMAX];		/// Tangent point latitude [deg]. 
+	double tau[NRMAX][NDMAX]; /// Transmittance of ray path.		// transposed
+	double rad[NRMAX][NDMAX]; /// Radiance [W/(m^2 sr cm^-1)].	// transposed
 	int nr;							/// Number of ray paths.
 } obs_t; ///////////////////////////////////////////////////////////////////////
 
 typedef float real_tblND_t;
 
 typedef struct {  /// Transposed emissivity look-up tables. - GPU version  /////
-	int32_t np[NG][ND];                             /// Number of pressure levels.
-	int32_t nt[NG][TBLNP][ND];                      /// Number of temperatures.
-	int32_t nu[NG][TBLNP][TBLNT][ND];               /// Number of column densities.
-	double p[NG][TBLNP][ND];                        /// Pressure [hPa].
-	double t[NG][TBLNP][TBLNT][ND];                 /// Temperature [K].
-	real_tblND_t u[NG][TBLNP][TBLNT][TBLNU][ND];    /// Column density [molecules/cm^2].
-	real_tblND_t eps[NG][TBLNP][TBLNT][TBLNU][ND];  /// Emissivity.
-	double sr[TBLNS][ND];                           /// Source function radiance [W/(m^2 sr cm^-1)].
-	double st[TBLNS];                               /// Source function temperature [K].
+	int32_t np[NGMAX][NDMAX];                             /// Number of pressure levels.
+	int32_t nt[NGMAX][TBLNPMAX][NDMAX];                      /// Number of temperatures.
+	int32_t nu[NGMAX][TBLNPMAX][TBLNTMAX][NDMAX];               /// Number of column densities.
+	double p[NGMAX][TBLNPMAX][NDMAX];                        /// Pressure [hPa].
+	double t[NGMAX][TBLNPMAX][TBLNTMAX][NDMAX];                 /// Temperature [K].
+	real_tblND_t u[NGMAX][TBLNPMAX][TBLNTMAX][TBLNUMAX][NDMAX];    /// Column density [molecules/cm^2].
+	real_tblND_t eps[NGMAX][TBLNPMAX][TBLNTMAX][TBLNUMAX][NDMAX];  /// Emissivity.
+	double sr[TBLNSMAX][NDMAX];                           /// Source function radiance [W/(m^2 sr cm^-1)].
+	double st[TBLNSMAX];                               /// Source function temperature [K].
 #ifdef  FAST_INVERSE_OF_U
 	/// u0inv[g][p][t][d] * u[g][p][t][0][d] == 1 must hold!  /// FAST_INVERSE_OF_U
-	double u0inv[NG][TBLNP][TBLNT][ND];                       /// FAST_INVERSE_OF_U
+	double u0inv[NGMAX][TBLNPMAX][TBLNTMAX][NDMAX];                       /// FAST_INVERSE_OF_U
   /// We assume a logarithmic increment by 2^(1/6)          /// FAST_INVERSE_OF_U
 #endif
 } trans_table_t; ///////////////////////////////////////////////////////////////////////
@@ -147,14 +147,14 @@ typedef struct {  /// Transposed emissivity look-up tables. - GPU version  /////
 typedef struct { /// Aerosol and Cloud properties. /////////////////////////////////////
   /// Aerosol and cloud input parameters
   int nm;                         /// Number of aerosol/cloud models
-  double top_mod[SCAMOD];         /// Model top altitude [km]
-  double bottom_mod[SCAMOD];      /// Model bottom altitude [km]
-  double trans_mod[SCAMOD];       /// Model transition layer thickness [km]
-  char type[SCAMOD][LEN];         /// Optical properties source
-  char filepath[SCAMOD][LEN];     /// Refractive index file or optical properties file
-  double nn[SCAMOD];              /// Number concentration [cm-3] or extinction coefficient [km-1]
-  double rr[SCAMOD];              /// Median radius of log-normal size distribution [mum]
-  double ss[SCAMOD];              /// Width of log-normal size distribution
+  double top_mod[SCAMODMAX];         /// Model top altitude [km]
+  double bottom_mod[SCAMODMAX];      /// Model bottom altitude [km]
+  double trans_mod[SCAMODMAX];       /// Model transition layer thickness [km]
+  char type[SCAMODMAX][LENMAX];         /// Optical properties source
+  char filepath[SCAMODMAX][LENMAX];     /// Refractive index file or optical properties file
+  double nn[SCAMODMAX];              /// Number concentration [cm-3] or extinction coefficient [km-1]
+  double rr[SCAMODMAX];              /// Median radius of log-normal size distribution [mum]
+  double ss[SCAMODMAX];              /// Width of log-normal size distribution
   /// Aerosol and cloud optical properties for radiative transfer
   int nl;                         /// Number of aerosol/cloud layers
   int nmod[NLMAX];                /// Number of modes per layer
@@ -164,11 +164,11 @@ typedef struct { /// Aerosol and Cloud properties. /////////////////////////////
   double beta_e[NLMAX][NDMAX];    /// Extinction coefficient [1/km]
   double beta_s[NLMAX][NDMAX];    /// Scattering coefficient [1/km]
   double beta_a[NLMAX][NDMAX];    /// Absorption coefficient [1/km]
-  double p[NLMAX][NDMAX][NTHETA]; /// Phase function for each layer, angle and wave number 
+  double p[NLMAX][NDMAX][NTHETAMAX]; /// Phase function for each layer, angle and wave number 
  } aero_t; /////////////////////////////////////////////////////////////////////////////
 
 typedef struct { /// Retrieval control parameters. /////////////////////////////////////
-  char dir[LEN];            /// Working directory.
+  char dir[LENMAX];            /// Working directory.
   int kernel_recomp;        /// Recomputation of kernel matrix (number of iterations).
   int conv_itmax;           /// Maximum number of iterations.
   double conv_dmin;         /// Minimum normalized step size in state space.

@@ -61,18 +61,18 @@ void jur_sca_bhmie(double x,
 	   double *qsca) {
   
   gsl_complex cxan, cxbn, cxxi, cxy, cxxi1, cxtemp, cxref, 
-    cxs1[NTHETA+2], cxs2[NTHETA+2], cxd[10000];
+    cxs1[NTHETAMAX+2], cxs2[NTHETAMAX+2], cxd[10000];
   
   double apsi, apsi1, chi, chi0, chi1, dang, fn, p, rn, t, theta2,
-    xstop, ymod, dn, dx, psi, psi0, psi1, amu[NTHETA+2], pi[NTHETA+2],
-    pi0[NTHETA+2], pi1[NTHETA+2], tau[NTHETA+2];
+    xstop, ymod, dn, dx, psi, psi0, psi1, amu[NTHETAMAX+2], pi[NTHETAMAX+2],
+    pi0[NTHETAMAX+2], pi1[NTHETAMAX+2], tau[NTHETAMAX+2];
   
   int i, j, jj, n, nmx, nn, nstop, ntheta;
   
-  /* Set scattering angles, ntheta=(NTHETA+1)/2... */
-  if((NTHETA+1)%2!=0)
-    ERRMSG("NTHETA needs to be odd!");
-  ntheta=(NTHETA+1)/2;
+  /* Set scattering angles, ntheta=(NTHETAMAX+1)/2... */
+  if((NTHETAMAX+1)%2!=0)
+    ERRMSG("NTHETAMAX needs to be odd!");
+  ntheta=(NTHETAMAX+1)/2;
   
   /* Bohren-Huffman Mie code... */
   cxref=gsl_complex_rect(n_real, n_imag);
@@ -263,7 +263,7 @@ void jur_sca_copy_aero(ctl_t *ctl,
 	aero_dest->beta_e[il][id]=0;
 	aero_dest->beta_s[il][id]=0;
 	aero_dest->beta_a[il][id]=0;
-	for(ia=0; ia<NTHETA; ia++)
+	for(ia=0; ia<NTHETAMAX; ia++)
 	  aero_dest->p[il][id][ia]=0;
       }
     }
@@ -288,7 +288,7 @@ void jur_sca_gauher(double *x,
 
   double p1,p2,p3,pp,z=0,z1;
 
-  int n=NRAD;
+  int n=NRADMAX;
 
   m = (n+1)/2;
   for (i=0; i<m; i++) {
@@ -332,7 +332,7 @@ void jur_sca_get_opt_prop(ctl_t *ctl,
 
   int nl=1, nm=1, count=0;
   int ii,jj, id, itheta;  
-  double mbeta_e[NDMAX], mbeta_s[NDMAX], mp[NDMAX][NTHETA];
+  double mbeta_e[NDMAX], mbeta_s[NDMAX], mp[NDMAX][NTHETAMAX];
  
   /* check input data */
   /* ToDo: improve check and sort data */
@@ -373,7 +373,7 @@ void jur_sca_get_opt_prop(ctl_t *ctl,
       aero->beta_e[ii][id] = 0.;
       aero->beta_a[ii][id] = 0.;
       aero->beta_s[ii][id] = 0.;
-      for(itheta=0; itheta<NTHETA; itheta++){
+      for(itheta=0; itheta<NTHETAMAX; itheta++){
 	aero->p[ii][id][itheta] = 0.;
 	mp[id][itheta] = 0.;
       }
@@ -405,7 +405,7 @@ void jur_sca_get_opt_prop(ctl_t *ctl,
     	aero->beta_e[ii][id] += mbeta_e[id];
     	aero->beta_s[ii][id] += mbeta_s[id];
      	aero->beta_a[ii][id] += (mbeta_e[id] - mbeta_s[id]);
-    	for(itheta=0; itheta<NTHETA; itheta++){
+    	for(itheta=0; itheta<NTHETAMAX; itheta++){
     	  aero->p[ii][id][itheta] += mp[id][itheta];
 	  mp[id][itheta] = 0.;
 	}
@@ -424,20 +424,20 @@ void jur_sca_opt_prop_mie_log(ctl_t *ctl,
 		     int count,
 		     double *beta_ext,
 		     double *beta_sca,
-		     double phase[NDMAX][NTHETA]){
+		     double phase[NDMAX][NTHETAMAX]){
 
   FILE *in;
   
-  char line[LEN];
+  char line[LENMAX];
 
   static int init=0;
 
   static double nu[REFMAX], nr[REFMAX], ni[REFMAX], n_imag[NDMAX], n_real[NDMAX], 
-    rad_min=0.001, rad_max=1000., weights[NRAD], zs[NRAD];
+    rad_min=0.001, rad_max=1000., weights[NRADMAX], zs[NRADMAX];
 
   int npts=0, id, idx, nn, jj;
 
-  double K1, rad, lambda, x, qext, qsca, qphase[NTHETA];
+  double K1, rad, lambda, x, qext, qsca, qphase[NTHETAMAX];
 
   /* Read and interpolate refractive indices... */
   /* Check if previous mode has the same refractive index */
@@ -447,7 +447,7 @@ void jur_sca_opt_prop_mie_log(ctl_t *ctl,
     printf("Read refractive indices: %s\n", aero->filepath[count]);
     if(!(in=fopen(aero->filepath[count], "r")))
       ERRMSG("Cannot open file!");
-    while(fgets(line, LEN, in))
+    while(fgets(line, LENMAX, in))
       if(sscanf(line, "%lg %lg %lg", &nu[npts], &nr[npts], &ni[npts])==3)
 	if((++npts)>REFMAX)
 	  ERRMSG("Too many data points!");
@@ -476,7 +476,7 @@ void jur_sca_opt_prop_mie_log(ctl_t *ctl,
   K1 = aero->nn[count] * 1e-3 * sqrt(M_PI);
 
   /* sum up Gaussian nodes */
-  for (nn=0; nn<NRAD; ++nn) {
+  for (nn=0; nn<NRADMAX; ++nn) {
     rad = exp(sqrt(2) * log(aero->ss[count]) * zs[nn] + log(aero->rr[count]));
     if (rad >= rad_min && rad <= rad_max && K1 > 0.) {
  
@@ -493,7 +493,7 @@ void jur_sca_opt_prop_mie_log(ctl_t *ctl,
 	beta_ext[id] += K1 * pow(rad,2) *  qext * weights[nn];
 	beta_sca[id] += K1 * pow(rad,2) *  qsca * weights[nn];
 	    
-	for (jj=0; jj<NTHETA; ++jj)
+	for (jj=0; jj<NTHETAMAX; ++jj)
 	  phase[id][jj] += K1 * qsca * pow(rad,2) * qphase[jj] * weights[nn];
 
       } 
@@ -502,7 +502,7 @@ void jur_sca_opt_prop_mie_log(ctl_t *ctl,
   
   /* Weight phase function with beta_s */
   for(id=0; id<ctl->nd; id++){
-    for (jj=0; jj<NTHETA; ++jj)
+    for (jj=0; jj<NTHETAMAX; ++jj)
       phase[id][jj] /= beta_sca[id];
   }
 }
@@ -514,13 +514,13 @@ void jur_sca_opt_prop_external(ctl_t *ctl,
 		       int count,
 		       double *beta_ext,
 		       double *beta_sca,
-		       double phase[NDMAX][NTHETA]){
+		       double phase[NDMAX][NTHETAMAX]){
 
   FILE *in;
   
-  char line[LEN], *tok; 
+  char line[LENMAX], *tok; 
 
-  static double nu[REFMAX], n_ext[REFMAX], n_sca[REFMAX], n_phase[REFMAX][NTHETA];
+  static double nu[REFMAX], n_ext[REFMAX], n_sca[REFMAX], n_phase[REFMAX][NTHETAMAX];
 
   int npts=0, ia, id, im;
 
@@ -538,12 +538,12 @@ void jur_sca_opt_prop_external(ctl_t *ctl,
 	ERRMSG("Cannot open file!");
       
       /* Read data... */
-      while(fgets(line, LEN, in)) {
+      while(fgets(line, LENMAX, in)) {
     	
 	TOK(line, tok, "%lg", nu[npts]);  
 	TOK(NULL, tok, "%lg", n_ext[npts]);
 	TOK(NULL, tok, "%lg", n_sca[npts]);
-	for(ia=0; ia<NTHETA; ia++)
+	for(ia=0; ia<NTHETAMAX; ia++)
 	  TOK(NULL, tok, "%lg", n_phase[npts][ia]);
 	
 	if((++npts)>REFMAX)
@@ -567,7 +567,7 @@ void jur_sca_opt_prop_external(ctl_t *ctl,
       
       beta_ext[id] = n_ext[im];
       beta_sca[id] = n_sca[im];
-      for (ia=0; ia<NTHETA; ++ia)
+      for (ia=0; ia<NTHETAMAX; ++ia)
       	phase[id][ia] = n_phase[im][ia];
     }
   }
@@ -587,7 +587,7 @@ void jur_sca_read_aero(const char *dirname,
 
   FILE *in;
   
-  char file[LEN], line[LEN], *tok;
+  char file[LENMAX], line[LENMAX], *tok;
   
   /* Init... */
   aero->nm=0;
@@ -606,7 +606,7 @@ void jur_sca_read_aero(const char *dirname,
     ERRMSG("Cannot open file!");
   
   /* Read data... */
-  while(fgets(line, LEN, in)) {
+  while(fgets(line, LENMAX, in)) {
     
     /* Read data... */
     TOK(line, tok, "%lg", aero->top_mod[aero->nm]);
@@ -619,7 +619,7 @@ void jur_sca_read_aero(const char *dirname,
     TOK(NULL, tok, "%lg", aero->ss[aero->nm]);
     
     /* Increment counter... */
-    if((++aero->nm)>SCAMOD)
+    if((++aero->nm)>SCAMODMAX)
       ERRMSG("Too many aerosol models!");
   }
   
@@ -677,8 +677,8 @@ void jur_sca_srcfunc_sca_1d(ctl_t *ctl,
   
   obs_t *obs2;
   
-  double alpha[NTHETA], alpha2, dnorth[3], ek[3], lx[3], ly[3], lz[3], phi,
-    phase2, rad, sx[3], sy[3], sz[3], theta[NTHETA], theta2, w=0, wsum[NDMAX], xv[3];
+  double alpha[NTHETAMAX], alpha2, dnorth[3], ek[3], lx[3], ly[3], lz[3], phi,
+    phase2, rad, sx[3], sy[3], sz[3], theta[NTHETAMAX], theta2, w=0, wsum[NDMAX], xv[3];
   
   int i, id, idp, idx, iphi, ir, itheta, nalpha=28, nphi=180, ntheta2=180;
 
@@ -689,7 +689,7 @@ void jur_sca_srcfunc_sca_1d(ctl_t *ctl,
   ALLOC(obs2, obs_t, 1);
   
   /* Set scattering phase function angles... */
-  for(itheta=0; itheta<NTHETA; itheta++)
+  for(itheta=0; itheta<NTHETAMAX; itheta++)
     theta[itheta]=(double)itheta*M_PI/180.;
   
   /* Get local coordinate system... */
@@ -772,7 +772,7 @@ void jur_sca_srcfunc_sca_1d(ctl_t *ctl,
 	  +cos(theta2)*sz[i];
 
       /* Get phase function index */
-      idp=jur_locate(theta, NTHETA, theta2);
+      idp=jur_locate(theta, NTHETAMAX, theta2);
 
       /* Get zenith angle... */
       alpha2=ANGLE(-1.*lz, ek);
@@ -824,7 +824,7 @@ void jur_sca_srcfunc_sca_3d(ctl_t *ctl,
   
   obs_t *obs2;
   
-  double phi, phase2, sx[3], sy[3], sz[3], theta[NTHETA], theta2,
+  double phi, phase2, sx[3], sy[3], sz[3], theta[NTHETAMAX], theta2,
     w, wsum=0, xv[3];
   
   int i, id, idx, iphi, itheta, nphi=180, ntheta2=180;
@@ -833,8 +833,8 @@ void jur_sca_srcfunc_sca_3d(ctl_t *ctl,
   ALLOC(obs2, obs_t, 1);
   
   /* Set scattering phase function angles... */
-  for(itheta=0; itheta<NTHETA; itheta++)
-    theta[itheta]=M_PI*(double)itheta/(NTHETA-1);
+  for(itheta=0; itheta<NTHETAMAX; itheta++)
+    theta[itheta]=M_PI*(double)itheta/(NTHETAMAX-1);
   
   /* Get orthonormal basis (with respect to LOS)... */
   jur_sca_bascoord(dx, x, sx, sy, sz);  
@@ -872,7 +872,7 @@ void jur_sca_srcfunc_sca_3d(ctl_t *ctl,
       jur_sca_formod_pencil(ctl, atm, obs2, aero, scattering-1, 0, q);
       
       /* Get phase function index */
-      idx=jur_locate(theta, NTHETA, theta2);
+      idx=jur_locate(theta, NTHETAMAX, theta2);
 
       /* Loop over channels... */
       for(id=0; id<ctl->nd; id++) {
@@ -919,17 +919,17 @@ void jur_sca_srcfunc_sca_sun(ctl_t *ctl,
   obs_t *obs;
   
   double azi, dnorth[3], dout[3], ek[3], lx[3], ly[3], lz[3], phase2, sza,
-    sza_beam, sza_cor, theta[NTHETA], theta2, x0[3], x1[3];
+    sza_beam, sza_cor, theta[NTHETAMAX], theta2, x0[3], x1[3];
   
   int i, i2, id, idx, itheta;
  
   /* Allocate... */
-  los = (pos_t*) malloc((NLOS) * sizeof(pos_t));
+  los = (pos_t*) malloc((NLOSMAX) * sizeof(pos_t));
   ALLOC(obs, obs_t, 1);
 
   /* Set scattering phase function angles... */
-  for(itheta=0; itheta<NTHETA; itheta++)
-    theta[itheta]=M_PI*(double)itheta/(NTHETA-1);
+  for(itheta=0; itheta<NTHETAMAX; itheta++)
+    theta[itheta]=M_PI*(double)itheta/(NTHETAMAX-1);
   
   /* Get local coordinate system... */
   dnorth[0]=-x[0];
@@ -990,7 +990,7 @@ void jur_sca_srcfunc_sca_sun(ctl_t *ctl,
     
     /* Get phase function position... */
     theta2=ANGLE(ek, dx);
-    idx=jur_locate(theta, NTHETA, theta2);
+    idx=jur_locate(theta, NTHETAMAX, theta2);
 
     /* Loop over channels... */
     for(id=0; id<ctl->nd; id++) {
@@ -1063,7 +1063,7 @@ void jur_sca_write_aero(const char *dirname,
   
   FILE *out;
   
-  char file[LEN];
+  char file[LENMAX];
   
   int im;
   

@@ -13,13 +13,13 @@ const int MAX_OBS = 100;
 int read_name_list(char const *dirname, char const *filename, 
     char name_list[MAX_LIST_SIZE][MAX_FILENAME_LENGTH]) {
   FILE *in;
-  char line[LEN], *tok, *saveptr;
+  char line[LENMAX], *tok, *saveptr;
   int i = 0;
   printf("Read name list: %s/%s\n", dirname, filename);
   // Open file
   in = jur_mkFile(dirname, filename, "r");
   // Read line
-  while (fgets(line, LEN, in)) {
+  while (fgets(line, LENMAX, in)) {
     // Read data
     TOK_FIVE_ARGS(line, tok, "%s", name_list[i++], &saveptr);
   }
@@ -34,13 +34,13 @@ int read_name_list(char const *dirname, char const *filename,
 int read_atm_id(char const *dirname, char const *filename, 
     int atm_id[MAX_OBS]) {
   FILE *in;
-  char line[LEN], *tok, *saveptr;
+  char line[LENMAX], *tok, *saveptr;
   int i = 0;
   printf("Read atm list: %s/%s\n", dirname, filename);
   // Open file
   in = jur_mkFile(dirname, filename, "r");
   // Read line
-  while (fgets(line, LEN, in)) {
+  while (fgets(line, LENMAX, in)) {
     // Read data
     TOK_FIVE_ARGS(line, tok, "%d", atm_id[i++], &saveptr);
   }
