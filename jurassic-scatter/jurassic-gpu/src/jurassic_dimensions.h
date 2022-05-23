@@ -14,6 +14,7 @@
 /* Maximum size of state vector. */
 #define NMAX (NQMAX*NPMAX)
 
+// +20 is here just because the reference and unified formulas are not equal
 /* Maximum number of quantities. */
 #define NQMAX (2+NGMAX+NWMAX+20)
 
