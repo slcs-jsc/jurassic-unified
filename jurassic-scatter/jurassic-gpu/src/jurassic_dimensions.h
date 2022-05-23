@@ -6,7 +6,7 @@
    ------------------------------------------------------------ */
 
 /* Maximum length of ASCII data lines. */
-#define LENMAX 5000
+#define LENMAX 10000
 
 /* Maximum size of measurement vector. */
 #define MMAX (NRMAX*NDMAX)
@@ -15,7 +15,7 @@
 #define NMAX (NQMAX*NPMAX)
 
 /* Maximum number of quantities. */
-#define NQMAX (2+NGMAX+NWMAX)
+#define NQMAX (2+NGMAX+NWMAX+20)
 
 /* Maximum number of spectral windows. */
 #define NWMAX 5

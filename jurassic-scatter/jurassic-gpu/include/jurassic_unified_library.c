@@ -1,15 +1,24 @@
 #include "jurassic_unified_library.h"
+#include <assert.h>
 
 // declarations of functions from jurassic-unified:
 
 void jur_get_dimensions(int32_t *dimensions);
  // in the next two functions I should use int32_t const * type for atm_id!
 int jur_get_num_of_atms(int const nr, int const *atm_id);
-void jur_formod_multiple_packages(ctl_t const *ctl, atm_t *atm, obs_t *obs, int n, int const *atm_id, aero_t const *aero); 
+void jur_formod_multiple_packages(jur_ctl_t const *ctl, jur_atm_t *atm, jur_obs_t *obs, int n, int const *atm_id, jur_aero_t const *aero); 
+void jur_read_ctl(int argc, char *argv[], jur_ctl_t *ctl);
+void jur_table_initialization(jur_ctl_t *ctl);
 
-jur_ctl_t *jur_unified_init(char const *ctl_name, int argc, char *argv[]) {
+// declarations of functions from this file, which are not visible to Lars:
+void convert_atm_from_reference_to_unified(atm_t const *atm, jur_atm_t *jur_atm); 
+void convert_obs_from_reference_to_unified(obs_t const *obs, jur_obs_t *jur_obs);
+void convert_obs_from_unified_to_reference(jur_obs_t const *jur_obs, obs_t *obs);
+
+jur_ctl_t *jur_unified_init(int argc, char *argv[]) {
   static jur_ctl_t *jur_ctl = NULL;
   if(NULL == jur_ctl) {
+    assert(argc && "Please call jur_unified_init at the beginning");
     int32_t dimensions[23];
     jur_get_dimensions(dimensions);
     assert(LENMAX     == dimensions[0]  && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
@@ -36,12 +45,13 @@ jur_ctl_t *jur_unified_init(char const *ctl_name, int argc, char *argv[]) {
     assert(RFMNPTSMAX == dimensions[21] && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
     assert(RFMLINEMAX == dimensions[22] && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
 
-    jur_read_ctl(0, NULL, jur_ctl); 
-    jur_table_initialization(&jur_ctl); 
+    jur_read_ctl(argc, argv, jur_ctl); 
+    jur_table_initialization(jur_ctl); 
   }
+  return jur_ctl;
 }
 
-void convert_atm_from_reference_to_unified(atm_t const *atm, jur_atm_t *jur_atm, int num_of_atms) {
+void convert_atm_from_reference_to_unified(atm_t const *atm, jur_atm_t *jur_atm) {
   printf("[INFO] Warning: unified atm_t doesn't contain clz, cldz, clk, sfz, sfp, sft, ...\n");  
   jur_atm->np = atm->np;
   jur_atm->init = 0;
@@ -99,19 +109,23 @@ void convert_obs_from_unified_to_reference(jur_obs_t const *jur_obs, obs_t *obs)
   }
 }
 
-void jur_unified_formod_multiple_packages(char const *ctl_name, atm_t const *atm, obs_t *obs, int num_of_obs, int32_t const *atm_id) {
-  assert(omp_num_threads() == 1);
-  jur_ctl_t *jur_ctl = jur_unified_init(ctl_name, 0, NULL);
+void jur_unified_formod_multiple_packages(atm_t const *atm, obs_t *obs, int num_of_obs, int32_t const *atm_id) {
+  assert(omp_get_num_threads() == 1);
+  jur_ctl_t *jur_ctl = jur_unified_init(0, NULL);
     
-  int num_of_atms = jur_get_num_of_atms(nr, atm_id);
-  jur_atm_t *jur_atm = (jur_atm_t*) malloc(num_of_atms * sizeof(jur_atm_t));
-  convert_atm_from_reference_to_unified(atm, jur_atm, num_of_atms);
+  int total_number_of_rays = 0;
+  for(int i = 0; i < num_of_obs; i++)
+    total_number_of_rays += obs[i].nr;
+  int const num_of_atms = jur_get_num_of_atms(total_number_of_rays, atm_id);
+  jur_atm_t *jur_atm = (jur_atm_t*) malloc((size_t) num_of_atms * sizeof(jur_atm_t));
+  for(int i = 0; i < num_of_atms; i++)
+    convert_atm_from_reference_to_unified(&atm[i], &jur_atm[i]);
   
-  jur_obs_t *jur_obs = (jur_obs_t*) malloc(n * sizeof(jur_obs_t));
+  jur_obs_t *jur_obs = (jur_obs_t*) malloc((size_t) num_of_obs * sizeof(jur_obs_t));
   for(int i = 0; i < num_of_obs; i++)
     convert_obs_from_reference_to_unified(&obs[i], &jur_obs[i]);
 
-	jur_formod_multiple_packages(jur_ctl, jur_atm, jur_obs, num_of_obs, atm_id);
+	jur_formod_multiple_packages(jur_ctl, jur_atm, jur_obs, num_of_obs, atm_id, NULL);
   free(jur_atm);
 
   for(int i = 0; i < num_of_obs; i++)
