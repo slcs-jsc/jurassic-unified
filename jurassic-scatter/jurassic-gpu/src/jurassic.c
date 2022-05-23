@@ -1544,3 +1544,29 @@ void jur_divide_atm_data_into_packages(atm_t const *atm, obs_t const *obs, int n
     }
     free(used_atms);
 }
+
+void jur_get_dimensions(int32_t *dimensions) {
+  dimensions[0]  = LENMAX;
+  dimensions[1]  = MMAX;
+  dimensions[2]  = NMAX;
+  dimensions[3]  = NQMAX;
+  dimensions[4]  = NWMAX;
+  dimensions[5]  = NDMAX;
+  dimensions[6]  = NGMAX;
+  dimensions[7]  = NLOSMAX;
+  dimensions[8]  = NPMAX;
+  dimensions[9]  = NRMAX;
+  dimensions[10] = NSHAPEMAX;
+  dimensions[11] = NFOVMAX;
+  dimensions[12] = TBLNPMAX;
+  dimensions[13] = TBLNSMAX;
+  dimensions[14] = TBLNTMAX;
+  dimensions[15] = TBLNUMAX;
+  dimensions[16] = SCAMODMAX;
+  dimensions[17] = NLMAX;
+  dimensions[18] = NTHETAMAX;
+  dimensions[19] = NRADMAX;
+  dimensions[20] = REFMAX;
+  dimensions[21] = RFMNPTSMAX;
+  dimensions[22] = RFMLINEMAX;
+}

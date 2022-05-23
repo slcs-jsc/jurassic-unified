@@ -442,3 +442,6 @@ int jur_get_num_of_atms(int const nr, int const *atm_id);
 // Added:
 void jur_divide_atm_data_into_packages(atm_t const *atm, obs_t const *obs, int n, int const *atm_id, 
                                        atm_t **divided_atms, int **divided_atm_ids); 
+
+// Added:
+void jur_get_dimensions(int32_t *dimensions);

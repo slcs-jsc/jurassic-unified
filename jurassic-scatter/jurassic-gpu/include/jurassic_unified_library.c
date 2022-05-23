@@ -6,13 +6,31 @@ void jur_get_dimensions(int32_t *dimensions);
 jur_ctl_t *jur_unified_init(char const *ctl_name, int argc, char *argv[]) {
   static jur_ctl_t *jur_ctl = NULL;
   if(NULL == jur_ctl) {
-    int32_t dimensions[10];
+    int32_t dimensions[23];
     jur_get_dimensions(dimensions);
-    assert(NDMAX == dimensions[0] && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
-    ...
-
-
-
+    assert(LENMAX     == dimensions[0]  && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
+    assert(MMAX       == dimensions[1]  && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
+    assert(NMAX       == dimensions[2]  && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
+    assert(NQMAX      == dimensions[3]  && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
+    assert(NWMAX      == dimensions[4]  && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
+    assert(NDMAX      == dimensions[5]  && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
+    assert(NGMAX      == dimensions[6]  && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
+    assert(NLOSMAX    == dimensions[7]  && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
+    assert(NPMAX      == dimensions[8]  && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
+    assert(NRMAX      == dimensions[9]  && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
+    assert(NSHAPEMAX  == dimensions[10] && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
+    assert(NFOVMAX    == dimensions[11] && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
+    assert(TBLNPMAX   == dimensions[12] && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
+    assert(TBLNSMAX   == dimensions[13] && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
+    assert(TBLNTMAX   == dimensions[14] && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
+    assert(TBLNUMAX   == dimensions[15] && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
+    assert(SCAMODMAX  == dimensions[16] && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
+    assert(NLMAX      == dimensions[17] && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
+    assert(NTHETAMAX  == dimensions[18] && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
+    assert(NRADMAX    == dimensions[19] && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
+    assert(REFMAX     == dimensions[20] && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
+    assert(RFMNPTSMAX == dimensions[21] && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
+    assert(RFMLINEMAX == dimensions[22] && "jurassic_dimensions.h is inconsistent with the compiled libjurassic_unified.a");
 
     jur_read_ctl(0, NULL, jur_ctl); 
     jur_table_initialization(&jur_ctl); 
