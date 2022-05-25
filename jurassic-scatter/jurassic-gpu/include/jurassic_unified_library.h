@@ -1,5 +1,6 @@
 #ifndef JURASSIC_UNIFIED_LIBRARY_H
 #define JURASSIC_UNIFIED_LIBRARY_H
+
   #include "jurassic.h"
   #include "../unified_library/jurassic_dimensions.h"
   #include "../unified_library/jurassic_structs.h" 
@@ -69,7 +70,6 @@
   #endif
 
   jur_ctl_t *jur_unified_init(int argc, char *argv[]);
-
-	void jur_unified_formod_multiple_packages(atm_t const *atm, obs_t *obs, int num_of_obs, int32_t const *atm_id); // without aero
+	void jur_unified_formod_multiple_packages(atm_t const *atm, obs_t *obs, int num_of_obs_packages, int32_t const *atm_id);
 
 #endif

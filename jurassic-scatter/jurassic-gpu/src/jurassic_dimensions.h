@@ -25,7 +25,7 @@
 #define NDMAX 70
 
 /* Maximum number of emitters. */
-#define NGMAX 23
+#define NGMAX 25
 
 /* Maximum number of LOS points. */
 #define NLOSMAX 10000
