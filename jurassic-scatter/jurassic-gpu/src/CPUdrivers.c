@@ -102,7 +102,7 @@
 	__host__
 	void jur_raytrace_rays_CPU(ctl_t const *ctl, atm_t const *atm, obs_t *obs, 
                            pos_t los[NRMAX][NLOSMAX], double tsurf[], int np[], 
-                           int const *atm_id, aero_t const *aero, int scattering_included) {
+                           int32_t const *atm_id, aero_t const *aero, int scattering_included) {
 #pragma omp parallel for
 		for(int ir = 0; ir < obs->nr; ir++) { // loop over rays
       np[ir] = jur_traceray(ctl, &atm[(NULL == atm_id ? 0 : atm_id[ir])], obs, ir, los[ir], &tsurf[ir], aero, scattering_included);
@@ -122,7 +122,7 @@
 	// The full forward model on the CPU ////////////////////////////////////////////
 	__host__
 	void jur_formod_one_package_CPU(ctl_t const *ctl, atm_t *atm, obs_t *obs,
-                  int const *atm_id, aero_t const *aero) { // NULL == atm_id if all observations use the same atm
+                  int32_t const *atm_id, aero_t const *aero) { // NULL == atm_id if all observations use the same atm
                                                            // otherwise |atm_id| == obs -> nr
     printf("DEBUG #%d jur_formod_one_package_CPU was called!\n", ctl->MPIglobrank);
   
@@ -170,7 +170,7 @@
 	} // jur_formod_one_package_CPU
 
 	__host__
-	void jur_formod_multiple_packages_CPU(ctl_t const *ctl, atm_t *atm, obs_t *obs, int n, int const *atm_id, aero_t const *aero) {
+	void jur_formod_multiple_packages_CPU(ctl_t const *ctl, atm_t *atm, obs_t *obs, int n, int32_t const *atm_id, aero_t const *aero) {
     if(NULL == atm_id || 1 == n) {
       #pragma omp parallel for
       for(int i = 0; i < n; i++) {
@@ -179,7 +179,7 @@
     }
     else {
       atm_t **divided_atms = (atm_t **) malloc(n * sizeof(atm_t *));
-      int **divided_atm_ids = (int **) malloc(n * sizeof(int *));
+      int32_t **divided_atm_ids = (int32_t **) malloc(n * sizeof(int32_t *));
 
       jur_divide_atm_data_into_packages(atm, obs, n, atm_id, divided_atms, divided_atm_ids);
 
@@ -199,7 +199,7 @@
 
   __host__ 
   void jur_formod_multiple_packages_GPU(ctl_t const *ctl, atm_t *atm, obs_t *obs,
-                                        int n, int const *atm_id, aero_t const *aero)
+                                        int n, int32_t const *atm_id, aero_t const *aero)
 #ifdef hasGPU
     ; // declaration only, will be provided by GPUdrivers.o at link time 
 #else
@@ -225,7 +225,7 @@
 #endif
 
 	__host__
-	void jur_formod_multiple_packages(ctl_t const *ctl, atm_t *atm, obs_t *obs, int n, int const *atm_id, aero_t const *aero) {
+	void jur_formod_multiple_packages(ctl_t const *ctl, atm_t *atm, obs_t *obs, int n, int32_t const *atm_id, aero_t const *aero) {
         printf("DEBUG #%d jur_formod: number of packages.. %d\n", ctl->MPIglobrank, n);
         if (ctl->checkmode) {
             static int nr_last_time = -999;

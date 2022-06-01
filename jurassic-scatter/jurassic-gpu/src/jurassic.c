@@ -1509,7 +1509,7 @@ size_t jur_obs2y(ctl_t const *const ctl, obs_t const *const obs, gsl_vector *y, 
 	return m;
 }
 
-int jur_get_num_of_atms(int const nr, int const *atm_id) {
+int jur_get_num_of_atms(int const nr, int32_t const *atm_id) {
   if(NULL == atm_id) return 1;
   int maksi = 0;
   for(int i = 0; i < nr; i++)
@@ -1518,8 +1518,8 @@ int jur_get_num_of_atms(int const nr, int const *atm_id) {
   return maksi + 1;
 }
 
-void jur_divide_atm_data_into_packages(atm_t const *atm, obs_t const *obs, int n, int const *atm_id, 
-                                       atm_t **divided_atms, int **divided_atm_ids) {
+void jur_divide_atm_data_into_packages(atm_t const *atm, obs_t const *obs, int n, int32_t const *atm_id, 
+                                       atm_t **divided_atms, int32_t **divided_atm_ids) {
     int total_num_of_rays = 0;
     for(int i = 0; i < n; i++)
       total_num_of_rays += obs[i].nr;
@@ -1528,7 +1528,7 @@ void jur_divide_atm_data_into_packages(atm_t const *atm, obs_t const *obs, int n
     for(int i = 0; i < n; i++) {
       for(int j = 0; j < total_num_of_rays; j++)
         used_atms[j] = -1;
-      divided_atm_ids[i] = (int *) malloc(obs[i].nr * sizeof(int));
+      divided_atm_ids[i] = (int32_t *) malloc((size_t)obs[i].nr * sizeof(int32_t));
       int num_of_used_atms = 0;
       for(int j = 0; j < obs[i].nr; j++) {
         if(-1 == used_atms[atm_id[index]]) {

@@ -201,7 +201,7 @@
   template<int scattering_included>
 	void __global__ // GPU-kernel
 		jur_raytrace_rays_GPU(ctl_t const *ctl, const atm_t *atm, obs_t *obs, pos_t
-    los[][NLOSMAX], double *tsurf, int np[], int const *atm_id, aero_t const *aero) {
+    los[][NLOSMAX], double *tsurf, int np[], int32_t const *atm_id, aero_t const *aero) {
 			for(int ir = blockIdx.x*blockDim.x + threadIdx.x; ir < obs->nr; ir += blockDim.x*gridDim.x) { // grid stride loop over rays
         np[ir] = jur_traceray<scattering_included>(ctl, &atm[(NULL == atm_id ? 0 : atm_id[ir])], obs, ir, los[ir], &tsurf[ir], aero);
 			} // ir
@@ -233,7 +233,7 @@
 		double *tsurf_G;
 		int    *np_G;
     double (*aero_beta_G)[NDMAX];
-    int *atm_id_G; 
+    int32_t *atm_id_G; 
 		cudaStream_t stream;
 	} gpuLane_t;
 
@@ -243,7 +243,7 @@
 			atm_t *atm, // can be made const if we do not get the atms back
 			obs_t *obs,
       aero_t const *aero,
-      int const *atm_id,
+      int32_t const *atm_id,
 			gpuLane_t const *gpu)
     // a workload manager for the GPU
     {
@@ -254,7 +254,7 @@
                __func__, obs->nr, NRMAX, ctl->ng, NGMAX, ctl->nd, NDMAX);
         
 		atm_t *atm_G = gpu->atm_G;
-    int *atm_id_G = gpu->atm_id_G;
+    int32_t *atm_id_G = gpu->atm_id_G;
     aero_t *aero_G = gpu->aero_G;
 		obs_t *obs_G = gpu->obs_G;
     double (*aero_beta_G)[NDMAX] = gpu->aero_beta_G;
@@ -291,7 +291,7 @@
                        aero->beta_e, NLMAX * NDMAX * sizeof(double), stream);
     }
     if(NULL != atm_id) {
-      copy_data_to_GPU(atm_id_G, atm_id, nr * sizeof(int), stream);
+      copy_data_to_GPU(atm_id_G, atm_id, nr * sizeof(int32_t), stream);
 		  copy_data_to_GPU(atm_G, atm, num_of_atms * sizeof(atm_t), stream);
     }
     else {
@@ -335,12 +335,12 @@
     // make sure that jur_formod_multiple_packages_GPU can be linked from CPUdrivers.c
 	extern "C" {
 	   void jur_formod_multiple_packages_GPU(ctl_t *ctl, atm_t *atm, obs_t *obs,
-                                           int n, int const *atm_id, aero_t const *aero);
+                                           int n, int32_t const *atm_id, aero_t const *aero);
    }
 
 	__host__
 	void jur_formod_multiple_packages_GPU(ctl_t *ctl, atm_t *atm, obs_t *obs,
-                                        int n, int const *atm_id, aero_t const *aero) {
+                                        int n, int32_t const *atm_id, aero_t const *aero) {
     static ctl_t *ctl_G=NULL;
 		static trans_table_t *tbl_G=NULL;
 
@@ -357,11 +357,11 @@
     const bool multi_atm_now = NULL != atm_id;
 
     atm_t **divided_atms;
-    int **divided_atm_ids;
+    int32_t **divided_atm_ids;
 
     if(multi_atm_now) {
       divided_atms = (atm_t **) malloc(n * sizeof(atm_t *));
-      divided_atm_ids = (int **) malloc(n * sizeof(int *));
+      divided_atm_ids = (int32_t **) malloc(n * sizeof(int32_t *));
       jur_divide_atm_data_into_packages(atm, obs, n, atm_id, divided_atms, divided_atm_ids);
     }
 
@@ -372,7 +372,7 @@
               size_t sizePerLane = sizeof(aero_t) + sizeof(obs_t) + sizeof(atm_t) + NRMAX * (NLOSMAX * sizeof(pos_t) + sizeof(double) + sizeof(int));
               // in this case we have NRMAX * atm_t instead of the only one and one additional atm_id array
               if(multi_atm_now)
-                sizePerLane = sizeof(aero_t) + sizeof(obs_t) + NRMAX * (sizeof(atm_t) + NLOSMAX * sizeof(pos_t) + sizeof(double) + 2 * sizeof(int));
+                sizePerLane = sizeof(aero_t) + sizeof(obs_t) + NRMAX * (sizeof(atm_t) + NLOSMAX * sizeof(pos_t) + sizeof(double) + sizeof(int) + sizeof(int32_t));
  
               if (ctl->checkmode) {
                 printf("# %s: GPU memory requirement per lane is %.3f MByte\n", __func__, 1e-6*sizePerLane);
@@ -436,7 +436,7 @@
                   gpu->los_G		   = (pos_t (*)[NLOSMAX])__allocate_on_GPU(NRMAX*NLOSMAX*sizeof(pos_t), __FILE__, __LINE__); 
                   gpu->aero_beta_G = (double(*)[NDMAX])__allocate_on_GPU(NLMAX*NDMAX*sizeof(double), __FILE__, __LINE__);
                   if(multi_atm_now) {
-                    gpu->atm_id_G  = malloc_GPU(int, NRMAX);
+                    gpu->atm_id_G  = malloc_GPU(int32_t, NRMAX);
                     gpu->atm_G     = malloc_GPU(atm_t, NRMAX);
                   }
                   else {

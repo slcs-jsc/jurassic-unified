@@ -32,7 +32,7 @@ int read_name_list(char const *dirname, char const *filename,
 }
 
 int read_atm_id(char const *dirname, char const *filename, 
-    int atm_id[MAX_OBS]) {
+    int32_t atm_id[MAX_OBS]) {
   FILE *in;
   char line[LENMAX], *tok, *saveptr;
   int i = 0;
@@ -54,7 +54,7 @@ int read_atm_id(char const *dirname, char const *filename,
 
 // at the moment we use only CPU version
 void formod_CPU(ctl_t const *ctl, atm_t *atm, obs_t *obs,
-    int const *atm_id, aero_t const *aero); 
+    int32_t const *atm_id, aero_t const *aero); 
 
 int main(
     int argc,
@@ -70,7 +70,7 @@ int main(
   char obs_list[MAX_LIST_SIZE][MAX_FILENAME_LENGTH];
   char rad_list[MAX_LIST_SIZE][MAX_FILENAME_LENGTH];
 
-  int atm_id[MAX_OBS];
+  int32_t atm_id[MAX_OBS];
 
   if (argc < 6)
     ERRMSG("Give parameters: <ctl> <obs> <atm_list> <atm_id> <rad>");

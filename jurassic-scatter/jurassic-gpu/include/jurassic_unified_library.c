@@ -4,8 +4,8 @@
 // declarations of functions from jurassic-unified:
 void jur_get_dimensions(int32_t *dimensions);
 // FIXME: in the next two functions I should use int32_t const * type for atm_id!
-int jur_get_num_of_atms(int const nr, int const *atm_id);
-void jur_formod_multiple_packages(jur_ctl_t const *ctl, jur_atm_t *atm, jur_obs_t *obs, int n, int const *atm_id, jur_aero_t const *aero); 
+int jur_get_num_of_atms(int const nr, int32_t const *atm_id);
+void jur_formod_multiple_packages(jur_ctl_t const *ctl, jur_atm_t *atm, jur_obs_t *obs, int n, int32_t const *atm_id, jur_aero_t const *aero); 
 void jur_read_ctl(int argc, char *argv[], jur_ctl_t *ctl);
 void jur_table_initialization(jur_ctl_t *ctl);
 

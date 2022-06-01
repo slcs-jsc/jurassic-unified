@@ -433,15 +433,15 @@ void jur_formod_multiple_packages(ctl_t const *ctl,
     atm_t *atm, 
     obs_t *obs, 
     int n,
-    int const *atm_id,
+    int32_t const *atm_id,
     aero_t const *aero);
 
 // Added:
-int jur_get_num_of_atms(int const nr, int const *atm_id); 
+int jur_get_num_of_atms(int const nr, int32_t const *atm_id); 
 
 // Added:
-void jur_divide_atm_data_into_packages(atm_t const *atm, obs_t const *obs, int n, int const *atm_id, 
-                                       atm_t **divided_atms, int **divided_atm_ids); 
+void jur_divide_atm_data_into_packages(atm_t const *atm, obs_t const *obs, int n, int32_t const *atm_id, 
+                                       atm_t **divided_atms, int32_t **divided_atm_ids); 
 
 // Added:
 void jur_get_dimensions(int32_t *dimensions);
