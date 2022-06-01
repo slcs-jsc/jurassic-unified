@@ -1,5 +1,4 @@
 # please do not check in binaries
-brightness
 limb
 obs2spec
 formod
@@ -15,3 +14,5 @@ memoryinfo
 libutil.a
 *.d
 *.o
+modules
+module_brightness
