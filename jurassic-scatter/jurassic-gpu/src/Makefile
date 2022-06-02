@@ -6,7 +6,6 @@
 EXC = formod multi_atm_formod sca_formod
 EXC += module_brightness module_climatology module_interpolate
 EXC += module_limb module_nadir module_planck module_raytrace
-#obs2spec jsec2time limb nadir planck time2jsec memoryinfo hash
 
 # Library directories...
 LIBDIR =
@@ -100,7 +99,7 @@ else
 endif
 
 # Dependencies...
-# DEP = jurassic.d CPUdrivers.d GPUdrivers.d $(EXEC:%=%.d)
+DEP = jurassic.d CPUdrivers.d GPUdrivers.d $(EXEC:%=%.d)
 
 MYLIB = libjurassic_unified.a
 # -----------------------------------------------------------------------------
