@@ -4,8 +4,8 @@
 
 # Main executables...
 EXC = formod multi_atm_formod sca_formod
-EXC += module_brightness
-#obs2spec brightness climatology jsec2time limb nadir planck time2jsec memoryinfo hash
+EXC += module_brightness module_climatology
+#obs2spec jsec2time limb nadir planck time2jsec memoryinfo hash
 
 # Library directories...
 LIBDIR =

@@ -16,3 +16,4 @@ libutil.a
 *.o
 modules
 module_brightness
+module_climatology
