@@ -19,3 +19,4 @@ module_brightness
 module_climatology
 module_interpolate
 module_limb
+module_nadir
