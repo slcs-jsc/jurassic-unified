@@ -20,3 +20,4 @@ module_climatology
 module_interpolate
 module_limb
 module_nadir
+module_planck
