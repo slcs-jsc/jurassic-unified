@@ -17,3 +17,4 @@ libutil.a
 modules
 module_brightness
 module_climatology
+module_interpolate
