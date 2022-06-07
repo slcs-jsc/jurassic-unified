@@ -1,4 +1,5 @@
 #include "jr_common.h" // inline definitions of common functions for CPU and GPU code
+#include <omp.h> // TODO: remove it after the benchmarking is over
 
 	// ################ CPU driver routines - keep consistent with GPUdrivers.cu ##############
 
@@ -57,7 +58,7 @@
 
 	__host__
 	void jur_apply_kernels_CPU(trans_table_t const *tbl, ctl_t const *ctl, obs_t *obs, 
-        pos_t const (*restrict los)[NLOSMAX], int const np[], 
+        pos_t /* FIXME: const */ (*restrict los)[NLOSMAX], int const np[], 
         double const (*restrict aero_beta)[NDMAX]) { // aero_beta is added
 
 #pragma omp parallel for
@@ -137,9 +138,9 @@
 		jur_save_mask(mask, obs, ctl);
 
 		trans_table_t const *tbl = jur_get_tbl(ctl);
-		double *t_surf = (double*)malloc((obs->nr)*sizeof(double));
-		int *np = (int*)malloc((obs->nr)*sizeof(int));
-		pos_t (*los)[NLOSMAX] = (pos_t (*)[NLOSMAX])malloc((obs->nr)*(NLOSMAX)*sizeof(pos_t));
+		double *t_surf = (double*)malloc((size_t) obs->nr * sizeof(double));
+		int *np = (int*)malloc((size_t) obs->nr * sizeof(int));
+		pos_t (*los)[NLOSMAX] = (pos_t (*)[NLOSMAX])malloc((size_t) (obs->nr * NLOSMAX) * sizeof(pos_t));
 
 		static int ig_h2o = -999;
 		if((ctl->ctm_h2o) && (-999 == ig_h2o)) ig_h2o = jur_find_emitter(ctl, "H2O");
@@ -178,8 +179,8 @@
       }
     }
     else {
-      atm_t **divided_atms = (atm_t **) malloc(n * sizeof(atm_t *));
-      int32_t **divided_atm_ids = (int32_t **) malloc(n * sizeof(int32_t *));
+      atm_t **divided_atms = (atm_t **) malloc((size_t) n * sizeof(atm_t *));
+      int32_t **divided_atm_ids = (int32_t **) malloc((size_t) n * sizeof(int32_t *));
 
       jur_divide_atm_data_into_packages(atm, obs, n, atm_id, divided_atms, divided_atm_ids);
 
@@ -281,14 +282,13 @@
   __host__
   void jur_table_initialization(ctl_t *ctl) {
     double tic = omp_get_wtime(); 
-    trans_table_t *tbl;
     if(ctl->useGPU) {
       printf("DEBUG #%d call initilaze GPU..\n", ctl->MPIglobrank);
-      tbl = jur_get_tbl_on_GPU(ctl); 
+      jur_get_tbl_on_GPU(ctl); 
     }
     else {
       printf("DEBUG #%d call initilaze CPU..\n", ctl->MPIglobrank);
-      tbl = jur_get_tbl(ctl);
+      jur_get_tbl(ctl);
     }
     double toc = omp_get_wtime();
     printf("TIMER #%d jurassic-gpu table initialization time: %lf\n", ctl->MPIglobrank, toc - tic);
