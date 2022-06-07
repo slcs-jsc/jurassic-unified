@@ -141,11 +141,11 @@
           else
             lo = mid + 1;
         }
-        *atmIdx = (unsigned)lo; // lo is lower bound
+        *atmIdx = (size_t) lo; // lo is lower bound
 
         // Find upper bound:
         //  the largest x such that atm->time[x] < time + EPS
-        lo = *atmIdx, hi = atm->np - 1;
+        lo = (int) *atmIdx, hi = atm->np - 1;
         while(lo < hi) {
           mid = (lo + hi + 1) / 2;
           if(atm->time[mid] < time + EPS)
@@ -153,7 +153,7 @@
           else
             hi = mid - 1;
         }
-        *atmNp = lo - *atmIdx + 1; // lo is upper bound, *atmNp is the interval length
+        *atmNp = lo - (int) *atmIdx + 1; // lo is upper bound, *atmNp is the interval length
     } // jur_locate_atm
 
 	__host__ __device__ __ext_inline__
@@ -347,9 +347,9 @@
         double sfac = 1.;
         if ((nu > 820.) && (nu < 960.)) { // equidistant grid of 10 cm^-1
             char const xfcrev_char[16] = {3, 9, 15, 23, 29, 33, 37, 39, 40, 46, 36, 27, 10, 2, 0, 0};
-            float const xx = nu*0.1 - 82; // xx = (nu - 820)/10.;
+            float const xx = (float) (nu*0.1 - 82); // xx = (nu - 820)/10.;
             int   const ix = (int)xx;
-            float const dx = xx - ix;
+            float const dx = xx - (float) ix;
             sfac += .001*((1 - dx)*xfcrev_char[ix] + dx*xfcrev_char[ix + 1]);
         }
         double const ctwslf = sfac*cw296*pow(cw260/cw296, (296. - t)/(296. - 260.));
@@ -410,7 +410,7 @@
 	void jur_altitude_range_nn(atm_t const *atm, size_t const atmIdx, int const atmNp, double *zmin, double *zmax) {
 		*zmax = *zmin = atm->z[atmIdx];
 		for(size_t ipp = atmIdx;
-				(ipp < atmIdx+atmNp) && (atm->lon[ipp] == atm->lon[atmIdx]) && (atm->lat[ipp] == atm->lat[atmIdx]);
+				(ipp < atmIdx + (size_t)atmNp) && (atm->lon[ipp] == atm->lon[atmIdx]) && (atm->lat[ipp] == atm->lat[atmIdx]);
 				++ipp) {
 			*zmax = fmax(*zmax, atm->z[ipp]);
 			*zmin = fmin(*zmin, atm->z[ipp]);
@@ -756,6 +756,8 @@
 
     int il, ig, jl=0, ip, it;
 
+    alti[0] = 0; // added just to remove uninitialized warning
+
     /* Create altitudes to sample aerosol edges */
     for (il=0; il<aero->nl;il++){
       alti[jl] = aero->top[il] + epsilon;
@@ -899,7 +901,7 @@
     double ex0[3], ex1[3], q[NGMAX], k[NWMAX], lat, lon, p, t, x[3], xobs[3], xvp[3], z = 1e99, z_low=z, zmax, zmin, zrefrac = 60;
 
     // Initialize
-    *tsurf = -999;
+    *tsurf = t = -999;
     for(int ig = 0; ig < NGMAX; ig++) q[ig] = 0;
     for(int iw = 0; iw < NWMAX; iw++) k[iw] = 0;
     obs->tpz[ir]   = obs->vpz[ir];
