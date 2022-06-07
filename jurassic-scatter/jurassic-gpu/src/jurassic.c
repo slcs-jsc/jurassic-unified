@@ -1,5 +1,4 @@
 #include "jurassic.h"
-#include "jr_binary_tables_io.h" // jr_write_binary_tables, jr_read_binary_tables
 
 // declarations of functions from jr_common.h:
 double jur_gravity(double const z, double const lat);
@@ -253,16 +252,6 @@ void jur_hydrostatic_1d(ctl_t const *const ctl, atm_t *atm, int const ip0, int c
 //***************************************************************************
 
 void jur_init_tbl(ctl_t const *ctl, trans_table_t *tbl) {
-    if (ctl->read_binary) {
-        int const binary_reading_status = jr_read_binary_tables(tbl, ctl);
-        if (0 == binary_reading_status) {
-            printf("matching binary tables file found\n");
-            return;
-        } else if (ctl->read_binary > 0) {
-            ERRMSG("Failed to read binary file while READ_BINARY > 0");
-        }
-    }
-  
     TIMER("INIT_TBL", 1);
     int const logg = 0;
     size_t warn_nu_ignored = 0;
@@ -609,10 +598,6 @@ void jur_init_tbl(ctl_t const *ctl, trans_table_t *tbl) {
 		}
       } // checkmode
 	}
-
-	if (ctl->write_binary) {
-        jr_write_binary_tables(tbl, ctl);
-    }
 }
 
 //***************************************************************************
@@ -979,10 +964,6 @@ void jur_read_ctl(int argc, char *argv[], ctl_t *ctl) {
 	ctl->checkmode = (int) jur_scan_ctl(argc, argv, "CHECKMODE", -1, "0", NULL);
     	printf("CHECKMODE = %d (%s)\n", ctl->checkmode, 
            (0 == ctl->checkmode)?"run":((ctl->checkmode > 0)?"skip":"obs"));
-        
-    ctl->read_binary  = (int) jur_scan_ctl(argc, argv, "READ_BINARY", -1, "-1", NULL);
-    ctl->write_binary = (int) jur_scan_ctl(argc, argv, "WRITE_BINARY", -1, "1", NULL);
-
     ctl->gpu_nbytes_shared_memory = (int) jur_scan_ctl(argc, argv, "GPU_SHARED_MEMORY", -1, "0", NULL);
   
   // TODO: new! needs to be tested!

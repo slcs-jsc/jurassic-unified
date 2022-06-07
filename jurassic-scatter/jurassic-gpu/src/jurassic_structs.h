@@ -67,8 +67,6 @@ typedef struct { /// Forward model control parameters. /////////////////////////
 	int checkmode;          /// do not perform input, computation, nor output, just make sure files are there 
 	int MPIglobrank;        /// MPI global rank
 	int MPIlocalrank;       /// MPI node-local Rank
-  int read_binary;        /// binary IO
-  int write_binary;       /// binary IO
   int gpu_nbytes_shared_memory; /// Shared memory controler for GPU kernels
   
   /// ---------------- for scattering ------------------
