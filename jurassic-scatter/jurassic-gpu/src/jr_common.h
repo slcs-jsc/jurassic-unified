@@ -742,7 +742,7 @@
       dest -> k[iw] = source -> k[iw];
   } // jur_copy_pos
 
-  __host__ __device__ __ext_inline__
+  __host__ __device__ /* FIXME: __ext_inline__ */
   int jur_add_aerosol_layers(ctl_t const *ctl,
       atm_t const *atm,
       pos_t los[],
@@ -895,7 +895,7 @@
   __host__ __device__ __ext_inline__
   int jur_traceray(ctl_t const *ctl, atm_t const *atm, obs_t *obs, int const ir, pos_t los[], double *tsurf, aero_t const *aero) {
 #else
-  __host__ __device__ __ext_inline__
+  __host__ __device__ /* FIXME: __ext_inline__ */
   int jur_traceray(ctl_t const *ctl, atm_t const *atm, obs_t *obs, int const ir, pos_t los[], double *tsurf, aero_t const *aero, int scattering_included) {
 #endif
     double ex0[3], ex1[3], q[NGMAX], k[NWMAX], lat, lon, p, t, x[3], xobs[3], xvp[3], z = 1e99, z_low=z, zmax, zmin, zrefrac = 60;
