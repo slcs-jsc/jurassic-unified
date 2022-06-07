@@ -262,7 +262,7 @@ void jur_init_tbl(ctl_t const *ctl, trans_table_t *tbl) {
 #pragma omp parallel for
 		for(int id = 0; id < ctl->nd; id++) {
           
-			char filename[LENMAX];
+			char filename[2 * LENMAX];
 #ifdef      DIRECTORY_WITH_GAS_NAME
 			sprintf(filename, "%s/%s_%s/boxcar_%.4f_%s.tab", ctl->tblbase, 
                     ctl->tblbase, ctl->emitter[ig], ctl->nu[id], ctl->emitter[ig]);
@@ -332,7 +332,7 @@ void jur_init_tbl(ctl_t const *ctl, trans_table_t *tbl) {
 
 		} // id
       } else { // checkmode
-			char filenames[LENMAX];
+			char filenames[2 * LENMAX];
 #ifdef      DIRECTORY_WITH_GAS_NAME
 			sprintf(filenames, "%s/%s_%s/boxcar_%s_%s.tab", ctl->tblbase, 
                     ctl->tblbase, ctl->emitter[ig], "<nu.4>", ctl->emitter[ig]);
@@ -412,7 +412,7 @@ void jur_init_tbl(ctl_t const *ctl, trans_table_t *tbl) {
         printf("# now main table arrays (tbl->u + tbl->eps) consume %.6f GByte\n", total_now);
         double const total_min = (ctl->ng)*np_max*f*nt_max*nu_max*(ctl->nd);
         printf("# main table arrays could consume %.6f GByte\n", total_min);
-        double const sparse_mem = f*mem_used;
+        double const sparse_mem = f * (double)mem_used;
         printf("# with sparse storage only %.6f GByte (%.1f %%)\n\n", sparse_mem, 100*sparse_mem/total_min);
     } // scope
         
@@ -577,7 +577,7 @@ void jur_init_tbl(ctl_t const *ctl, trans_table_t *tbl) {
 	
 #pragma omp parallel for if(0 == ctl->checkmode)
 	for(int id = 0; id < ctl->nd; id++) {
-		char filename[LENMAX];
+		char filename[2 * LENMAX];
 #ifdef  DIRECTORY_WITH_GAS_NAME
         sprintf(filename, "%s/%s_%s/boxcar_%.4f.filt", ctl->tblbase, ctl->tblbase, "CO2", ctl->nu[id]);
 #else        
@@ -1102,7 +1102,7 @@ int jur_read_shape(char const *filename, double *x, double *y, int const checkmo
 //***************************************************************************
 double jur_scan_ctl(int argc, char *argv[], char const *varname, int arridx, char const *defvalue, char *value) {
 	FILE *in = NULL;
-	char dummy[LENMAX], fullname1[LENMAX], fullname2[LENMAX], line[LENMAX], msg[LENMAX], rvarname[LENMAX], rval[LENMAX];
+	char dummy[LENMAX], fullname1[LENMAX], fullname2[LENMAX], line[LENMAX], msg[2 * LENMAX], rvarname[LENMAX], rval[LENMAX];
 	int contain = 0;
 	// Open file
 	if((argv[1][0] != '-')) in = jur_mkFile(NULL, argv[1], "r");
@@ -1504,7 +1504,7 @@ void jur_divide_atm_data_into_packages(atm_t const *atm, obs_t const *obs, int n
     int total_num_of_rays = 0;
     for(int i = 0; i < n; i++)
       total_num_of_rays += obs[i].nr;
-    int *used_atms = (int *) malloc(total_num_of_rays * sizeof(int));
+    int *used_atms = (int *) malloc((size_t) total_num_of_rays * sizeof(int));
     int index = 0;
     for(int i = 0; i < n; i++) {
       for(int j = 0; j < total_num_of_rays; j++)
@@ -1518,7 +1518,7 @@ void jur_divide_atm_data_into_packages(atm_t const *atm, obs_t const *obs, int n
         divided_atm_ids[i][j] = used_atms[atm_id[index]];
         index++;
       }
-      divided_atms[i] = (atm_t *) malloc(num_of_used_atms * sizeof(atm_t));
+      divided_atms[i] = (atm_t *) malloc((size_t) num_of_used_atms * sizeof(atm_t));
       for(int j = 0; j < total_num_of_rays; j++)
         if(-1 != used_atms[j])
           memcpy(&divided_atms[i][used_atms[j]], &atm[j], sizeof(atm_t));
