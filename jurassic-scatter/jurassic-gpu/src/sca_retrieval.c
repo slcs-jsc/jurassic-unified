@@ -31,7 +31,6 @@ int main(int argc, char *argv[]) {
   read_ret(argc, argv, &ctl, &ret);
 
   // Initialization of the tables
-  printf("DEBUG #%d call table_initializaiton..\n", ctl.MPIglobrank);
   jur_table_initialization(&ctl); 
   
   /* Open directory list... */

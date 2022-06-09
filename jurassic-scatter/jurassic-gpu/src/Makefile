@@ -5,7 +5,7 @@
 # Main executables...
 EXC = formod multi_atm_formod sca_formod sca_retrieval
 EXC += module_brightness module_climatology module_interpolate
-EXC += module_limb module_nadir module_planck module_raytrace
+EXC += module_kernel module_limb module_nadir module_planck module_raytrace
 
 # Library directories...
 LIBDIR =
@@ -80,7 +80,7 @@ CUFLAGS += -Xcompiler -fopenmp
 LDFLAGS = $(LIBDIR) -lgsl -lgslcblas -lm -lstdc++ -lgomp
 
 # Objects...
-OBJECTS = jurassic.o CPUdrivers.o sca_forwardmodel.o sca_scatter.o sca_retrievalmodel.o sca_workqueue.o 
+OBJECTS = jurassic.o CPUdrivers.o sca_forwardmodel.o sca_scatter.o sca_workqueue.o sca_retrievalmodel.o 
 
 ifeq ($(strip $(ENABLEGPU)),)
 	# Linking...
@@ -93,6 +93,9 @@ else
 	LDFLAGS += -lcudart
  	LIBDIR += -L $(CUDA_PATH)/lib64 
 endif
+
+# retrieval has to be excluded in the unified library
+LIB_OBJECTS = $(subst sca_retrievalmodel.o,,${OBJECTS})
 
 # Dependencies...
 DEP = $(OBJECTS:%=%.d)
@@ -117,8 +120,9 @@ bak:
 indent:
 	indent -br -brf -brs -bfda -ce -cdw -lp -npcs -npsl *.c *.h
 
-$(MYLIB): $(OBJECTS) 
-	ar rc $@ $(OBJECTS)
+$(MYLIB): $(LIB_OBJECTS) 
+	@echo LIB_OBJECTS = $(LIB_OBJECTS)
+	ar rc $@ $(LIB_OBJECTS)
 	ranlib $@
 
 $(EXC): %: %.c $(OBJECTS)
