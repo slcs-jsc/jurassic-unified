@@ -567,11 +567,7 @@ void optimal_estimation(ret_t *ret,
   jur_copy_obs(ctl, obs_i, obs_meas, 0);
   jur_sca_copy_aero(ctl, aero_i, aero_apr, 0);
 
-  jur_write_obs(".", "obs_unified_prije.tbl", ctl, obs_i);
-
   jur_sca_formod(ctl, atm_i, obs_i, aero_i);
-
-  jur_write_obs(".", "obs_unified_poslije.tbl", ctl, obs_i);
 
   /* Set state vectors and observation vectors... */
   atm2x(ctl, atm_apr, aero_apr, x_a, NULL, NULL);
