@@ -453,10 +453,10 @@
                               1e-6*gpuMemFree, 1e-6*gpuMemTotal, gpuMemFree/(.01*gpuMemTotal));
               } // checkmode
 
-				do_init = false;
         multi_atm_before = multi_atm_now;
         double toc = omp_get_wtime();
         printf("TIMER #%d jurassic-gpu gpu_lanes initialization time: %lf\n", ctl->MPIglobrank, toc - tic);
+				do_init = false;
 			} // do_init || (!do_init && multi_atm_before != multi_atm_now)
     } //<------- omp critical is here, maybe I should put it to the end of the function!
 

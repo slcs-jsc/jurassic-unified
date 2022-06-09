@@ -21,7 +21,7 @@
   #define __host__
   #define __device__
   #define __global__
-  #define __ext_inline__ extern inline
+  #define __ext_inline__
 #endif
 
 #define ptr const restrict
@@ -58,24 +58,22 @@
 
 	// Setup tables if necessary and cache them ///////////////////////////////////
 	__host__ __ext_inline__
-	trans_table_t* jur_get_tbl(ctl_t const *ctl) {   
-        static trans_table_t *tbl = NULL;
-		if(!tbl) {
-#pragma omp barrier
-#pragma omp master
-			{
+  trans_table_t* jur_get_tbl(ctl_t const *ctl) {   
+    static trans_table_t *tbl = NULL;
+#pragma omp critical
+    {
+      if(!tbl) {
 #ifdef  USE_UNIFIED_MEMORY_FOR_TABLES
-            printf("# call cudaMallocManaged for tables of size %.3f MByte\n", 1e-6*sizeof(trans_table_t));
-			int const status = cudaMallocManaged(&tbl, sizeof(trans_table_t));
+        printf("# call cudaMallocManaged for tables of size %.3f MByte\n", 1e-6*sizeof(trans_table_t));
+        int const status = cudaMallocManaged(&tbl, sizeof(trans_table_t));
 #else
-			tbl = (trans_table_t*)malloc(sizeof(trans_table_t));
+        tbl = (trans_table_t*)malloc(sizeof(trans_table_t));
 #endif            
-			jur_init_tbl(ctl, tbl); // CPU reads the table content from files
-			}
-#pragma omp barrier
-		}
-		return tbl;
-	} // jur_get_tbl
+        jur_init_tbl(ctl, tbl); // CPU reads the table content from files
+      }
+    }
+    return tbl;
+  } // jur_get_tbl
 
 	// Index finding ////////////////////////////////////////////////////////////
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -742,7 +740,7 @@
       dest -> k[iw] = source -> k[iw];
   } // jur_copy_pos
 
-  __host__ __device__ /* FIXME: __ext_inline__ */
+  __host__ __device__  __ext_inline__
   int jur_add_aerosol_layers(ctl_t const *ctl,
       atm_t const *atm,
       pos_t los[],
@@ -895,7 +893,7 @@
   __host__ __device__ __ext_inline__
   int jur_traceray(ctl_t const *ctl, atm_t const *atm, obs_t *obs, int const ir, pos_t los[], double *tsurf, aero_t const *aero) {
 #else
-  __host__ __device__ /* FIXME: __ext_inline__ */
+  __host__ __device__ __ext_inline__
   int jur_traceray(ctl_t const *ctl, atm_t const *atm, obs_t *obs, int const ir, pos_t los[], double *tsurf, aero_t const *aero, int scattering_included) {
 #endif
     double ex0[3], ex1[3], q[NGMAX], k[NWMAX], lat, lon, p, t, x[3], xobs[3], xvp[3], z = 1e99, z_low=z, zmax, zmin, zrefrac = 60;

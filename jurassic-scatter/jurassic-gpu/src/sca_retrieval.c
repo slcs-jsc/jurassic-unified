@@ -1,4 +1,4 @@
-#include "retrievalmodel.h"
+#include "sca_retrievalmodel.h"
 
 /* ------------------------------------------------------------
    Main...
@@ -27,8 +27,12 @@ int main(int argc, char *argv[]) {
     ERRMSG("Give parameters: <ctl> <dirlist>");
   
   /* Read control parameters... */
-  read_ctl(argc, argv, &ctl);
+  jur_read_ctl(argc, argv, &ctl);
   read_ret(argc, argv, &ctl, &ret);
+
+  // Initialization of the tables
+  printf("DEBUG #%d call table_initializaiton..\n", ctl.MPIglobrank);
+  jur_table_initialization(&ctl); 
   
   /* Open directory list... */
   if(!(dirlist=fopen(argv[2], "r")))
@@ -41,13 +45,13 @@ int main(int argc, char *argv[]) {
     printf("\nRetrieve in directory %s...\n\n", ret.dir);
     
     /* Read atmospheric data... */
-    read_atm(ret.dir, "atm_apr.tab", &ctl, &atm_apr);
+    jur_read_atm(ret.dir, "atm_apr.tab", &ctl, &atm_apr);
 
     /* Read particle data... */
-    read_aero(ret.dir, "aero_apr.tab", &ctl, &aero_apr);
+    jur_sca_read_aero(ret.dir, "aero_apr.tab", &ctl, &aero_apr);
     
     /* Read observation data... */
-    read_obs(ret.dir, "obs_meas.tab", &ctl, &obs_meas);
+    jur_read_obs(ret.dir, "obs_meas.tab", &ctl, &obs_meas);
     
     /* Retrieval... */
     while(1) {

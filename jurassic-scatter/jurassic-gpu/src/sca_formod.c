@@ -134,7 +134,7 @@ void jur_sca_call_formod(ctl_t *ctl,
 
   static aero_t aero;
   
-  char filename[LENMAX];
+  char filename[2 * LENMAX + 2];
   
   int ig, ig2, ip, iw;
   

@@ -2,8 +2,10 @@
 #define RETRIEVALMODEL_H
 
 /* #include "jurassic.h" */
-#include "control.h"
-#include "forwardmodel.h"
+
+#include "sca_forwardmodel.h"
+#include "sca_gpu_interface.h"
+#include "sca_scatter.h"
 
 /* Compute information content and resolution. */
 void analyze_avk(ret_t *ret,
@@ -22,6 +24,26 @@ void analyze_avk_quantity(gsl_matrix *avk,
 			  size_t *n1,
 			  double *cont,
 			  double *res);
+
+/* Compose state vector or parameter vector. */
+size_t atm2x(ctl_t *ctl,
+	     atm_t *atm,
+	     aero_t *aero,
+	     gsl_vector *x,
+	     int *iqa,
+	     int *ipa);
+
+/* Add elements to state vector. */
+void atm2x_help(atm_t *atm,
+		double zmin,
+		double zmax,
+		double *value,
+		int val_iqa,
+		gsl_vector *x,
+		int *iqa,
+		int *ipa,
+		size_t *n);
+
 
 /* Compute correlations based on spatial distance. */
 double corr_function(double z0,

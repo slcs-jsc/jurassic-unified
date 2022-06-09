@@ -220,7 +220,7 @@
                 printf("CUDA not found during compilation, continue on CPUs instead!\n");
                 warnGPU = 0; // switch this warning off
             } // warnGPU
-            jur_formod_multiple_packages_CPU(ctl, atm, obs, n, aero);
+            jur_formod_multiple_packages_CPU(ctl, atm, obs, n, atm_id, aero);
         } //
     } // jur_formod_multiple_packages_GPU
 #endif

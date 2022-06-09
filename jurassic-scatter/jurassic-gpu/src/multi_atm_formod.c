@@ -20,8 +20,9 @@ int read_name_list(char const *dirname, char const *filename,
   in = jur_mkFile(dirname, filename, "r");
   // Read line
   while (fgets(line, LENMAX, in)) {
+    assert(i < MAX_LIST_SIZE);
     // Read data
-    TOK_FIVE_ARGS(line, tok, "%s", name_list[i++], &saveptr);
+    TOK_FIVE_ARGS(line, tok, "%s", *name_list[i++], &saveptr);
   }
   // Close file
   fclose(in);
@@ -41,6 +42,7 @@ int read_atm_id(char const *dirname, char const *filename,
   in = jur_mkFile(dirname, filename, "r");
   // Read line
   while (fgets(line, LENMAX, in)) {
+    assert(i < MAX_LIST_SIZE);
     // Read data
     TOK_FIVE_ARGS(line, tok, "%d", atm_id[i++], &saveptr);
   }

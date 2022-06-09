@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 
 # Main executables...
-EXC = formod multi_atm_formod sca_formod
+EXC = formod multi_atm_formod sca_formod sca_retrieval
 EXC += module_brightness module_climatology module_interpolate
 EXC += module_limb module_nadir module_planck module_raytrace
 
@@ -19,9 +19,6 @@ INCDIR =
 # Linking...
 STATIC = 1
 
-# Profiling...
-#PROF = 1
-
 # -----------------------------------------------------------------------------
 # Set flags for GNU compiler...
 # -----------------------------------------------------------------------------
@@ -33,7 +30,6 @@ CU = nvcc
 
 # Check whether a CUDA compiler is available...
 ENABLEGPU = $(shell command -v $(CU) 2> /dev/null)
-
 
 # For reproducability compile the git key (hash) into the code
 GITKEY = $(shell git log | head -1 | sed -e 's/commit //g')
@@ -52,7 +48,7 @@ CFEAFLAGS += -D SHOW_GIT_KEY=$(GITKEY)
 
 # Compiler optimization flags...
 COPTFLAGS=
-COPTFLAGS += -O3
+COPTFLAGS += -O2
 # COPTFLAGS += -Ofast
 # COPTFLAGS += -g
 # COPTFLAGS += -pg
@@ -75,7 +71,7 @@ CUFLAGS =
 CUFLAGS += --std=c++11
 # CUFLAGS += -g -G
 CUFLAGS += --use_fast_math $(CUOPTFLAGS) $(patsubst %,-Xcompiler %,$(FLAGS)) 
-CUFLAGS += -Xptxas -v  
+# CUFLAGS += -Xptxas -v  
 CUFLAGS += -Xcompiler -fopenmp 
 # CUFLAGS += -DRETURN_AFTER_INIT
 # CUFLAGS += -DGPUDEBUG  
@@ -84,7 +80,7 @@ CUFLAGS += -Xcompiler -fopenmp
 LDFLAGS = $(LIBDIR) -lgsl -lgslcblas -lm -lstdc++ -lgomp
 
 # Objects...
-OBJECTS = jurassic.o CPUdrivers.o sca_forwardmodel.o sca_scatter.o sca_workqueue.o 
+OBJECTS = jurassic.o CPUdrivers.o sca_forwardmodel.o sca_scatter.o sca_retrievalmodel.o sca_workqueue.o 
 
 ifeq ($(strip $(ENABLEGPU)),)
 	# Linking...
@@ -99,7 +95,7 @@ else
 endif
 
 # Dependencies...
-DEP = jurassic.d CPUdrivers.d GPUdrivers.d $(EXEC:%=%.d)
+DEP = $(OBJECTS:%=%.d)
 
 MYLIB = libjurassic_unified.a
 # -----------------------------------------------------------------------------
@@ -143,10 +139,8 @@ endif
 %.d:%.c Makefile
 	$(CC) $(CFLAGS) -MM $< -MF $@
 %.d:%.cu Makefile
-	$(CC) $(CFLAGS) -MM $< -MF $@
-# -include $(DEP)
+	$(CU) $(CUFLAGS) -MM $< -MF $@
+-include $(DEP)
 
 show:
 	@echo "ENABLEGPU=" $(ENABLEGPU)
-
-

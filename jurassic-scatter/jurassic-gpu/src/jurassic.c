@@ -332,7 +332,7 @@ void jur_init_tbl(ctl_t const *ctl, trans_table_t *tbl) {
 
 		} // id
       } else { // checkmode
-			char filenames[2 * LENMAX];
+			char filenames[2 * LENMAX + 100];
 #ifdef      DIRECTORY_WITH_GAS_NAME
 			sprintf(filenames, "%s/%s_%s/boxcar_%s_%s.tab", ctl->tblbase, 
                     ctl->tblbase, ctl->emitter[ig], "<nu.4>", ctl->emitter[ig]);

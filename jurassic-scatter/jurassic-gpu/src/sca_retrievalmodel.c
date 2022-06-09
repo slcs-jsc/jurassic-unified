@@ -1,4 +1,4 @@
-#include "retrievalmodel.h"
+#include "sca_retrievalmodel.h"
 
 /*****************************************************************************/
 
@@ -32,10 +32,10 @@ void analyze_avk(ret_t *ret,
   }
   
   /* Initialize... */
-  copy_atm(ctl, &atm_cont, atm, 1);
-  copy_atm(ctl, &atm_res, atm, 1);
-  copy_aero(ctl, &aero_cont, aero, 1);
-  copy_aero(ctl, &aero_res, aero, 1);
+  jur_copy_atm(ctl, &atm_cont, atm, 1);
+  jur_copy_atm(ctl, &atm_res, atm, 1);
+  jur_sca_copy_aero(ctl, &aero_cont, aero, 1);
+  jur_sca_copy_aero(ctl, &aero_res, aero, 1);
   
   /* Analyze quantities... */
   analyze_avk_quantity(avk, IDXP, ipa, n0, n1, atm_cont.p, atm_res.p);
@@ -55,10 +55,10 @@ void analyze_avk(ret_t *ret,
   
   
   /* Write results to disk... */
-  write_atm(ret->dir, "atm_cont.tab", ctl, &atm_cont); /* contribution from averaging kernel */
-  write_atm(ret->dir, "atm_res.tab", ctl, &atm_res);
+  jur_write_atm(ret->dir, "atm_cont.tab", ctl, &atm_cont); /* contribution from averaging kernel */
+  jur_write_atm(ret->dir, "atm_res.tab", ctl, &atm_res);
   if(ctl->retnn || ctl->retrr || ctl->retss)
-    write_aero(ret->dir, "aero_cont.tab", &aero_cont);
+    jur_sca_write_aero(ret->dir, "aero_cont.tab", &aero_cont);
 }
 
 /*****************************************************************************/
@@ -88,6 +88,100 @@ void analyze_avk_quantity(gsl_matrix *avk,
 
 /*****************************************************************************/
 
+size_t atm2x(ctl_t *ctl,
+	     atm_t *atm,
+	     aero_t *aero,
+	     gsl_vector *x,
+	     int *iqa,
+	     int *ipa) {
+  
+  int ig, iw;
+  
+  size_t n=0;
+  
+  /* Add pressure... */
+  atm2x_help(atm, ctl->retp_zmin, ctl->retp_zmax,
+	     atm->p, IDXP, x, iqa, ipa, &n);
+  
+  /* Add temperature... */
+  atm2x_help(atm, ctl->rett_zmin, ctl->rett_zmax,
+	     atm->t, IDXT, x, iqa, ipa, &n);
+  
+  /* Add volume mixing ratios... */
+  for(ig=0; ig<ctl->ng; ig++)
+    atm2x_help(atm, ctl->retq_zmin[ig], ctl->retq_zmax[ig],
+	       atm->q[ig], IDXQ(ig), x, iqa, ipa, &n);
+  
+  /* Add extinction... */
+  for(iw=0; iw<ctl->nw; iw++)
+    atm2x_help(atm, ctl->retk_zmin[iw], ctl->retk_zmax[iw],
+	       atm->k[iw], IDXK(iw), x, iqa, ipa, &n);
+ 
+  /* Add particle concentration... */
+  if(ctl->retnn) {
+    if(x!=NULL)
+      gsl_vector_set(x, n, aero->nn[0]);
+    if(iqa!=NULL)
+      iqa[n]=IDXNN;
+    if(ipa!=NULL)
+      ipa[n]=-1;
+    (n)++;
+  }
+
+  /* Add particle size... */
+  if(ctl->retrr) {
+    if(x!=NULL)
+      gsl_vector_set(x, n, aero->rr[0]);
+    if(iqa!=NULL)
+      iqa[n]=IDXRR;
+    if(ipa!=NULL)
+      ipa[n]=-1;
+    (n)++;
+  }
+
+  /* Add particle size distribution width... */
+  if(ctl->retss) {
+    if(x!=NULL)
+      gsl_vector_set(x, n, aero->ss[0]);
+    if(iqa!=NULL)
+      iqa[n]=IDXSS;
+    if(ipa!=NULL)
+      ipa[n]=-1;
+    (n)++;
+  }
+  
+  return n;
+}
+
+/*****************************************************************************/
+
+void atm2x_help(atm_t *atm,
+		double zmin,
+		double zmax,
+		double *value,
+		int val_iqa,
+		gsl_vector *x,
+		int *iqa,
+		int *ipa,
+		size_t *n) {
+  
+  int ip;
+
+  /* Add elements to state vector... */
+  for(ip=0; ip<atm->np; ip++)
+    if(atm->z[ip]>=zmin && atm->z[ip]<=zmax) {
+      if(x!=NULL)
+	gsl_vector_set(x, *n, value[ip]);
+      if(iqa!=NULL)
+	iqa[*n]=val_iqa;
+      if(ipa!=NULL)
+	ipa[*n]=ip;
+      (*n)++;
+    }
+}
+
+/*****************************************************************************/
+
 double corr_function(double z0,
 		     double lon0,
 		     double lat0,
@@ -100,8 +194,8 @@ double corr_function(double z0,
   double x0[3], x1[3];
   
   /* Get Cartesian coordinates... */
-  geo2cart(0, lon0, lat0, x0);
-  geo2cart(0, lon1, lat1, x1);
+  jur_geo2cart(0, lon0, lat0, x0);
+  jur_geo2cart(0, lon1, lat1, x1);
   
   /* Compute correlations... */
   return exp(-DIST(x0, x1)/ch-fabs(z0-z1)/cz);
@@ -227,8 +321,10 @@ void kernel(ctl_t *ctl,
   x1=gsl_vector_alloc(n);
   yy0=gsl_vector_alloc(m);
   yy1=gsl_vector_alloc(m);
+
   /* Compute radiance for undisturbed atmospheric data... */
-  formod(ctl, atm, obs, aero);
+  jur_sca_formod(ctl, atm, obs, aero);
+
   /* Compose vectors... */
   atm2x(ctl, atm, aero, x0, iqa, ipa);
   obs2y(ctl, obs, yy0, NULL, ira);
@@ -273,13 +369,13 @@ void kernel(ctl_t *ctl,
     /* Disturb state vector element... */
     gsl_vector_memcpy(x1, x0);
     gsl_vector_set(x1, j, gsl_vector_get(x1, j)+h);
-    copy_atm(ctl, &atm1, atm, 0);
-    copy_aero(ctl, &aero1, aero, 0);
-    copy_obs(ctl, &obs1, obs, 0);
+    jur_copy_atm(ctl, &atm1, atm, 0);
+    jur_sca_copy_aero(ctl, &aero1, aero, 0);
+    jur_copy_obs(ctl, &obs1, obs, 0);
     x2atm(ctl, x1, &atm1, &aero1);
 
     /* Compute radiance for disturbed atmospheric data... */
-    formod(ctl, &atm1, &obs1, &aero1);
+    jur_sca_formod(ctl, &atm1, &obs1, &aero1);
 
     /* Compose measurement vector for disturbed radiance data... */
     obs2y(ctl, &obs1, yy1, NULL, NULL);
@@ -422,7 +518,7 @@ void optimal_estimation(ret_t *ret,
   
   FILE *out;
   
-  char filename[2*LEN];
+  char filename[2*LENMAX];
   
   double chisq, chisq_old, disq=0, lmpar=0.001;
   
@@ -467,10 +563,15 @@ void optimal_estimation(ret_t *ret,
   y_m=gsl_vector_alloc(m);
   
   /* Set initial state... */
-  copy_atm(ctl, atm_i, atm_apr, 0);
-  copy_obs(ctl, obs_i, obs_meas, 0);
-  copy_aero(ctl, aero_i, aero_apr, 0);
-  formod(ctl, atm_i, obs_i, aero_i);
+  jur_copy_atm(ctl, atm_i, atm_apr, 0);
+  jur_copy_obs(ctl, obs_i, obs_meas, 0);
+  jur_sca_copy_aero(ctl, aero_i, aero_apr, 0);
+
+  jur_write_obs(".", "obs_unified_prije.tbl", ctl, obs_i);
+
+  jur_sca_formod(ctl, atm_i, obs_i, aero_i);
+
+  jur_write_obs(".", "obs_unified_poslije.tbl", ctl, obs_i);
 
   /* Set state vectors and observation vectors... */
   atm2x(ctl, atm_apr, aero_apr, x_a, NULL, NULL);
@@ -554,9 +655,9 @@ void optimal_estimation(ret_t *ret,
       
       /* Update atmospheric state... */
       gsl_vector_add(x_i, x_step);
-      copy_atm(ctl, atm_i, atm_apr, 0);
-      copy_obs(ctl, obs_i, obs_meas, 0);
-      copy_aero(ctl, aero_i, aero_apr, 0);
+      jur_copy_atm(ctl, atm_i, atm_apr, 0);
+      jur_copy_obs(ctl, obs_i, obs_meas, 0);
+      jur_sca_copy_aero(ctl, aero_i, aero_apr, 0);
       x2atm(ctl, x_i, atm_i, aero_i);
 
       /* Check atmospheric state... */
@@ -586,7 +687,8 @@ void optimal_estimation(ret_t *ret,
 
 
       /* Forward calculation... */
-      formod(ctl, atm_i, obs_i, aero_i);
+      jur_sca_formod(ctl, atm_i, obs_i, aero_i);
+
       obs2y(ctl, obs_i, y_i, NULL, NULL);
 
       /* Determine dx = x_i - x_a and dy = y - F(x_i) ... */
@@ -621,9 +723,9 @@ void optimal_estimation(ret_t *ret,
   fclose(out);
   
   /* Store results... */
-  write_obs(ret->dir, "obs_final.tab", ctl, obs_i);
-  write_atm(ret->dir, "atm_final.tab", ctl, atm_i);
-  write_aero(ret->dir, "aero_final.tab", aero_i);
+  jur_write_obs(ret->dir, "obs_final.tab", ctl, obs_i);
+  jur_write_atm(ret->dir, "atm_final.tab", ctl, atm_i);
+  jur_sca_write_aero(ret->dir, "aero_final.tab", aero_i);
   write_matrix(ret->dir, "matrix_kernel.tab", ctl, k_i,
 	       atm_i, aero_i, obs_i, "y", "x", "r");
   
@@ -715,44 +817,44 @@ void read_ret(int argc,
   int id, ig, iw;
   
   /* Iteration control... */
-  ret->kernel_recomp=(int)scan_ctl(argc, argv, "KERNEL_RECOMP", -1, "1", NULL);
-  ret->conv_itmax=(int)scan_ctl(argc, argv, "CONV_ITMAX", -1, "20", NULL);
-  ret->conv_dmin=scan_ctl(argc, argv, "CONV_DMIN", -1, "0.1", NULL);
+  ret->kernel_recomp=(int)jur_scan_ctl(argc, argv, "KERNEL_RECOMP", -1, "1", NULL);
+  ret->conv_itmax=(int)jur_scan_ctl(argc, argv, "CONV_ITMAX", -1, "20", NULL);
+  ret->conv_dmin=jur_scan_ctl(argc, argv, "CONV_DMIN", -1, "0.1", NULL);
   
   /* Filtering of bad observations... */
-  ret->resmax=scan_ctl(argc, argv, "RESMAX", -1, "-999", NULL);
+  ret->resmax=jur_scan_ctl(argc, argv, "RESMAX", -1, "-999", NULL);
   
   /* Error analysis... */
-  ret->err_ana=(int)scan_ctl(argc, argv, "ERR_ANA", -1, "1", NULL);
+  ret->err_ana=(int)jur_scan_ctl(argc, argv, "ERR_ANA", -1, "1", NULL);
   
   for(id=0; id<ctl->nd; id++)
-    ret->err_formod[id]=scan_ctl(argc, argv, "ERR_FORMOD", id, "0", NULL);
+    ret->err_formod[id]=jur_scan_ctl(argc, argv, "ERR_FORMOD", id, "0", NULL);
 
   for(id=0; id<ctl->nd; id++)
-    ret->err_noise[id]=scan_ctl(argc, argv, "ERR_NOISE", id, "0", NULL);
+    ret->err_noise[id]=jur_scan_ctl(argc, argv, "ERR_NOISE", id, "0", NULL);
   
-  ret->err_press=scan_ctl(argc, argv, "ERR_PRESS", -1, "0", NULL);
-  ret->err_press_cz=scan_ctl(argc, argv, "ERR_PRESS_CZ", -1, "-999", NULL);
-  ret->err_press_ch=scan_ctl(argc, argv, "ERR_PRESS_CH", -1, "-999", NULL);
+  ret->err_press=jur_scan_ctl(argc, argv, "ERR_PRESS", -1, "0", NULL);
+  ret->err_press_cz=jur_scan_ctl(argc, argv, "ERR_PRESS_CZ", -1, "-999", NULL);
+  ret->err_press_ch=jur_scan_ctl(argc, argv, "ERR_PRESS_CH", -1, "-999", NULL);
 
-  ret->err_temp=scan_ctl(argc, argv, "ERR_TEMP", -1, "0", NULL);
-  ret->err_temp_cz=scan_ctl(argc, argv, "ERR_TEMP_CZ", -1, "-999", NULL);
-  ret->err_temp_ch=scan_ctl(argc, argv, "ERR_TEMP_CH", -1, "-999", NULL);
+  ret->err_temp=jur_scan_ctl(argc, argv, "ERR_TEMP", -1, "0", NULL);
+  ret->err_temp_cz=jur_scan_ctl(argc, argv, "ERR_TEMP_CZ", -1, "-999", NULL);
+  ret->err_temp_ch=jur_scan_ctl(argc, argv, "ERR_TEMP_CH", -1, "-999", NULL);
 
-  ret->err_nn=scan_ctl(argc, argv, "ERR_NN", -1, "0", NULL);
-  ret->err_rr=scan_ctl(argc, argv, "ERR_RR", -1, "0", NULL);
-  ret->err_ss=scan_ctl(argc, argv, "ERR_SS", -1, "0", NULL);
+  ret->err_nn=jur_scan_ctl(argc, argv, "ERR_NN", -1, "0", NULL);
+  ret->err_rr=jur_scan_ctl(argc, argv, "ERR_RR", -1, "0", NULL);
+  ret->err_ss=jur_scan_ctl(argc, argv, "ERR_SS", -1, "0", NULL);
 
   for(ig=0; ig<ctl->ng; ig++) {
-    ret->err_q[ig]=scan_ctl(argc, argv, "ERR_Q", ig, "0", NULL);
-    ret->err_q_cz[ig]=scan_ctl(argc, argv, "ERR_Q_CZ", ig, "-999", NULL);
-    ret->err_q_ch[ig]=scan_ctl(argc, argv, "ERR_Q_CH", ig, "-999", NULL);
+    ret->err_q[ig]=jur_scan_ctl(argc, argv, "ERR_Q", ig, "0", NULL);
+    ret->err_q_cz[ig]=jur_scan_ctl(argc, argv, "ERR_Q_CZ", ig, "-999", NULL);
+    ret->err_q_ch[ig]=jur_scan_ctl(argc, argv, "ERR_Q_CH", ig, "-999", NULL);
   }
 
   for(iw=0; iw<ctl->nw; iw++) {
-    ret->err_k[iw]=scan_ctl(argc, argv, "ERR_K", iw, "0", NULL);
-    ret->err_k_cz[iw]=scan_ctl(argc, argv, "ERR_K_CZ", iw, "-999", NULL);
-    ret->err_k_ch[iw]=scan_ctl(argc, argv, "ERR_K_CH", iw, "-999", NULL);
+    ret->err_k[iw]=jur_scan_ctl(argc, argv, "ERR_K", iw, "0", NULL);
+    ret->err_k_cz[iw]=jur_scan_ctl(argc, argv, "ERR_K_CZ", iw, "-999", NULL);
+    ret->err_k_ch[iw]=jur_scan_ctl(argc, argv, "ERR_K_CH", iw, "-999", NULL);
   }
 }
 
@@ -875,7 +977,7 @@ void set_cov_meas(ret_t *ret,
   m=sig_eps_inv->size;
   
   /* Noise error (always considered in retrieval fit)... */
-  copy_obs(ctl, &obs_err, obs, 1);
+  jur_copy_obs(ctl, &obs_err, obs, 1);
   for(ir=0; ir<obs_err.nr; ir++)
     for(id=0; id<ctl->nd; id++)
       obs_err.rad[ir][id] //CHANGED
@@ -883,7 +985,7 @@ void set_cov_meas(ret_t *ret,
   obs2y(ctl, &obs_err, sig_noise, NULL, NULL);
   
   /* Forward model error (always considered in retrieval fit)... */
-  copy_obs(ctl, &obs_err, obs, 1);
+  jur_copy_obs(ctl, &obs_err, obs, 1);
   for(ir=0; ir<obs_err.nr; ir++)
     for(id=0; id<ctl->nd; id++)
       obs_err.rad[ir][id] //CAHNGED
@@ -912,7 +1014,7 @@ void write_stddev(const char *quantity,
   
   gsl_vector *x_aux;
   
-  char filename[LEN];
+  char filename[LENMAX];
   
   size_t i, n;
   
@@ -927,14 +1029,14 @@ void write_stddev(const char *quantity,
     gsl_vector_set(x_aux, i, sqrt(gsl_matrix_get(s, i, i)));
   
   /* Write to disk... */
-  copy_atm(ctl, &atm_aux, atm, 1);
-  copy_aero(ctl, &aero_aux, aero, 1);
+  jur_copy_atm(ctl, &atm_aux, atm, 1);
+  jur_sca_copy_aero(ctl, &aero_aux, aero, 1);
   x2atm(ctl, x_aux, &atm_aux, &aero_aux);
   sprintf(filename, "atm_err_%s.tab", quantity);
-  write_atm(ret->dir, filename, ctl, &atm_aux);
+  jur_write_atm(ret->dir, filename, ctl, &atm_aux);
   if (ctl->retnn || ctl->retrr || ctl->retss){
     sprintf(filename, "aero_err_%s.tab", quantity);
-    write_aero(ret->dir, filename, &aero_aux);
+    jur_sca_write_aero(ret->dir, filename, &aero_aux);
   }
 
   /* Free... */
@@ -959,7 +1061,7 @@ void write_matrix(const char *dirname,
   
   FILE *out;
   
-  char file[LEN], quantity[LEN];
+  char file[LENMAX], quantity[LENMAX];
   
   size_t i, j, nc, nr;
   
