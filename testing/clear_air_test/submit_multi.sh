@@ -13,7 +13,7 @@ fi
 echo $1 > last_submit_type
 
 if [ "$1" = "unified-sca" ] || [ "$1" = "unified-gpu" ]; then
-  src="../../jurassic-gpu/src"
+  src="../../src"
 fi
 
 if [ "$1" = "gpu" ] || [ "$1" = "scatter" ]; then
