@@ -1,0 +1,469 @@
+Thu May 26 10:35:09 2022       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 510.47.03    Driver Version: 510.47.03    CUDA Version: 11.6     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  Tesla V100-PCIE...  On   | 00000000:01:00.0 Off |                    0 |
+| N/A   26C    P0    22W / 250W |      0MiB / 16384MiB |      0%      Default |
+|                               |                      |                  N/A |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+
+
+Juelich Rapid Spectral Simulation Code (JURASSIC)
+(executable: ../../../../integrate_to_the_reference_version/jurassic/src/formod | version: v1.8-25-gc09e-dirty | compiled: May 26 2022, 10:34:40)
+
+NG = 23
+EMITTER[0] = C2H2
+EMITTER[1] = C2H6
+EMITTER[2] = CCl4
+EMITTER[3] = F11
+EMITTER[4] = F113
+EMITTER[5] = F114
+EMITTER[6] = F12
+EMITTER[7] = CO2
+EMITTER[8] = COF2
+EMITTER[9] = ClO
+EMITTER[10] = ClONO2
+EMITTER[11] = H2O
+EMITTER[12] = F22
+EMITTER[13] = HCN
+EMITTER[14] = HNO3
+EMITTER[15] = HNO4
+EMITTER[16] = N2O
+EMITTER[17] = NH3
+EMITTER[18] = NO2
+EMITTER[19] = O3
+EMITTER[20] = OCS
+EMITTER[21] = PAN
+EMITTER[22] = SF6
+ND = 67
+NU[0] = 785.0000
+NU[1] = 785.4200
+NU[2] = 785.8400
+NU[3] = 786.2600
+NU[4] = 786.6800
+NU[5] = 787.1000
+NU[6] = 787.5200
+NU[7] = 787.9400
+NU[8] = 788.3600
+NU[9] = 788.7800
+NU[10] = 789.2000
+NU[11] = 789.6200
+NU[12] = 790.0400
+NU[13] = 790.4600
+NU[14] = 790.8800
+NU[15] = 791.3000
+NU[16] = 791.7200
+NU[17] = 792.1400
+NU[18] = 792.5600
+NU[19] = 792.9800
+NU[20] = 793.4000
+NU[21] = 793.8200
+NU[22] = 794.2400
+NU[23] = 794.6600
+NU[24] = 795.0800
+NU[25] = 795.5000
+NU[26] = 795.9200
+NU[27] = 796.3400
+NU[28] = 796.7600
+NU[29] = 797.1800
+NU[30] = 797.6000
+NU[31] = 798.0200
+NU[32] = 798.4400
+NU[33] = 798.8600
+NU[34] = 799.2800
+NU[35] = 799.7000
+NU[36] = 800.1200
+NU[37] = 800.5400
+NU[38] = 800.9600
+NU[39] = 801.3800
+NU[40] = 801.8000
+NU[41] = 802.2200
+NU[42] = 802.6400
+NU[43] = 803.0600
+NU[44] = 803.4800
+NU[45] = 803.9000
+NU[46] = 804.3200
+NU[47] = 804.7400
+NU[48] = 805.1600
+NU[49] = 805.5800
+NU[50] = 806.0000
+NU[51] = 806.4200
+NU[52] = 806.8400
+NU[53] = 807.2600
+NU[54] = 807.6800
+NU[55] = 808.1000
+NU[56] = 808.5200
+NU[57] = 808.9400
+NU[58] = 809.3600
+NU[59] = 809.7800
+NU[60] = 810.2000
+NU[61] = 810.6200
+NU[62] = 811.0400
+NU[63] = 811.4600
+NU[64] = 811.8800
+NU[65] = 812.3000
+NU[66] = 812.7200
+NW = 1
+WINDOW[0] = 0
+WINDOW[1] = 0
+WINDOW[2] = 0
+WINDOW[3] = 0
+WINDOW[4] = 0
+WINDOW[5] = 0
+WINDOW[6] = 0
+WINDOW[7] = 0
+WINDOW[8] = 0
+WINDOW[9] = 0
+WINDOW[10] = 0
+WINDOW[11] = 0
+WINDOW[12] = 0
+WINDOW[13] = 0
+WINDOW[14] = 0
+WINDOW[15] = 0
+WINDOW[16] = 0
+WINDOW[17] = 0
+WINDOW[18] = 0
+WINDOW[19] = 0
+WINDOW[20] = 0
+WINDOW[21] = 0
+WINDOW[22] = 0
+WINDOW[23] = 0
+WINDOW[24] = 0
+WINDOW[25] = 0
+WINDOW[26] = 0
+WINDOW[27] = 0
+WINDOW[28] = 0
+WINDOW[29] = 0
+WINDOW[30] = 0
+WINDOW[31] = 0
+WINDOW[32] = 0
+WINDOW[33] = 0
+WINDOW[34] = 0
+WINDOW[35] = 0
+WINDOW[36] = 0
+WINDOW[37] = 0
+WINDOW[38] = 0
+WINDOW[39] = 0
+WINDOW[40] = 0
+WINDOW[41] = 0
+WINDOW[42] = 0
+WINDOW[43] = 0
+WINDOW[44] = 0
+WINDOW[45] = 0
+WINDOW[46] = 0
+WINDOW[47] = 0
+WINDOW[48] = 0
+WINDOW[49] = 0
+WINDOW[50] = 0
+WINDOW[51] = 0
+WINDOW[52] = 0
+WINDOW[53] = 0
+WINDOW[54] = 0
+WINDOW[55] = 0
+WINDOW[56] = 0
+WINDOW[57] = 0
+WINDOW[58] = 0
+WINDOW[59] = 0
+WINDOW[60] = 0
+WINDOW[61] = 0
+WINDOW[62] = 0
+WINDOW[63] = 0
+WINDOW[64] = 0
+WINDOW[65] = 0
+WINDOW[66] = 0
+NCL = 0
+NSF = 0
+SFTYPE = 2
+SFSZA = -999
+TBLBASE = /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf
+TBLFMT = 1
+HYDZ = -999
+CTM_CO2 = 1
+CTM_H2O = 1
+CTM_N2 = 0
+CTM_O2 = 0
+REFRAC = 1
+RAYDS = 10.
+RAYDZ = 0.1
+FOV = -
+RETP_ZMIN = -999
+RETP_ZMAX = -999
+RETT_ZMIN = -999
+RETT_ZMAX = -999
+RETQ_ZMIN[0] = -999
+RETQ_ZMAX[0] = -999
+RETQ_ZMIN[1] = -999
+RETQ_ZMAX[1] = -999
+RETQ_ZMIN[2] = -999
+RETQ_ZMAX[2] = -999
+RETQ_ZMIN[3] = -999
+RETQ_ZMAX[3] = -999
+RETQ_ZMIN[4] = -999
+RETQ_ZMAX[4] = -999
+RETQ_ZMIN[5] = -999
+RETQ_ZMAX[5] = -999
+RETQ_ZMIN[6] = -999
+RETQ_ZMAX[6] = -999
+RETQ_ZMIN[7] = -999
+RETQ_ZMAX[7] = -999
+RETQ_ZMIN[8] = -999
+RETQ_ZMAX[8] = -999
+RETQ_ZMIN[9] = -999
+RETQ_ZMAX[9] = -999
+RETQ_ZMIN[10] = -999
+RETQ_ZMAX[10] = -999
+RETQ_ZMIN[11] = -999
+RETQ_ZMAX[11] = -999
+RETQ_ZMIN[12] = -999
+RETQ_ZMAX[12] = -999
+RETQ_ZMIN[13] = -999
+RETQ_ZMAX[13] = -999
+RETQ_ZMIN[14] = -999
+RETQ_ZMAX[14] = -999
+RETQ_ZMIN[15] = -999
+RETQ_ZMAX[15] = -999
+RETQ_ZMIN[16] = -999
+RETQ_ZMAX[16] = -999
+RETQ_ZMIN[17] = -999
+RETQ_ZMAX[17] = -999
+RETQ_ZMIN[18] = -999
+RETQ_ZMAX[18] = -999
+RETQ_ZMIN[19] = -999
+RETQ_ZMAX[19] = -999
+RETQ_ZMIN[20] = -999
+RETQ_ZMAX[20] = -999
+RETQ_ZMIN[21] = -999
+RETQ_ZMAX[21] = -999
+RETQ_ZMIN[22] = -999
+RETQ_ZMAX[22] = -999
+RETK_ZMIN[0] = -999
+RETK_ZMAX[0] = -999
+RET_CLZ = 0
+RET_CLDZ = 0
+RET_CLK = 0
+RET_SFZ = 0
+RET_SFP = 0
+RET_SFT = 0
+RET_SFEPS = 0
+WRITE_BBT = 0
+WRITE_MATRIX = 0
+FORMOD = 1
+RFMBIN = -
+RFMHIT = -
+RFMXSC[0] = -
+RFMXSC[1] = -
+RFMXSC[2] = -
+RFMXSC[3] = -
+RFMXSC[4] = -
+RFMXSC[5] = -
+RFMXSC[6] = -
+RFMXSC[7] = -
+RFMXSC[8] = -
+RFMXSC[9] = -
+RFMXSC[10] = -
+RFMXSC[11] = -
+RFMXSC[12] = -
+RFMXSC[13] = -
+RFMXSC[14] = -
+RFMXSC[15] = -
+RFMXSC[16] = -
+RFMXSC[17] = -
+RFMXSC[18] = -
+RFMXSC[19] = -
+RFMXSC[20] = -
+RFMXSC[21] = -
+RFMXSC[22] = -
+Read observation data: obs_small.tab
+Read atmospheric data: atm.tab
+
+Juelich Rapid Spectral Simulation Code (JURASSIC)
+(executable: ../../../../integrate_to_the_reference_version/jurassic/src/formod | compiled: May 26 2022, 10:26:06)
+
+# JURASSIC git commit 9c1a1b469d0847258eef7a81d58c616bab50e838
+
+NG = 23
+ND = 67
+NW = 1
+TBLBASE = /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf
+HYDZ = -999
+CTM_CO2 = 1
+CTM_H2O = 1
+CTM_N2 = 0
+CTM_O2 = 0
+SCA_N = 0
+SCA_MULT = 0
+SCA_EXT = beta_e
+IP = 1
+CZ = 0
+CX = 0
+REFRAC = 1
+RAYDS = 10.
+RAYDZ = 0.1
+TRANSS = 0.02
+FOV = -
+RETP_ZMIN = -999
+RETP_ZMAX = -999
+RETT_ZMIN = -999
+RETT_ZMAX = -999
+RETNN = 0
+RETRR = 0
+RETSS = 0
+RETNN_ZMIN = -999
+RETNN_ZMAX = -999
+WRITE_BBT = 0
+WRITE_MATRIX = 0
+FORMOD = 2
+RFMBIN = -
+RFMHIT = -
+USEGPU = -1
+CHECKMODE = 0
+CHECKMODE = 0 (run)
+READ_BINARY = -1
+WRITE_BINARY = 1
+GPU_SHARED_MEMORY = 0
+MAX_QUEUE = 1e5
+DEBUG #0 call initilaze GPU..
+DEBUG #0 jur_get_tbl_on_GPU was called..
+DEBUG #0 tbl_G == nullptr
+# call cudaMallocManaged for tables of size 8156.984 MByte
+# try to open "bin.jurassic-fp32-tables-g25-p45-T30-u430-d70" for reading binary
+# found header version 20200211
+# interpret NGMAX as channel frequency but found 795.5000 at index 25
+# found and error (code=1) in linenumber 5 related to entry "NGMAX 25" checking the header
+# interpret TBLNPMAX as channel frequency but found 803.9000 at index 45
+# found and error (code=1) in linenumber 6 related to entry "TBLNPMAX 45" checking the header
+# interpret TBLNTMAX as channel frequency but found 797.6000 at index 30
+# found and error (code=1) in linenumber 7 related to entry "TBLNTMAX 30" checking the header
+# try to interpret TBLNUMAX as channel frequency but found index 430 out of range 70=NDMAX
+# found and error (code=430) in linenumber 8 related to entry "TBLNUMAX 430" checking the header
+# try to interpret NDMAX as channel frequency but found index 70 out of range 70=NDMAX
+# found and error (code=70) in linenumber 9 related to entry "NDMAX 70" checking the header
+# try to interpret TBLNSMAX as channel frequency but found index 1201 out of range 70=NDMAX
+# found and error (code=1201) in linenumber 10 related to entry "TBLNSMAX 1201" checking the header
+# interpret F113 as channel frequency but found 786.6800 at index 4
+# found and error (code=1) in linenumber 19 related to entry "F113 4" checking the header
+# interpret F114 as channel frequency but found 787.1000 at index 5
+# found and error (code=1) in linenumber 20 related to entry "F114 5" checking the header
+# interpret PAN as channel frequency but found 793.8200 at index 21
+# found and error (code=1) in linenumber 36 related to entry "PAN 21" checking the header
+# found FAST_INVERSE_OF_U 0
+# found only 20 of 23 gas species!
+# found 10 errors checking the header
+Timer 'READ' (jr_binary_tables_io.h, jr_read_binary_tables, l283-287): 0.083 sec
+# jr_read_binary_tables returns status 258
+Timer 'INIT_TBL' (jurassic.c, jur_init_tbl, l266-361): 21.996 sec
+
+# jurassic.h could be configured minimally with
+# NGMAX = 23  	 now 25
+# NDMAX = 67  	 now 70
+# TBLNPMAX = 41  	 now 45 	(gas[0]=C2H2  nu[0]=785.0000)
+# TBLNTMAX = 29  	 now 30 	(gas[0]=C2H2  nu[0]=785.0000  pressure[0]=1.03e-02)
+# TBLNUMAX = 430  	 now 430 	(gas[0]=C2H2  nu[0]=785.0000  pressure[0]=1.03e-02  temperature[1]=139.11)
+# now main table arrays (tbl->u + tbl->eps) consume 8.127000 GByte
+# main table arrays could consume 6.302937 GByte
+# with sparse storage only 3.178037 GByte (50.4 %)
+
+Initialize source function table...
+Count initialized tables...
+# per channel   20 20 20 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 20 20 20 20 20 20 20 20  total=1396 (of 1541)
+# per gas       67 67 59 67 67 67 0 67 67 67 67 67 67 67 67 67 0 67 67 67 64 67 67  total=1396 (of 1541)
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_798.8600.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_793.8200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_805.1600.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_795.0800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_803.9000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_796.3400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_812.3000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_807.6800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.2600.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_811.4600.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_788.7800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_810.6200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_787.5200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_806.4200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_808.9400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_809.7800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_791.3000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_792.5600.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_802.6400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_797.6000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_801.3800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_790.0400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_800.1200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_789.2000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_795.5000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_800.5400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_805.5800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_804.3200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.6800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_792.9800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_791.7200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_810.2000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_801.8000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_811.0400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_796.7600.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_812.7200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_799.2800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_794.2400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_790.4600.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_809.3600.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_808.1000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_787.9400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_806.8400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_811.8800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_806.0000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_798.0200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_803.0600.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.8400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_800.9600.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_789.6200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_787.1000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_795.9200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_799.7000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_793.4000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_804.7400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_790.8800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_802.2200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_792.1400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_807.2600.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_794.6600.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_798.4400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_788.3600.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_797.1800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_808.5200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_803.4800.filt
+# binary header uses 1.377 of 16.384 kByte
+# try to open "bin.jurassic-fp32-tables-g25-p45-T30-u430-d70" for writing binary
+# opened "bin.jurassic-fp32-tables-g25-p45-T30-u430-d70" for writing binary
+# writing header of length 16.384 kByte binary
+# header of length 16.384 kByte written binary
+# writing tables with size 8156.984 MByte binary
+# tables with size 8156.984 MByte written binary
+# file "bin.jurassic-fp32-tables-g25-p45-T30-u430-d70" written
+Timer 'WRITE' (jr_binary_tables_io.h, jr_write_binary_tables, l271-277): 2.046 sec
+# jr_write_binary_tables returns status 0
+[INFO] allocated 8156.984 MByte unified memory for tables
+TIMER #0 jurassic-gpu table initialization time: 0.000000
+[INFO] Warning: unified atm_t doesn't contain clz, cldz, clk, sfz, sfp, sft, ...
+DEBUG #0 jur_formod: number of packages.. 1
+DEBUG #0 jur_get_tbl_on_GPU was called..
+TIMER #0 jurassic-gpu reading table time: 0.000001
+DEBUG #0 max possible number of Lanes: 2
+TIMER #0 jurassic-gpu gpu_lanes initialization time: 0.007911
+numDevices: 1
+DEBUG #0 numDevices: 1
+Heisenbug :) 0.003440
+Write observation data: rad-plain-with-unified-library.tab

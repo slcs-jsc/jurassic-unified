@@ -1,0 +1,374 @@
+DEBUG #0 processor name: jsfc013
+DEBUG #1 processor name: jsfc014
+
+Juelich Rapid Spectral Simulation Code (JURASSIC)
+(executable: ../../jurassic-gpu/src/sca_formod | compiled: Jun 16 2022, 18:51:03)
+
+# JURASSIC git commit ae671f5ae5c422b366aea77cafa22505e3ea10b2
+
+NG = 13
+ND = 5
+NW = 1
+TBLBASE = /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf
+HYDZ = -999
+CTM_CO2 = 1
+CTM_H2O = 1
+CTM_N2 = 0
+CTM_O2 = 0
+SCA_N = 1
+SCA_MULT = 1
+SCA_EXT = beta_e
+IP = 1
+CZ = 0
+CX = 0
+REFRAC = 1
+RAYDS = 10.
+RAYDZ = 0.1
+TRANSS = 0.02
+FOV = -
+RETP_ZMIN = -999
+RETP_ZMAX = -999
+RETT_ZMIN = -999
+RETT_ZMAX = -999
+RETNN = 0
+RETRR = 0
+RETSS = 0
+RETNN_ZMIN = -999
+RETNN_ZMAX = -999
+WRITE_BBT = 0
+WRITE_MATRIX = 0
+FORMOD = 2
+RFMBIN = -
+RFMHIT = -
+USEGPU = -1
+CHECKMODE = 0
+CHECKMODE = 0 (run)
+GPU_SHARED_MEMORY = 0
+MAX_QUEUE = 1e5
+TASK = -
+DIRLIST = aux/first_004
+AEROFILE = aero.tab
+DEBUG #1 call table_initializaiton..
+DEBUG #1 call initilaze GPU..
+DEBUG #1 jur_get_tbl_on_GPU was called..
+DEBUG #1 tbl_G == nullptr
+# call cudaMallocManaged for tables of size 8156.984 MByte
+
+Juelich Rapid Spectral Simulation Code (JURASSIC)
+(executable: ../../jurassic-gpu/src/sca_formod | compiled: Jun 16 2022, 18:51:03)
+
+# JURASSIC git commit ae671f5ae5c422b366aea77cafa22505e3ea10b2
+
+NG = 13
+ND = 5
+NW = 1
+TBLBASE = /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf
+HYDZ = -999
+CTM_CO2 = 1
+CTM_H2O = 1
+CTM_N2 = 0
+CTM_O2 = 0
+SCA_N = 1
+SCA_MULT = 1
+SCA_EXT = beta_e
+IP = 1
+CZ = 0
+CX = 0
+REFRAC = 1
+RAYDS = 10.
+RAYDZ = 0.1
+TRANSS = 0.02
+FOV = -
+RETP_ZMIN = -999
+RETP_ZMAX = -999
+RETT_ZMIN = -999
+RETT_ZMAX = -999
+RETNN = 0
+RETRR = 0
+RETSS = 0
+RETNN_ZMIN = -999
+RETNN_ZMAX = -999
+WRITE_BBT = 0
+WRITE_MATRIX = 0
+FORMOD = 2
+RFMBIN = -
+RFMHIT = -
+USEGPU = -1
+CHECKMODE = 0
+CHECKMODE = 0 (run)
+GPU_SHARED_MEMORY = 0
+MAX_QUEUE = 1e5
+TASK = -
+DIRLIST = aux/first_004
+AEROFILE = aero.tab
+DEBUG #0 call table_initializaiton..
+DEBUG #0 call initilaze GPU..
+DEBUG #0 jur_get_tbl_on_GPU was called..
+DEBUG #0 tbl_G == nullptr
+# call cudaMallocManaged for tables of size 8156.984 MByte
+Timer 'INIT_TBL' (jurassic.c, jur_init_tbl, l255-350): 4.091 sec
+
+# jurassic.h could be configured minimally with
+# NGMAX = 13  	 now 25
+# NDMAX = 5  	 now 70
+# TBLNPMAX = 41  	 now 45 	(gas[0]=CCl4  nu[0]=785.0000)
+# TBLNTMAX = 29  	 now 30 	(gas[0]=CCl4  nu[0]=785.0000  pressure[0]=1.03e-02)
+# TBLNUMAX = 400  	 now 430 	(gas[0]=CCl4  nu[0]=785.0000  pressure[0]=1.03e-02  temperature[6]=164.11)
+# now main table arrays (tbl->u + tbl->eps) consume 8.127000 GByte
+# main table arrays could consume 0.247312 GByte
+# with sparse storage only 0.145452 GByte (58.8 %)
+
+Initialize source function table...
+Count initialized tables...
+# per channel   13 13 13 13 13  total=65 (of 65)
+# per gas       5 5 5 5 5 5 5 5 5 5 5 5 5  total=65 (of 65)
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.8400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.6800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.2600.filt
+Timer 'INIT_TBL' (jurassic.c, jur_init_tbl, l255-350): 4.098 sec
+
+# jurassic.h could be configured minimally with
+# NGMAX = 13  	 now 25
+# NDMAX = 5  	 now 70
+# TBLNPMAX = 41  	 now 45 	(gas[0]=CCl4  nu[0]=785.0000)
+# TBLNTMAX = 29  	 now 30 	(gas[0]=CCl4  nu[0]=785.0000  pressure[0]=1.03e-02)
+# TBLNUMAX = 400  	 now 430 	(gas[0]=CCl4  nu[0]=785.0000  pressure[0]=1.03e-02  temperature[6]=164.11)
+# now main table arrays (tbl->u + tbl->eps) consume 8.127000 GByte
+# main table arrays could consume 0.247312 GByte
+# with sparse storage only 0.145452 GByte (58.8 %)
+
+Initialize source function table...
+Count initialized tables...
+# per channel   13 13 13 13 13  total=65 (of 65)
+# per gas       5 5 5 5 5 5 5 5 5 5 5 5 5  total=65 (of 65)
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.8400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.6800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.2600.filt
+[INFO] allocated 8156.984 MByte unified memory for tables
+TIMER #1 jurassic-gpu table initialization time: 4.220933
+
+Working directory: 002
+DEBUG #1 forward calculation: 002
+Read observation data: 002/obs33.tab
+Read atmospheric data: 002/atm.tab
+Read atmospheric data found 81 height levels, max 1000
+Read aerosol data: 002/aero.tab
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+[INFO] allocated 8156.984 MByte unified memory for tables
+TIMER #0 jurassic-gpu table initialization time: 4.263109
+
+Working directory: 001
+DEBUG #0 forward calculation: 001
+Read observation data: 001/obs33.tab
+Read atmospheric data: 001/atm.tab
+Read atmospheric data found 81 height levels, max 1000
+Read aerosol data: 001/aero.tab
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+# jur_sca_init_queue(20001) requires 0.305 MiByte
+# jur_sca_init_queue(20001) requires 0.305 MiByte
+# jur_sca_init_queue(20001) requires 0.305 MiByte
+# jur_sca_init_queue(20001) requires 0.305 MiByte
+# jur_sca_init_queue(20001) requires 0.305 MiByte
+DEBUG #1 jur_sca_formod init 5 queues with 20001 elements
+DEBUG #1 jur_sca_formod start Queue_Prepare
+TIMER #1 Prepare 1st part time: 0.004448
+
+TIMER #1 Prepare 2nd part time: 0.008072
+DEBUG #1 Call advanced execute!
+TIMER #1 Execute: copy from queue to packages time: 0.000727
+980 
+DEBUG #1 jur_formod: number of packages.. 1
+DEBUG #1 jur_get_tbl_on_GPU was called..
+TIMER #1 jurassic-gpu reading table time: 0.000006
+DEBUG #1 max possible number of Lanes: 2
+TIMER #1 jurassic-gpu gpu_lanes initialization time: 0.007768
+numDevices: 1
+DEBUG #1 numDevices: 1
+# jur_sca_init_queue(20001) requires 0.305 MiByte
+# jur_sca_init_queue(20001) requires 0.305 MiByte
+# jur_sca_init_queue(20001) requires 0.305 MiByte
+# jur_sca_init_queue(20001) requires 0.305 MiByte
+# jur_sca_init_queue(20001) requires 0.305 MiByte
+DEBUG #0 jur_sca_formod init 5 queues with 20001 elements
+DEBUG #0 jur_sca_formod start Queue_Prepare
+TIMER #0 Prepare 1st part time: 0.004194
+
+TIMER #0 Prepare 2nd part time: 0.007942
+DEBUG #0 Call advanced execute!
+TIMER #0 Execute: copy from queue to packages time: 0.000228
+1000 960 
+DEBUG #0 jur_formod: number of packages.. 2
+DEBUG #0 jur_get_tbl_on_GPU was called..
+TIMER #0 jurassic-gpu reading table time: 0.000008
+DEBUG #0 max possible number of Lanes: 2
+TIMER #0 jurassic-gpu gpu_lanes initialization time: 0.008216
+numDevices: 1
+DEBUG #0 numDevices: 1
+Heisenbug :) 0.092678
+TIMER #1 Execute: jur_formod_multiple_packages time: 0.695369
+TIMER #1 Execute: copy from packages queue time: 0.012797
+TIMER #1 Execute time: 0.708910
+DEBUG #1 jur_sca_formod start Queue_Collect
+Heisenbug :) 0.091471
+Heisenbug :) 0.001796
+TIMER #0 Execute: jur_formod_multiple_packages time: 0.763793
+TIMER #0 Execute: copy from packages queue time: 0.007819
+TIMER #0 Execute time: 0.771863
+DEBUG #0 jur_sca_formod start Queue_Collect
+Timer 'INIT_TBL' (jurassic.c, jur_init_tbl, l255-350): 3.334 sec
+
+# jurassic.h could be configured minimally with
+# NGMAX = 13  	 now 25
+# NDMAX = 5  	 now 70
+# TBLNPMAX = 41  	 now 45 	(gas[0]=CCl4  nu[0]=785.0000)
+# TBLNTMAX = 29  	 now 30 	(gas[0]=CCl4  nu[0]=785.0000  pressure[0]=1.03e-02)
+# TBLNUMAX = 400  	 now 430 	(gas[0]=CCl4  nu[0]=785.0000  pressure[0]=1.03e-02  temperature[6]=164.11)
+# now main table arrays (tbl->u + tbl->eps) consume 8.127000 GByte
+# main table arrays could consume 0.247312 GByte
+# with sparse storage only 0.145452 GByte (58.8 %)
+
+Initialize source function table...
+Count initialized tables...
+# per channel   13 13 13 13 13  total=65 (of 65)
+# per gas       5 5 5 5 5 5 5 5 5 5 5 5 5  total=65 (of 65)
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.2600.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.8400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.6800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000.filt
+TIMER #1 Collect-1st part time: 3.439518
+TIMER #1 Collect-2nd part time: 0.053824
+# jur_sca_init_queue(-1) releases the queue.
+# jur_sca_init_queue(-1) releases the queue.
+# jur_sca_init_queue(-1) releases the queue.
+# jur_sca_init_queue(-1) releases the queue.
+# jur_sca_init_queue(-1) releases the queue.
+TIMER #1 Memory free time: 0.000011
+TIMER #1 Total time for test 002: 4.215069
+TIMER #1 
+DEBUG #1 
+Write observation data: 002/submissions/rad-607.tab
+
+Working directory: 004
+DEBUG #1 forward calculation: 004
+Read observation data: 004/obs33.tab
+Read atmospheric data: 004/atm.tab
+Read atmospheric data found 81 height levels, max 1000
+Read aerosol data: 004/aero.tab
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+Timer 'INIT_TBL' (jurassic.c, jur_init_tbl, l255-350): 3.412 sec
+
+# jurassic.h could be configured minimally with
+# NGMAX = 13  	 now 25
+# NDMAX = 5  	 now 70
+# TBLNPMAX = 41  	 now 45 	(gas[0]=CCl4  nu[0]=785.0000)
+# TBLNTMAX = 29  	 now 30 	(gas[0]=CCl4  nu[0]=785.0000  pressure[0]=1.03e-02)
+# TBLNUMAX = 400  	 now 430 	(gas[0]=CCl4  nu[0]=785.0000  pressure[0]=1.03e-02  temperature[6]=164.11)
+# now main table arrays (tbl->u + tbl->eps) consume 8.127000 GByte
+# main table arrays could consume 0.247312 GByte
+# with sparse storage only 0.145452 GByte (58.8 %)
+
+Initialize source function table...
+Count initialized tables...
+# per channel   13 13 13 13 13  total=65 (of 65)
+# per gas       5 5 5 5 5 5 5 5 5 5 5 5 5  total=65 (of 65)
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.8400.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.6800.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_786.2600.filt
+TIMER #0 Collect-1st part time: 3.535736
+TIMER #0 Collect-2nd part time: 0.077995
+# jur_sca_init_queue(-1) releases the queue.
+# jur_sca_init_queue(-1) releases the queue.
+# jur_sca_init_queue(-1) releases the queue.
+# jur_sca_init_queue(-1) releases the queue.
+# jur_sca_init_queue(-1) releases the queue.
+TIMER #0 Memory free time: 0.000007
+TIMER #0 Total time for test 001: 4.398027
+TIMER #0 
+DEBUG #0 
+Write observation data: 001/submissions/rad-607.tab
+
+Working directory: 003
+DEBUG #0 forward calculation: 003
+Read observation data: 003/obs33.tab
+Read atmospheric data: 003/atm.tab
+Read atmospheric data found 81 height levels, max 1000
+Read aerosol data: 003/aero.tab
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+# jur_sca_init_queue(20001) requires 0.305 MiByte
+# jur_sca_init_queue(20001) requires 0.305 MiByte
+# jur_sca_init_queue(20001) requires 0.305 MiByte
+# jur_sca_init_queue(20001) requires 0.305 MiByte
+# jur_sca_init_queue(20001) requires 0.305 MiByte
+DEBUG #1 jur_sca_formod init 5 queues with 20001 elements
+DEBUG #1 jur_sca_formod start Queue_Prepare
+TIMER #1 Prepare 1st part time: 0.002243
+
+TIMER #1 Prepare 2nd part time: 0.009893
+DEBUG #1 Call advanced execute!
+TIMER #1 Execute: copy from queue to packages time: 0.011807
+1000 680 
+DEBUG #1 jur_formod: number of packages.. 2
+numDevices: 1
+DEBUG #1 numDevices: 1
+# jur_sca_init_queue(20001) requires 0.305 MiByte
+# jur_sca_init_queue(20001) requires 0.305 MiByte
+# jur_sca_init_queue(20001) requires 0.305 MiByte
+# jur_sca_init_queue(20001) requires 0.305 MiByte
+# jur_sca_init_queue(20001) requires 0.305 MiByte
+DEBUG #0 jur_sca_formod init 5 queues with 20001 elements
+DEBUG #0 jur_sca_formod start Queue_Prepare
+TIMER #0 Prepare 1st part time: 0.003280
+
+TIMER #0 Prepare 2nd part time: 0.013523
+DEBUG #0 Call advanced execute!
+TIMER #0 Execute: copy from queue to packages time: 0.011773
+1000 1000 1000 360 
+DEBUG #0 jur_formod: number of packages.. 4
+numDevices: 1
+DEBUG #0 numDevices: 1
+Heisenbug :) 0.092825
+Heisenbug :) 0.000400
+TIMER #1 Execute: jur_formod_multiple_packages time: 0.512817
+TIMER #1 Execute: copy from packages queue time: 0.013125
+TIMER #1 Execute time: 0.537773
+DEBUG #1 jur_sca_formod start Queue_Collect
+TIMER #1 Collect-1st part time: 0.064918
+TIMER #1 Collect-2nd part time: 0.064368
+# jur_sca_init_queue(-1) releases the queue.
+# jur_sca_init_queue(-1) releases the queue.
+# jur_sca_init_queue(-1) releases the queue.
+# jur_sca_init_queue(-1) releases the queue.
+# jur_sca_init_queue(-1) releases the queue.
+TIMER #1 Memory free time: 0.000008
+TIMER #1 Total time for test 004: 0.679276
+TIMER #1 
+DEBUG #1 
+Write observation data: 004/submissions/rad-607.tab
+Heisenbug :) 0.003575
+Heisenbug :) 0.090662
+Heisenbug :) 0.091291
+Heisenbug :) 0.062949
+TIMER #0 Execute: jur_formod_multiple_packages time: 0.901768
+TIMER #0 Execute: copy from packages queue time: 0.014948
+TIMER #0 Execute time: 0.928519
+DEBUG #0 jur_sca_formod start Queue_Collect
+TIMER #0 Collect-1st part time: 0.108957
+TIMER #0 Collect-2nd part time: 0.110056
+# jur_sca_init_queue(-1) releases the queue.
+# jur_sca_init_queue(-1) releases the queue.
+# jur_sca_init_queue(-1) releases the queue.
+# jur_sca_init_queue(-1) releases the queue.
+# jur_sca_init_queue(-1) releases the queue.
+TIMER #0 Memory free time: 0.000007
+TIMER #0 Total time for test 003: 1.164415
+TIMER #0 
+DEBUG #0 
+Write observation data: 003/submissions/rad-607.tab
+DEBUG #999 Global runtime is 12.735441 seconds 

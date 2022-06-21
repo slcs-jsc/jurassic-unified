@@ -1,0 +1,18 @@
+# $1 = iteration number
+# $2 = normalized cost function: total
+# $3 = normalized cost function: measurements
+# $4 = normalized cost function: a priori
+# $5 = number of measurements
+# $6 = number of state vector elements
+
+0 1.93578e-08 1.93578e-08 0 2 2
+1 2.27692e-08 2.27692e-08 1.23748e-14 2 2
+1 2.27735e-08 2.27734e-08 1.21596e-14 2 2
+1 2.28123e-08 2.28123e-08 1.0289e-14 2 2
+1 2.30119e-08 2.30119e-08 3.28023e-15 2 2
+1 2.32166e-08 2.32166e-08 3.41059e-16 2 2
+1 2.32544e-08 2.32544e-08 2.41574e-16 2 2
+1 2.32238e-08 2.32238e-08 2.38482e-16 2 2
+1 2.28956e-08 2.28956e-08 2.20534e-16 2 2
+1 2.10085e-08 2.10085e-08 1.15233e-16 2 2
+1 1.93347e-08 1.93347e-08 8.10138e-18 2 2

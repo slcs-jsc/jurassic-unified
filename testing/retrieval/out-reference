@@ -1,0 +1,136 @@
+Start retrieval with scattering...
+
+JURASSIC - Version with Scattering
+Executable: ../../../../../experiments/ref_repos/jurassic-scatter/src/retrieval
+Control parameters: cloud-retrieval.ctl
+NG = 2
+EMITTER[0] = CCl4
+EMITTER[1] = ClO
+ND = 2
+NU[0] = 785.00
+NU[1] = 785.42
+NW = 1
+WINDOW[0] = 0
+WINDOW[1] = 0
+TBLBASE = /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf
+HYDZ = -999
+CTM_CO2 = 1
+CTM_H2O = 1
+CTM_N2 = 0
+CTM_O2 = 0
+SCA_N = 1
+SCA_MULT = 1
+SCA_EXT = beta_e
+IP = 1
+CZ = 0
+CX = 0
+REFRAC = 1
+RAYDS = 10.
+RAYDZ = 0.1
+TRANSS = 0.02
+FOV = -
+RETP_ZMIN = -999
+RETP_ZMAX = -999
+RETT_ZMIN = -999
+RETT_ZMAX = -999
+RETQ_ZMIN[0] = -999
+RETQ_ZMAX[0] = -999
+RETQ_ZMIN[1] = -999
+RETQ_ZMAX[1] = -999
+RETK_ZMIN[0] = -999
+RETK_ZMAX[0] = -999
+RETNN = 1
+RETRR = 1
+RETSS = 0
+RETNN_ZMIN = -999
+RETNN_ZMAX = -999
+WRITE_BBT = 0
+WRITE_MATRIX = 1
+KERNEL_RECOMP = 1
+CONV_ITMAX = 20
+CONV_DMIN = 0.1
+RESMAX = -999
+ERR_ANA = 1
+ERR_FORMOD[0] = 1
+ERR_FORMOD[1] = 1
+ERR_NOISE[0] = 30e-5
+ERR_NOISE[1] = 30e-5
+ERR_PRESS = 0
+ERR_PRESS_CZ = -999
+ERR_PRESS_CH = -999
+ERR_TEMP = 0
+ERR_TEMP_CZ = -999
+ERR_TEMP_CH = -999
+ERR_NN = 1.
+ERR_RR = 1.
+ERR_SS = 0.5
+ERR_Q[0] = 0
+ERR_Q_CZ[0] = -999
+ERR_Q_CH[0] = -999
+ERR_Q[1] = 0
+ERR_Q_CZ[1] = -999
+ERR_Q_CH[1] = -999
+ERR_K[0] = 0
+ERR_K_CZ[0] = -999
+ERR_K_CH[0] = -999
+
+Retrieve in directory test1...
+
+Read atmospheric data: test1/atm_apr.tab
+Read aerosol data: test1/aero_apr.tab
+Read observation data: test1/obs_meas.tab
+retrieval iteration = 0
+Problem size: m= 2 / n= 2 (alloc= 0.0004272 MB / stat= 14.14 MB)
+Write observation data: ./obs_reference_prije.tbl
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+Allocate memory for tables: 1.196e+04 MB
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000_CCl4.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200_CCl4.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000_ClO.tab
+Read emissivity table: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200_ClO.tab
+jurassic-scatter FIRST and ONLY reading table time: 0.800467
+Initialize source function table...
+Write observation data: ./obs_reference_poslije.tbl
+Write matrix: test1/matrix_cov_apr.tab
+it= 0 / chi^2/m= 1.96091e-08 (meas: 1.96091e-08 / apr: 0)
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+it= 1 / chi^2/m= 2.36518e-08 (meas: 2.36517e-08 / apr: 1.25666e-14)
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+it= 1 / chi^2/m= 2.36564e-08 (meas: 2.36564e-08 / apr: 1.23487e-14)
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+it= 1 / chi^2/m= 2.3699e-08 (meas: 2.3699e-08 / apr: 1.0455e-14)
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+it= 1 / chi^2/m= 2.39172e-08 (meas: 2.39172e-08 / apr: 3.35953e-15)
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+it= 1 / chi^2/m= 2.41406e-08 (meas: 2.41406e-08 / apr: 3.84002e-16)
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+it= 1 / chi^2/m= 2.41815e-08 (meas: 2.41815e-08 / apr: 2.83256e-16)
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+it= 1 / chi^2/m= 2.41452e-08 (meas: 2.41452e-08 / apr: 2.79818e-16)
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+it= 1 / chi^2/m= 2.37601e-08 (meas: 2.37601e-08 / apr: 2.58761e-16)
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+it= 1 / chi^2/m= 2.15459e-08 (meas: 2.15459e-08 / apr: 1.35207e-16)
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+it= 1 / chi^2/m= 1.95821e-08 (meas: 1.95821e-08 / apr: 9.50566e-18)
+Write observation data: test1/obs_final.tab
+Write atmospheric data: test1/atm_final.tab
+Write particle data: test1/aero_final.tab
+Write matrix: test1/matrix_kernel.tab
+Write matrix: test1/matrix_cov_ret.tab
+Write atmospheric data: test1/atm_err_total.tab
+Write particle data: test1/aero_err_total.tab
+Write matrix: test1/matrix_gain.tab
+Write atmospheric data: test1/atm_err_noise.tab
+Write particle data: test1/aero_err_noise.tab
+Write atmospheric data: test1/atm_err_formod.tab
+Write particle data: test1/aero_err_formod.tab
+Write matrix: test1/matrix_avk.tab
+Write atmospheric data: test1/atm_cont.tab
+Write atmospheric data: test1/atm_res.tab
+Write particle data: test1/aero_cont.tab
+
+Retrieval done...

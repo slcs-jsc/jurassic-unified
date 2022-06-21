@@ -1,0 +1,7 @@
+# $1 = iteration number
+# $2 = normalized cost function
+# $3 = number of measurements
+# $4 = number of state vector elements
+
+0 0.000456872 2 7
+1 0.000450411 2 7

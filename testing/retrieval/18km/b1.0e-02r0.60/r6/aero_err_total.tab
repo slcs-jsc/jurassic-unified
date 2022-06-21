@@ -1,0 +1,10 @@
+# $1 = aerosol layer top altitude [km]
+# $2 = aerosol layer bottom altitude [km]
+# $3 = transition layer thickness [km]
+# $4 = source for optical properties
+# $5 = refractive index file
+# $6 = particle concentration of log-normal mode [cm-3]
+# $7 = median radius of log-normal mode [mum]
+# $8 = width of log-normal mode
+
+0 0 0 MIE /private/sgrie/ESA-study/MIPAS/h2so4-215K-shettle.dat 0.585539 0.00525235 1

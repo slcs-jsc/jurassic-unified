@@ -1,0 +1,20 @@
+# $1 = Row: index (state space)
+# $2 = Row: name of quantity
+# $3 = Row: time (seconds since 2000-01-01T00:00Z)
+# $4 = Row: altitude [km]
+# $5 = Row: longitude [deg]
+# $6 = Row: latitude [deg]
+# $7 = Col: index (state space)
+# $8 = Col: name of quantity
+# $9 = Col: time (seconds since 2000-01-01T00:00Z)
+# $10 = Col: altitude [km]
+# $11 = Col: longitude [deg]
+# $12 = Col: latitude [deg]
+# $13 = Matrix element
+
+0 CONCENTRATION 0.00 0 0 0 0 CONCENTRATION 0.00 0 0 0 0.657144
+0 CONCENTRATION 0.00 0 0 0 1 RADIUS 0.00 0 0 0 0.00304419
+
+1 RADIUS 0.00 0 0 0 0 CONCENTRATION 0.00 0 0 0 0.00304419
+1 RADIUS 0.00 0 0 0 1 RADIUS 0.00 0 0 0 0.999972
+

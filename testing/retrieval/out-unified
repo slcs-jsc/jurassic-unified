@@ -1,0 +1,477 @@
+Start retrieval with scattering...
+
+Juelich Rapid Spectral Simulation Code (JURASSIC)
+(executable: ../../jurassic-gpu/src/sca_retrieval | compiled: Jun  9 2022, 20:46:25)
+
+# JURASSIC git commit fd2df52df64dfcf6b38e9c5f38a6db9f1dd5b179
+
+NG = 2
+ND = 2
+NW = 1
+TBLBASE = /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf
+HYDZ = -999
+CTM_CO2 = 1
+CTM_H2O = 1
+CTM_N2 = 0
+CTM_O2 = 0
+SCA_N = 1
+SCA_MULT = 1
+SCA_EXT = beta_e
+IP = 1
+CZ = 0
+CX = 0
+REFRAC = 1
+RAYDS = 10.
+RAYDZ = 0.1
+TRANSS = 0.02
+FOV = -
+RETP_ZMIN = -999
+RETP_ZMAX = -999
+RETT_ZMIN = -999
+RETT_ZMAX = -999
+RETNN = 1
+RETRR = 1
+RETSS = 0
+RETNN_ZMIN = -999
+RETNN_ZMAX = -999
+WRITE_BBT = 0
+WRITE_MATRIX = 1
+FORMOD = 2
+RFMBIN = -
+RFMHIT = -
+USEGPU = -1
+CHECKMODE = 0
+CHECKMODE = 0 (run)
+GPU_SHARED_MEMORY = 0
+MAX_QUEUE = 1e5
+KERNEL_RECOMP = 1
+CONV_ITMAX = 20
+CONV_DMIN = 0.1
+RESMAX = -999
+ERR_ANA = 1
+ERR_PRESS = 0
+ERR_PRESS_CZ = -999
+ERR_PRESS_CH = -999
+ERR_TEMP = 0
+ERR_TEMP_CZ = -999
+ERR_TEMP_CH = -999
+ERR_NN = 1.
+ERR_RR = 1.
+ERR_SS = 0.5
+DEBUG #0 call table_initializaiton..
+DEBUG #0 call initilaze GPU..
+DEBUG #0 jur_get_tbl_on_GPU was called..
+DEBUG #0 tbl_G == nullptr
+# call cudaMallocManaged for tables of size 8156.984 MByte
+Timer 'INIT_TBL' (jurassic.c, jur_init_tbl, l255-350): 0.600 sec
+
+# jurassic.h could be configured minimally with
+# NGMAX = 2  	 now 25
+# NDMAX = 2  	 now 70
+# TBLNPMAX = 41  	 now 45 	(gas[0]=CCl4  nu[0]=785.0000)
+# TBLNTMAX = 29  	 now 30 	(gas[0]=CCl4  nu[0]=785.0000  pressure[0]=1.03e-02)
+# TBLNUMAX = 365  	 now 430 	(gas[0]=CCl4  nu[0]=785.0000  pressure[0]=1.03e-02  temperature[0]=134.11)
+# now main table arrays (tbl->u + tbl->eps) consume 8.127000 GByte
+# main table arrays could consume 0.013888 GByte
+# with sparse storage only 0.009059 GByte (65.2 %)
+
+Initialize source function table...
+Count initialized tables...
+# per channel   2 2  total=4 (of 4)
+# per gas       2 2  total=4 (of 4)
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200.filt
+[INFO] allocated 8156.984 MByte unified memory for tables
+TIMER #0 jurassic-gpu table initialization time: 0.769605
+
+Retrieve in directory test1...
+
+Read atmospheric data: test1/atm_apr.tab
+Read atmospheric data found 9 height levels, max 1000
+Read aerosol data: test1/aero_apr.tab
+Read observation data: test1/obs_meas.tab
+Problem size: m= 2 / n= 2 (alloc= 0.0004272 MB / stat= 9.873 MB)
+Write observation data: ./obs_unified_prije.tbl
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+# jur_sca_init_queue(100001) requires 1.526 MiByte
+DEBUG #0 jur_sca_formod init 1 queues with 100001 elements
+DEBUG #0 jur_sca_formod start Queue_Prepare
+TIMER #0 Prepare 1st part time: 0.020408
+
+TIMER #0 Prepare 2nd part time: 0.013311
+DEBUG #0 Call advanced execute!
+TIMER #0 Execute: copy from queue to packages time: 0.006337
+1000 1000 296 
+DEBUG #0 jur_formod: number of packages.. 3
+DEBUG #0 jur_get_tbl_on_GPU was called..
+TIMER #0 jurassic-gpu reading table time: 0.000001
+DEBUG #0 max possible number of Lanes: 2
+TIMER #0 jurassic-gpu gpu_lanes initialization time: 0.011365
+numDevices: 1
+DEBUG #0 numDevices: 1
+Heisenbug :) 0.004276
+Heisenbug :) 0.098219
+Heisenbug :) 0.014636
+TIMER #0 Execute: jur_formod_multiple_packages time: 0.229577
+TIMER #0 Execute: copy from packages queue time: 0.038497
+TIMER #0 Execute time: 0.274430
+DEBUG #0 jur_sca_formod start Queue_Collect
+Timer 'INIT_TBL' (jurassic.c, jur_init_tbl, l255-350): 0.501 sec
+
+# jurassic.h could be configured minimally with
+# NGMAX = 2  	 now 25
+# NDMAX = 2  	 now 70
+# TBLNPMAX = 41  	 now 45 	(gas[0]=CCl4  nu[0]=785.0000)
+# TBLNTMAX = 29  	 now 30 	(gas[0]=CCl4  nu[0]=785.0000  pressure[0]=1.03e-02)
+# TBLNUMAX = 365  	 now 430 	(gas[0]=CCl4  nu[0]=785.0000  pressure[0]=1.03e-02  temperature[0]=134.11)
+# now main table arrays (tbl->u + tbl->eps) consume 8.127000 GByte
+# main table arrays could consume 0.013888 GByte
+# with sparse storage only 0.009059 GByte (65.2 %)
+
+Initialize source function table...
+Count initialized tables...
+# per channel   2 2  total=4 (of 4)
+# per gas       2 2  total=4 (of 4)
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.4200.filt
+Read shape function: /p/fastdata/slmet/slmet111/model_data/jurassic/tab/crista-nf/ascii_785_964/crista_nf_785.0000.filt
+TIMER #0 Collect-1st part time: 0.858990
+TIMER #0 Collect-2nd part time: 0.013154
+# jur_sca_init_queue(-1) releases the queue.
+TIMER #0 Memory free time: 0.000002
+Write observation data: ./obs_unified_poslije.tbl
+Write matrix: test1/matrix_cov_apr.tab
+it= 0 / chi^2/m= 1.93578e-08 (meas: 1.93578e-08 / apr: 0)
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+# jur_sca_init_queue(100001) requires 1.526 MiByte
+DEBUG #0 jur_sca_formod init 1 queues with 100001 elements
+DEBUG #0 jur_sca_formod start Queue_Prepare
+TIMER #0 Prepare 1st part time: 0.019008
+
+TIMER #0 Prepare 2nd part time: 0.007040
+DEBUG #0 Call advanced execute!
+TIMER #0 Execute: copy from queue to packages time: 0.012116
+1000 1000 296 
+DEBUG #0 jur_formod: number of packages.. 3
+numDevices: 1
+DEBUG #0 numDevices: 1
+Heisenbug :) 0.098219
+Heisenbug :) 0.004276
+Heisenbug :) 0.014636
+TIMER #0 Execute: jur_formod_multiple_packages time: 0.169229
+TIMER #0 Execute: copy from packages queue time: 0.044319
+TIMER #0 Execute time: 0.225683
+DEBUG #0 jur_sca_formod start Queue_Collect
+TIMER #0 Collect-1st part time: 0.294188
+TIMER #0 Collect-2nd part time: 0.012976
+# jur_sca_init_queue(-1) releases the queue.
+TIMER #0 Memory free time: 0.000001
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+# jur_sca_init_queue(100001) requires 1.526 MiByte
+DEBUG #0 jur_sca_formod init 1 queues with 100001 elements
+DEBUG #0 jur_sca_formod start Queue_Prepare
+TIMER #0 Prepare 1st part time: 0.019071
+
+TIMER #0 Prepare 2nd part time: 0.007248
+DEBUG #0 Call advanced execute!
+TIMER #0 Execute: copy from queue to packages time: 0.012076
+1000 1000 296 
+DEBUG #0 jur_formod: number of packages.. 3
+numDevices: 1
+DEBUG #0 numDevices: 1
+Heisenbug :) 0.098188
+Heisenbug :) 0.018205
+Heisenbug :) 0.019884
+TIMER #0 Execute: jur_formod_multiple_packages time: 0.176988
+TIMER #0 Execute: copy from packages queue time: 0.046754
+TIMER #0 Execute time: 0.235836
+DEBUG #0 jur_sca_formod start Queue_Collect
+TIMER #0 Collect-1st part time: 0.311921
+TIMER #0 Collect-2nd part time: 0.007025
+# jur_sca_init_queue(-1) releases the queue.
+TIMER #0 Memory free time: 0.000003
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+# jur_sca_init_queue(100001) requires 1.526 MiByte
+DEBUG #0 jur_sca_formod init 1 queues with 100001 elements
+DEBUG #0 jur_sca_formod start Queue_Prepare
+TIMER #0 Prepare 1st part time: 0.019864
+
+TIMER #0 Prepare 2nd part time: 0.013258
+DEBUG #0 Call advanced execute!
+TIMER #0 Execute: copy from queue to packages time: 0.007463
+1000 1000 296 
+DEBUG #0 jur_formod: number of packages.. 3
+numDevices: 1
+DEBUG #0 numDevices: 1
+Heisenbug :) 0.098218
+Heisenbug :) 0.006083
+Heisenbug :) 0.016725
+TIMER #0 Execute: jur_formod_multiple_packages time: 0.166006
+TIMER #0 Execute: copy from packages queue time: 0.045236
+TIMER #0 Execute time: 0.218729
+DEBUG #0 jur_sca_formod start Queue_Collect
+TIMER #0 Collect-1st part time: 0.314249
+TIMER #0 Collect-2nd part time: 0.004877
+# jur_sca_init_queue(-1) releases the queue.
+TIMER #0 Memory free time: 0.000003
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+# jur_sca_init_queue(100001) requires 1.526 MiByte
+DEBUG #0 jur_sca_formod init 1 queues with 100001 elements
+DEBUG #0 jur_sca_formod start Queue_Prepare
+TIMER #0 Prepare 1st part time: 0.019505
+
+TIMER #0 Prepare 2nd part time: 0.013152
+DEBUG #0 Call advanced execute!
+TIMER #0 Execute: copy from queue to packages time: 0.008423
+1000 1000 296 
+DEBUG #0 jur_formod: number of packages.. 3
+numDevices: 1
+DEBUG #0 numDevices: 1
+Heisenbug :) 0.098219
+Heisenbug :) 0.004276
+Heisenbug :) 0.014636
+TIMER #0 Execute: jur_formod_multiple_packages time: 0.174666
+TIMER #0 Execute: copy from packages queue time: 0.049572
+TIMER #0 Execute time: 0.232846
+DEBUG #0 jur_sca_formod start Queue_Collect
+TIMER #0 Collect-1st part time: 0.314649
+TIMER #0 Collect-2nd part time: 0.012959
+# jur_sca_init_queue(-1) releases the queue.
+TIMER #0 Memory free time: 0.000004
+it= 1 / chi^2/m= 2.27692e-08 (meas: 2.27692e-08 / apr: 1.23748e-14)
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+# jur_sca_init_queue(100001) requires 1.526 MiByte
+DEBUG #0 jur_sca_formod init 1 queues with 100001 elements
+DEBUG #0 jur_sca_formod start Queue_Prepare
+TIMER #0 Prepare 1st part time: 0.019595
+
+TIMER #0 Prepare 2nd part time: 0.013027
+DEBUG #0 Call advanced execute!
+TIMER #0 Execute: copy from queue to packages time: 0.006127
+1000 1000 296 
+DEBUG #0 jur_formod: number of packages.. 3
+numDevices: 1
+DEBUG #0 numDevices: 1
+Heisenbug :) 0.098219
+Heisenbug :) 0.004276
+Heisenbug :) 0.014636
+TIMER #0 Execute: jur_formod_multiple_packages time: 0.166414
+TIMER #0 Execute: copy from packages queue time: 0.045571
+TIMER #0 Execute time: 0.218128
+DEBUG #0 jur_sca_formod start Queue_Collect
+TIMER #0 Collect-1st part time: 0.295753
+TIMER #0 Collect-2nd part time: 0.007428
+# jur_sca_init_queue(-1) releases the queue.
+TIMER #0 Memory free time: 0.000002
+it= 1 / chi^2/m= 2.27735e-08 (meas: 2.27734e-08 / apr: 1.21596e-14)
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+# jur_sca_init_queue(100001) requires 1.526 MiByte
+DEBUG #0 jur_sca_formod init 1 queues with 100001 elements
+DEBUG #0 jur_sca_formod start Queue_Prepare
+TIMER #0 Prepare 1st part time: 0.019567
+
+TIMER #0 Prepare 2nd part time: 0.012864
+DEBUG #0 Call advanced execute!
+TIMER #0 Execute: copy from queue to packages time: 0.006233
+1000 1000 296 
+DEBUG #0 jur_formod: number of packages.. 3
+numDevices: 1
+DEBUG #0 numDevices: 1
+Heisenbug :) 0.098219
+Heisenbug :) 0.004276
+Heisenbug :) 0.014636
+TIMER #0 Execute: jur_formod_multiple_packages time: 0.165804
+TIMER #0 Execute: copy from packages queue time: 0.045172
+TIMER #0 Execute time: 0.217231
+DEBUG #0 jur_sca_formod start Queue_Collect
+TIMER #0 Collect-1st part time: 0.311504
+TIMER #0 Collect-2nd part time: 0.013284
+# jur_sca_init_queue(-1) releases the queue.
+TIMER #0 Memory free time: 0.000004
+it= 1 / chi^2/m= 2.28123e-08 (meas: 2.28123e-08 / apr: 1.0289e-14)
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+# jur_sca_init_queue(100001) requires 1.526 MiByte
+DEBUG #0 jur_sca_formod init 1 queues with 100001 elements
+DEBUG #0 jur_sca_formod start Queue_Prepare
+TIMER #0 Prepare 1st part time: 0.020714
+
+TIMER #0 Prepare 2nd part time: 0.005731
+DEBUG #0 Call advanced execute!
+TIMER #0 Execute: copy from queue to packages time: 0.012000
+1000 1000 296 
+DEBUG #0 jur_formod: number of packages.. 3
+numDevices: 1
+DEBUG #0 numDevices: 1
+Heisenbug :) 0.098219
+Heisenbug :) 0.004276
+Heisenbug :) 0.014636
+TIMER #0 Execute: jur_formod_multiple_packages time: 0.175417
+TIMER #0 Execute: copy from packages queue time: 0.047923
+TIMER #0 Execute time: 0.235358
+DEBUG #0 jur_sca_formod start Queue_Collect
+TIMER #0 Collect-1st part time: 0.299279
+TIMER #0 Collect-2nd part time: 0.013093
+# jur_sca_init_queue(-1) releases the queue.
+TIMER #0 Memory free time: 0.000002
+it= 1 / chi^2/m= 2.30119e-08 (meas: 2.30119e-08 / apr: 3.28023e-15)
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+# jur_sca_init_queue(100001) requires 1.526 MiByte
+DEBUG #0 jur_sca_formod init 1 queues with 100001 elements
+DEBUG #0 jur_sca_formod start Queue_Prepare
+TIMER #0 Prepare 1st part time: 0.020291
+
+TIMER #0 Prepare 2nd part time: 0.007437
+DEBUG #0 Call advanced execute!
+TIMER #0 Execute: copy from queue to packages time: 0.012030
+1000 1000 296 
+DEBUG #0 jur_formod: number of packages.. 3
+numDevices: 1
+DEBUG #0 numDevices: 1
+Heisenbug :) 0.098219
+Heisenbug :) 0.004276
+Heisenbug :) 0.014636
+TIMER #0 Execute: jur_formod_multiple_packages time: 0.167352
+TIMER #0 Execute: copy from packages queue time: 0.037671
+TIMER #0 Execute time: 0.217074
+DEBUG #0 jur_sca_formod start Queue_Collect
+TIMER #0 Collect-1st part time: 0.298282
+TIMER #0 Collect-2nd part time: 0.013220
+# jur_sca_init_queue(-1) releases the queue.
+TIMER #0 Memory free time: 0.000002
+it= 1 / chi^2/m= 2.32166e-08 (meas: 2.32166e-08 / apr: 3.41059e-16)
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+# jur_sca_init_queue(100001) requires 1.526 MiByte
+DEBUG #0 jur_sca_formod init 1 queues with 100001 elements
+DEBUG #0 jur_sca_formod start Queue_Prepare
+TIMER #0 Prepare 1st part time: 0.019858
+
+TIMER #0 Prepare 2nd part time: 0.007672
+DEBUG #0 Call advanced execute!
+TIMER #0 Execute: copy from queue to packages time: 0.011966
+1000 1000 296 
+DEBUG #0 jur_formod: number of packages.. 3
+numDevices: 1
+DEBUG #0 numDevices: 1
+Heisenbug :) 0.004276
+Heisenbug :) 0.098219
+Heisenbug :) 0.014636
+TIMER #0 Execute: jur_formod_multiple_packages time: 0.177344
+TIMER #0 Execute: copy from packages queue time: 0.038681
+TIMER #0 Execute time: 0.228003
+DEBUG #0 jur_sca_formod start Queue_Collect
+TIMER #0 Collect-1st part time: 0.296546
+TIMER #0 Collect-2nd part time: 0.014727
+# jur_sca_init_queue(-1) releases the queue.
+TIMER #0 Memory free time: 0.000002
+it= 1 / chi^2/m= 2.32544e-08 (meas: 2.32544e-08 / apr: 2.41574e-16)
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+# jur_sca_init_queue(100001) requires 1.526 MiByte
+DEBUG #0 jur_sca_formod init 1 queues with 100001 elements
+DEBUG #0 jur_sca_formod start Queue_Prepare
+TIMER #0 Prepare 1st part time: 0.021124
+
+TIMER #0 Prepare 2nd part time: 0.009111
+DEBUG #0 Call advanced execute!
+TIMER #0 Execute: copy from queue to packages time: 0.011987
+1000 1000 296 
+DEBUG #0 jur_formod: number of packages.. 3
+numDevices: 1
+DEBUG #0 numDevices: 1
+Heisenbug :) 0.004276
+Heisenbug :) 0.098219
+Heisenbug :) 0.014636
+TIMER #0 Execute: jur_formod_multiple_packages time: 0.173604
+TIMER #0 Execute: copy from packages queue time: 0.046627
+TIMER #0 Execute time: 0.232241
+DEBUG #0 jur_sca_formod start Queue_Collect
+TIMER #0 Collect-1st part time: 0.296346
+TIMER #0 Collect-2nd part time: 0.007212
+# jur_sca_init_queue(-1) releases the queue.
+TIMER #0 Memory free time: 0.000002
+it= 1 / chi^2/m= 2.32238e-08 (meas: 2.32238e-08 / apr: 2.38482e-16)
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+# jur_sca_init_queue(100001) requires 1.526 MiByte
+DEBUG #0 jur_sca_formod init 1 queues with 100001 elements
+DEBUG #0 jur_sca_formod start Queue_Prepare
+TIMER #0 Prepare 1st part time: 0.019617
+
+TIMER #0 Prepare 2nd part time: 0.012934
+DEBUG #0 Call advanced execute!
+TIMER #0 Execute: copy from queue to packages time: 0.006148
+1000 1000 296 
+DEBUG #0 jur_formod: number of packages.. 3
+numDevices: 1
+DEBUG #0 numDevices: 1
+Heisenbug :) 0.098219
+Heisenbug :) 0.004276
+Heisenbug :) 0.014636
+TIMER #0 Execute: jur_formod_multiple_packages time: 0.166146
+TIMER #0 Execute: copy from packages queue time: 0.045882
+TIMER #0 Execute time: 0.218195
+DEBUG #0 jur_sca_formod start Queue_Collect
+TIMER #0 Collect-1st part time: 0.296629
+TIMER #0 Collect-2nd part time: 0.007508
+# jur_sca_init_queue(-1) releases the queue.
+TIMER #0 Memory free time: 0.000002
+it= 1 / chi^2/m= 2.28956e-08 (meas: 2.28956e-08 / apr: 2.20534e-16)
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+# jur_sca_init_queue(100001) requires 1.526 MiByte
+DEBUG #0 jur_sca_formod init 1 queues with 100001 elements
+DEBUG #0 jur_sca_formod start Queue_Prepare
+TIMER #0 Prepare 1st part time: 0.019742
+
+TIMER #0 Prepare 2nd part time: 0.007810
+DEBUG #0 Call advanced execute!
+TIMER #0 Execute: copy from queue to packages time: 0.012001
+1000 1000 296 
+DEBUG #0 jur_formod: number of packages.. 3
+numDevices: 1
+DEBUG #0 numDevices: 1
+Heisenbug :) 0.098219
+Heisenbug :) 0.004276
+Heisenbug :) 0.014636
+TIMER #0 Execute: jur_formod_multiple_packages time: 0.170673
+TIMER #0 Execute: copy from packages queue time: 0.052719
+TIMER #0 Execute time: 0.235420
+DEBUG #0 jur_sca_formod start Queue_Collect
+TIMER #0 Collect-1st part time: 0.296723
+TIMER #0 Collect-2nd part time: 0.013382
+# jur_sca_init_queue(-1) releases the queue.
+TIMER #0 Memory free time: 0.000002
+it= 1 / chi^2/m= 2.10085e-08 (meas: 2.10085e-08 / apr: 1.15233e-16)
+Read refractive indices: /p/scratch/cslmet/pozgaj1/simulation/ice/ice-163K-toon.dat
+# jur_sca_init_queue(100001) requires 1.526 MiByte
+DEBUG #0 jur_sca_formod init 1 queues with 100001 elements
+DEBUG #0 jur_sca_formod start Queue_Prepare
+TIMER #0 Prepare 1st part time: 0.020213
+
+TIMER #0 Prepare 2nd part time: 0.013243
+DEBUG #0 Call advanced execute!
+TIMER #0 Execute: copy from queue to packages time: 0.006175
+1000 1000 296 
+DEBUG #0 jur_formod: number of packages.. 3
+numDevices: 1
+DEBUG #0 numDevices: 1
+Heisenbug :) 0.098219
+Heisenbug :) 0.004276
+Heisenbug :) 0.014636
+TIMER #0 Execute: jur_formod_multiple_packages time: 0.176259
+TIMER #0 Execute: copy from packages queue time: 0.051336
+TIMER #0 Execute time: 0.233783
+DEBUG #0 jur_sca_formod start Queue_Collect
+TIMER #0 Collect-1st part time: 0.298406
+TIMER #0 Collect-2nd part time: 0.007666
+# jur_sca_init_queue(-1) releases the queue.
+TIMER #0 Memory free time: 0.000002
+it= 1 / chi^2/m= 1.93347e-08 (meas: 1.93347e-08 / apr: 8.10138e-18)
+Write observation data: test1/obs_final.tab
+Write atmospheric data: test1/atm_final.tabWrite particle data: test1/aero_final.tab
+Write matrix: test1/matrix_kernel.tab
+Write matrix: test1/matrix_cov_ret.tab
+Write atmospheric data: test1/atm_err_total.tabWrite particle data: test1/aero_err_total.tab
+Write matrix: test1/matrix_gain.tab
+Write atmospheric data: test1/atm_err_noise.tabWrite particle data: test1/aero_err_noise.tab
+Write atmospheric data: test1/atm_err_formod.tabWrite particle data: test1/aero_err_formod.tab
+Write matrix: test1/matrix_avk.tab
+Write atmospheric data: test1/atm_cont.tabWrite atmospheric data: test1/atm_res.tabWrite particle data: test1/aero_cont.tab
+
+Retrieval done...

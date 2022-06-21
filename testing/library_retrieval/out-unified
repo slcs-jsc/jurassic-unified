@@ -1,0 +1,8 @@
+Start retrieval with scattering...
+
+Juelich Rapid Spectral Simulation Code (JURASSIC)
+(executable: reference_version_with_integrated_library/jurassic/src/retrieval | version: v1.8-25-gc09e-dirty | compiled: Jun 10 2022, 00:29:38)
+
+NG = 13
+
+Error (jurassic.c, read_ctl, l4413): Set 0 <= NG <= MAX!

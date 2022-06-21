@@ -1,0 +1,19 @@
+# $1 = time (seconds since 2000-01-01T00:00Z)
+# $2 = altitude [km]
+# $3 = longitude [deg]
+# $4 = latitude [deg]
+# $5 = pressure [hPa]
+# $6 = temperature [K]
+# $7 = CCl4 volume mixing ratio [ppv]
+# $8 = ClO volume mixing ratio [ppv]
+# $9 = extinction (window 0) [1/km]
+
+0.00 0 0 0 0 0 0 0 0
+0.00 10 0 0 0 19.9119 0 0 0
+0.00 20 0 0 0 19.9871 0 0 0
+0.00 30 0 0 0 19.9993 0 0 0
+0.00 40 0 0 0 19.9996 0 0 0
+0.00 50 0 0 0 19.9997 0 0 0
+0.00 60 0 0 0 19.9998 0 0 0
+0.00 70 0 0 0 19.9999 0 0 0
+0.00 80 0 0 0 0 0 0 0
