@@ -58,6 +58,9 @@ int main(
   jur_read_atm(".", argv[3], &ctl, atm);
   // to verify that we read in the atms correctly
   //   write_atm(".", "atm_ref.tab", &ctl, atm);
+  
+  // Initialization of the tables
+  jur_table_initialization(&ctl); 
 
   /* Call forward model... */
   // warmp-up, some initialization will happen during the first call
