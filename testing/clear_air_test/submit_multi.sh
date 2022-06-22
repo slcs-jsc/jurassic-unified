@@ -17,11 +17,11 @@ if [ "$1" = "unified-sca" ] || [ "$1" = "unified-gpu" ]; then
 fi
 
 if [ "$1" = "gpu" ] || [ "$1" = "scatter" ]; then
-  src="../../../reference_projects/jurassic-"$1"/src"
+  src="../../reference_projects/jurassic-"$1"/src"
 fi
 
 if [ "$1" = "plain" ]; then
-  src="../../../../integrate_to_the_reference_version/jurassic/src"
+  src="../../../integrate_to_the_reference_version/jurassic/src"
 fi
 
 make clean -C $src

@@ -26,9 +26,9 @@ export OMP_NUM_THREADS=24
 # Setup...
 
 if [ "$1" = "unified-gpu" ]; then
-  jurassic_formod=../../jurassic-gpu/src/formod
+  jurassic_formod=../../src/formod
 else
-  jurassic_formod=../../jurassic-gpu/src/sca_formod
+  jurassic_formod=../../src/sca_formod
 fi
 
 nvidia-smi
