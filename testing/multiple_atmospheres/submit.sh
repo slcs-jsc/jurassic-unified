@@ -1,15 +1,14 @@
-make clean -C ../../jurassic-gpu/src/
-make -C ../../jurassic-gpu/src/
+make clean -C ../../src/
+make -C ../../src/
 
 rm out err rad.tab
 rm rad0.tab rad1.tab rad2.tab
 
-ls ../../jurassic-gpu/src/ -rtl | tail -3
-# ls ../../src/ -rtl | tail -1
+ls ../../src/ -rtl | tail -3
 
 read -n 1 -s -r -p "Press any key to continue"
 echo
-sbatch jurun.sh ../../jurassic-gpu/src $m
+sbatch jurun.sh ../../src $m
 
 watch -n 1 squeue -u pozgaj1
 
