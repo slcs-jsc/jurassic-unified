@@ -67,9 +67,15 @@ def check(a, b):
     d_b = disassemble(lines_b)
 
     max_abs_diff, max_rel_diff = 0, 0
+    max_input_diff = 0
     assert len(d_a) >= len(d_b)
     for i in range(len(d_b)):
-        assert d_a[i][0] == d_b[i][0]
+        assert len(d_a[i][0]) == len(d_b[i][0])
+        for j in range(len(d_a[i][0])):
+            t = abs(d_a[i][0][j] - d_b[i][0][j])
+            if t > max_input_diff:
+                max_input_diff = t
+        #assert d_a[i][0] == d_b[i][0]
         abs_diff, rel_diff = calc_diff(mat, d_a[i][1], d_b[i][1])
         if abs_diff > max_abs_diff:
             max_abs_diff = abs_diff
@@ -77,8 +83,8 @@ def check(a, b):
             max_rel_diff = rel_diff
     print("number of observations:", len(d_b))
     print("number of channels:", int(len(d_b[0][1]) / 2))
-    print("max abs diff: {}, max rel dif: {}".format(max_abs_diff,
-    max_rel_diff))
+    print("max input diff: {}".format(max_input_diff));
+    print("max abs diff: {}, max rel dif: {}".format(max_abs_diff, max_rel_diff))
     if len(mat) > 0:
       print("mat size: {} x {}".format(len(mat), len(mat[0])));
       for i in range(min(len(mat), 5)):
