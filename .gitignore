@@ -22,6 +22,7 @@ jurassic-scatter/testing/
 jurassic/
 reference_projects/
 unified_library/
+testing/
 
 
 lib/*
