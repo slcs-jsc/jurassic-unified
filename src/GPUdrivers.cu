@@ -85,7 +85,7 @@
 		static trans_table_t *tbl_G = nullptr;
 		if (!tbl_G) {
       printf("DEBUG #%d tbl_G == nullptr\n", ctl->MPIglobrank);
-			trans_table_t* tbl = jur_get_tbl(ctl);
+			trans_table_t* tbl = jur_get_tbl_core(ctl);
 #ifdef  USE_UNIFIED_MEMORY_FOR_TABLES
             printf("[INFO] allocated %.3f MByte unified memory for tables\n", 1e-6*sizeof(trans_table_t));
             tbl_G = tbl; // just passing a pointer, same memory space
@@ -309,7 +309,9 @@
       jur_raytrace_rays_GPU<0> <<< (nr/64)+1, 64, 0, stream>>> (ctl_G, atm_G, obs_G, los_G, tsurf_G, np_G, atm_id_G, NULL);
       cuKernelCheck();
     }
-	
+
+		cudaDeviceSynchronize(); // faster :)
+
     jur_multi_version_GPU(fourbit, tbl_G, ctl_G, obs_G, los_G, np_G, ig_co2, ig_h2o,
                       NULL == aero ? NULL:  aero_beta_G,
                       nr, nd, ctl->gpu_nbytes_shared_memory, stream);
@@ -341,6 +343,7 @@
 	__host__
 	void jur_formod_multiple_packages_GPU(ctl_t *ctl, atm_t *atm, obs_t *obs,
                                         int n, int32_t const *atm_id, aero_t const *aero) {
+
     static ctl_t *ctl_G=NULL;
 		static trans_table_t *tbl_G=NULL;
 

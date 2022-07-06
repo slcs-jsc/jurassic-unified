@@ -426,7 +426,7 @@ void jur_shell(const char*, const char*);
 #define str(b) #b
 
 // Added:
-void jur_table_initialization(ctl_t *ctl);  
+void jur_table_initialization(ctl_t const *ctl);  
 
 // Added:
 void jur_formod_multiple_packages(ctl_t const *ctl, 
@@ -445,3 +445,6 @@ void jur_divide_atm_data_into_packages(atm_t const *atm, obs_t const *obs, int n
 
 // Added:
 void jur_get_dimensions(int32_t *dimensions);
+
+// Added:
+trans_table_t* jur_get_tbl(ctl_t const *ctl); 

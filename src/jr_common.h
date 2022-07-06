@@ -58,7 +58,7 @@
 
 	// Setup tables if necessary and cache them ///////////////////////////////////
 	__host__ __ext_inline__
-  trans_table_t* jur_get_tbl(ctl_t const *ctl) {   
+  trans_table_t* jur_get_tbl_core(ctl_t const *ctl) {   
     static trans_table_t *tbl = NULL;
 #pragma omp critical
     {
@@ -73,7 +73,7 @@
       }
     }
     return tbl;
-  } // jur_get_tbl
+  } // jur_get_tbl_core
 
 	// Index finding ////////////////////////////////////////////////////////////
 #pragma GCC diagnostic ignored "-Wunused-parameter"

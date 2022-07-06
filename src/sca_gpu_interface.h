@@ -7,7 +7,7 @@
 
 void jur_formod_multiple_packages(ctl_t const *ctl, atm_t *atm, obs_t *obs, int n, int32_t const *atm_id, aero_t const *aero); 
 
-void jur_table_initialization(ctl_t *ctl);
+void jur_table_initialization(ctl_t const *ctl);
 
 int jur_traceray(ctl_t *ctl, atm_t *atm, obs_t *obs, int const ir,
                             pos_t los[], double *tsurf, aero_t *aero, int scattering_included);

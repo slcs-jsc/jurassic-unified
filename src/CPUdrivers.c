@@ -119,7 +119,7 @@
 	} // jur_hydrostatic1d_CPU
   
 	// ################ end of CPU driver routines ##############
-  
+   
 	// The full forward model on the CPU ////////////////////////////////////////////
 	__host__
 	void jur_formod_one_package_CPU(ctl_t const *ctl, atm_t *atm, obs_t *obs,
@@ -274,22 +274,25 @@
                   warnGPU = 0; // switch this warning off
               } // warnGPU
               printf("DEBUG #%d call initilaze CPU..\n", ctl->MPIglobrank);
-              return jur_get_tbl(ctl);
+              return jur_get_tbl_core(ctl);
           } //
       } // jur_get_tbl_on_GPU
   #endif
 
   __host__
-  void jur_table_initialization(ctl_t *ctl) {
+  void jur_table_initialization(ctl_t const *ctl) {
     double tic = omp_get_wtime(); 
-    if(ctl->useGPU) {
-      printf("DEBUG #%d call initilaze GPU..\n", ctl->MPIglobrank);
-      jur_get_tbl_on_GPU(ctl); 
-    }
-    else {
-      printf("DEBUG #%d call initilaze CPU..\n", ctl->MPIglobrank);
-      jur_get_tbl(ctl);
-    }
+    jur_get_tbl(ctl);
     double toc = omp_get_wtime();
-    printf("TIMER #%d jurassic-gpu table initialization time: %lf\n", ctl->MPIglobrank, toc - tic);
+    printf("TIMER #%d jurassic table initialization time: %lf\n", ctl->MPIglobrank, toc - tic);
+  } // jur_table_initialization
+
+  __host__
+  trans_table_t* jur_get_tbl(ctl_t const *ctl) {
+    trans_table_t *ret = NULL;
+    if(ctl->useGPU)
+      ret = jur_get_tbl_on_GPU(ctl); 
+    else 
+      ret = jur_get_tbl_core(ctl);
+    return ret;
   } // jur_table_initialization
