@@ -324,10 +324,7 @@
         jur_radiance_to_brightness_GPU <<< nr, nd, 0, stream >>> (ctl_G, obs_G);
     } // write_bbt
 
-// 		get_data_from_GPU(atm, atm_G, 1*sizeof(atm_t), stream); // do we really need to get the atms back?
 		get_data_from_GPU(obs, obs_G, 1*sizeof(obs_t), stream); // always transfer NRMAX rays
-    
-    printf("Heisenbug :) %lf\n", obs->rad[0][0]);
 
 		// Wait for GPU operations to complete
 		cuCheck(cudaEventRecord(finishedEvent, stream));
