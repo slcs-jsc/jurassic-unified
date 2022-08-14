@@ -888,162 +888,165 @@ int jur_add_aerosol_layers(ctl_t const *ctl,
   return np;
 } // jur_add_aerosol_layers
 
+
+
 #ifdef __NVCC__
 template<int scattering_included>
+#endif
 __host__ __device__ __ext_inline__
-int jur_traceray(ctl_t const *ctl, atm_t const *atm, obs_t *obs, int const ir, pos_t los[], double *tsurf, aero_t const *aero) {
-#else
-  __host__ __device__ __ext_inline__
-    int jur_traceray(ctl_t const *ctl, atm_t const *atm, obs_t *obs, int const ir, pos_t los[], double *tsurf, aero_t const *aero, int scattering_included) {
+int jur_traceray(ctl_t const *ctl, atm_t const *atm, obs_t *obs, int const ir, pos_t los[], double *tsurf, aero_t const *aero
+#ifndef __NVCC__
+    , int scattering_included
 #endif
-      double ex0[3], ex1[3], q[NGMAX], k[NWMAX], lat, lon, p, t, x[3], xobs[3], xvp[3], z = 1e99, z_low=z, zmax, zmin, zrefrac = 60;
+    ) {
+  double ex0[3], ex1[3], q[NGMAX], k[NWMAX], lat, lon, p, t, x[3], xobs[3], xvp[3], z = 1e99, z_low=z, zmax, zmin, zrefrac = 60;
 
-      // Initialize
-      *tsurf = t = -999;
-      for(int ig = 0; ig < NGMAX; ig++) q[ig] = 0;
-      for(int iw = 0; iw < NWMAX; iw++) k[iw] = 0;
-      obs->tpz[ir]   = obs->vpz[ir];
-      obs->tplon[ir] = obs->vplon[ir];
-      obs->tplat[ir] = obs->vplat[ir];
-      size_t atmIdx=0; int atmNp=0;
-      /* the folowing two lines were in jurassic-scatter replaced with:
-         zmin=gsl_stats_min(atm->z, 1, (size_t)atm->np);
-         zmax=gsl_stats_max(atm->z, 1, (size_t)atm->np);
-         and they are not exactly the same so a problem could arise
-         in the case where the time is not the same for all observations */
-      jur_locate_atm(atm, obs->time[ir], &atmIdx, &atmNp);
-      jur_altitude_range_nn(atm, atmIdx, atmNp, &zmin, &zmax);
-      if(obs->obsz[ir] < zmin) return 0;                                          // Check observer altitude
-      if(obs->vpz[ir] > zmax - 0.001) return 0;                                   // Check view point altitude
-      jur_geo2cart(obs->obsz[ir], obs->obslon[ir], obs->obslat[ir], xobs);        // Cart. coordinates of observer
-      jur_geo2cart(obs->vpz[ir],  obs->vplon[ir],  obs->vplat[ir],  xvp);         // and view point
+  // Initialize
+  *tsurf = t = -999;
+  for(int ig = 0; ig < NGMAX; ig++) q[ig] = 0;
+  for(int iw = 0; iw < NWMAX; iw++) k[iw] = 0;
+  obs->tpz[ir]   = obs->vpz[ir];
+  obs->tplon[ir] = obs->vplon[ir];
+  obs->tplat[ir] = obs->vplat[ir];
+  size_t atmIdx=0; int atmNp=0;
+  /* the folowing two lines were in jurassic-scatter replaced with:
+     zmin=gsl_stats_min(atm->z, 1, (size_t)atm->np);
+     zmax=gsl_stats_max(atm->z, 1, (size_t)atm->np);
+     and they are not exactly the same so a problem could arise
+     in the case where the time is not the same for all observations */
+  jur_locate_atm(atm, obs->time[ir], &atmIdx, &atmNp);
+  jur_altitude_range_nn(atm, atmIdx, atmNp, &zmin, &zmax);
+  if(obs->obsz[ir] < zmin) return 0;                                          // Check observer altitude
+  if(obs->vpz[ir] > zmax - 0.001) return 0;                                   // Check view point altitude
+  jur_geo2cart(obs->obsz[ir], obs->obslon[ir], obs->obslat[ir], xobs);        // Cart. coordinates of observer
+  jur_geo2cart(obs->vpz[ir],  obs->vplon[ir],  obs->vplat[ir],  xvp);         // and view point
+  UNROLL
+    for(int i = 0; i < 3; i++) ex0[i] = xvp[i] - xobs[i];                     // Determine initial tangent vector
+  double const norm = NORM(ex0);
+  UNROLL
+    for(int i = 0; i < 3; i++) {
+      ex0[i] /= norm;
+      x[i] = xobs[i];                                                         // Observer within atmosphere
+    } // i
+  if(obs->obsz[ir] > zmax) {                                                  // Above atmosphere, search entry point
+    double dmax = norm, dmin = 0.;
+    while(fabs(dmin - dmax) > 0.001) {
+      double const d = 0.5*(dmax + dmin);
       UNROLL
-        for(int i = 0; i < 3; i++) ex0[i] = xvp[i] - xobs[i];                     // Determine initial tangent vector
-      double const norm = NORM(ex0);
+        for(int i = 0; i < 3; i++) x[i] = xobs[i] + d*ex0[i];
+      z = jur_cart2alt(x); // no need to compute lat and lon here
+      if((z <= zmax) && (z > zmax - 0.001)) break;
+      if(z < zmax - 0.0005) dmax = d;
+      else                  dmin = d;
+    } // while
+  }
+
+  int np = 0, z_low_idx=-1;
+  for(int stop = 0; np < NLOSMAX; ++np) {                                       // Ray-tracing
+    double ds = ctl->rayds, dz = ctl->raydz;                                  // Set step length
+    if(dz > 0.) {
+      double const norm_x = 1.0/NORM(x);
+      double dot = 0.;
       UNROLL
         for(int i = 0; i < 3; i++) {
-          ex0[i] /= norm;
-          x[i] = xobs[i];                                                         // Observer within atmosphere
-        } // i
-      if(obs->obsz[ir] > zmax) {                                                  // Above atmosphere, search entry point
-        double dmax = norm, dmin = 0.;
-        while(fabs(dmin - dmax) > 0.001) {
-          double const d = 0.5*(dmax + dmin);
-          UNROLL
-            for(int i = 0; i < 3; i++) x[i] = xobs[i] + d*ex0[i];
-          z = jur_cart2alt(x); // no need to compute lat and lon here
-          if((z <= zmax) && (z > zmax - 0.001)) break;
-          if(z < zmax - 0.0005) dmax = d;
-          else                  dmin = d;
-        } // while
+          dot += ex0[i]*x[i]*norm_x;
+        }
+      double const cosa = fabs(dot);
+      if(cosa != 0.) ds = fmin(ds, dz/cosa);
+    }
+    jur_cart2geo(x, &z, &lon, &lat);                                          // Determine geolocation
+    double EPS = 0.001;
+    if(!scattering_included) EPS = 0.0;
+    if((z < zmin + EPS) || (z > zmax + EPS)) {                                            // LOS escaped
+      double xh[3];
+      stop = (z < zmin + EPS) ? 2 : 1;
+      jur_geo2cart(los[np - 1].z, los[np - 1].lon, los[np - 1].lat, xh);
+      double const zfrac = (z < zmin + EPS) ? zmin : zmax;
+      double const frac = (zfrac - los[np - 1].z)/(z - los[np - 1].z);
+      UNROLL
+        for(int i = 0; i < 3; i++) x[i] = xh[i] + frac*(x[i] - xh[i]);
+      jur_cart2geo(x, &z, &lon, &lat);
+      if(!scattering_included) {
+        los[np - 1].ds = ds*frac;
+        ds = 0.;
       }
-
-      int np = 0, z_low_idx=-1;
-      for(int stop = 0; np < NLOSMAX; ++np) {                                       // Ray-tracing
-        double ds = ctl->rayds, dz = ctl->raydz;                                  // Set step length
-        if(dz > 0.) {
-          double const norm_x = 1.0/NORM(x);
-          double dot = 0.;
-          UNROLL
-            for(int i = 0; i < 3; i++) {
-              dot += ex0[i]*x[i]*norm_x;
-            }
-          double const cosa = fabs(dot);
-          if(cosa != 0.) ds = fmin(ds, dz/cosa);
-        }
-        jur_cart2geo(x, &z, &lon, &lat);                                          // Determine geolocation
-        double EPS = 0.001;
-        if(!scattering_included) EPS = 0.0;
-        if((z < zmin + EPS) || (z > zmax + EPS)) {                                            // LOS escaped
-          double xh[3];
-          stop = (z < zmin + EPS) ? 2 : 1;
-          jur_geo2cart(los[np - 1].z, los[np - 1].lon, los[np - 1].lat, xh);
-          double const zfrac = (z < zmin + EPS) ? zmin : zmax;
-          double const frac = (zfrac - los[np - 1].z)/(z - los[np - 1].z);
-          UNROLL
-            for(int i = 0; i < 3; i++) x[i] = xh[i] + frac*(x[i] - xh[i]);
-          jur_cart2geo(x, &z, &lon, &lat);
-          if(!scattering_included) {
-            los[np - 1].ds = ds*frac;
-            ds = 0.;
-          }
-          else {
-            jur_intpol_atm_geo_pt(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, &los[np].p, &los[np].t);    // Interpolate atmospheric data
-            jur_intpol_atm_geo_qk(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, los[np].q, los[np].k);      // Interpolate atmospheric data
-            los[np].z = z;
-            los[np].lon = lon;
-            los[np].lat = lat;
-            los[np].ds=0.;
-          }
-        }
-        if(!scattering_included || (scattering_included && stop == 0)) {
-          jur_intpol_atm_geo_pt(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, &p, &t);    // Interpolate atmospheric data
-          jur_intpol_atm_geo_qk(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, q, k);      // Interpolate atmospheric data
-          jur_write_pos_point(los + np, lon, lat, z, p, t, q, k, ds);
-        }
+      else {
+        jur_intpol_atm_geo_pt(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, &los[np].p, &los[np].t);    // Interpolate atmospheric data
+        jur_intpol_atm_geo_qk(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, los[np].q, los[np].k);      // Interpolate atmospheric data
+        los[np].z = z;
+        los[np].lon = lon;
+        los[np].lat = lat;
+        los[np].ds=0.;
+      }
+    }
+    if(!scattering_included || (scattering_included && stop == 0)) {
+      jur_intpol_atm_geo_pt(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, &p, &t);    // Interpolate atmospheric data
+      jur_intpol_atm_geo_qk(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, q, k);      // Interpolate atmospheric data
+      jur_write_pos_point(los + np, lon, lat, z, p, t, q, k, ds);
+    }
 #ifdef GPUDEBUG
-        los[np].ir = ir; los[np].ip = np; // for DEBUGging
+    los[np].ir = ir; los[np].ip = np; // for DEBUGging
 #endif
-        if(z < z_low) {
-          z_low = z;
-          z_low_idx = np; // store the index of the point where the altitude is lowest, used to compute the tangent point later
-        }
+    if(z < z_low) {
+      z_low = z;
+      z_low_idx = np; // store the index of the point where the altitude is lowest, used to compute the tangent point later
+    }
 
-        if(stop) { *tsurf = (stop == 2 ? t : -999); break; }                      // Hit ground or space?
+    if(stop) { *tsurf = (stop == 2 ? t : -999); break; }                      // Hit ground or space?
 
-        double n = 1., ng[] = {0., 0., 0.};
-        if(ctl->refrac && z <= zrefrac) {                                         // Compute gradient of refractivity
-          n += jur_refractivity(p, t);
-          double xh[3];
-          UNROLL
-            for(int i = 0; i < 3; i++) xh[i] = x[i] + 0.5*ds*ex0[i];
-          jur_cart2geo(xh, &z, &lon, &lat);
-          jur_intpol_atm_geo_pt(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, &p, &t);
-          double const n2 = jur_refractivity(p, t);
-          for(int i = 0; i < 3; i++) {
-            double const h = 0.02;
-            xh[i] += h;
-            jur_cart2geo(xh, &z, &lon, &lat);
-            jur_intpol_atm_geo_pt(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, &p, &t);
-            ng[i] = (jur_refractivity(p, t) - n2)/h;
-            xh[i] -= h;
-          } // i
-        }
-        UNROLL
-          for(int i = 0; i < 3; i++) ex1[i] = ex0[i]*n + ds*ng[i];                // Construct new tangent vector
+    double n = 1., ng[] = {0., 0., 0.};
+    if(ctl->refrac && z <= zrefrac) {                                         // Compute gradient of refractivity
+      n += jur_refractivity(p, t);
+      double xh[3];
+      UNROLL
+        for(int i = 0; i < 3; i++) xh[i] = x[i] + 0.5*ds*ex0[i];
+      jur_cart2geo(xh, &z, &lon, &lat);
+      jur_intpol_atm_geo_pt(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, &p, &t);
+      double const n2 = jur_refractivity(p, t);
+      for(int i = 0; i < 3; i++) {
+        double const h = 0.02;
+        xh[i] += h;
+        jur_cart2geo(xh, &z, &lon, &lat);
+        jur_intpol_atm_geo_pt(ctl, atm, (int) atmIdx, atmNp, z, lon, lat, &p, &t);
+        ng[i] = (jur_refractivity(p, t) - n2)/h;
+        xh[i] -= h;
+      } // i
+    }
+    UNROLL
+      for(int i = 0; i < 3; i++) ex1[i] = ex0[i]*n + ds*ng[i];                // Construct new tangent vector
 
-        double const norm_ex1 = NORM(ex1);
-        for(int i = 0; i < 3; i++) {
-          ex1[i] /= norm_ex1;
-          x[i] += 0.5*ds*(ex0[i] + ex1[i]);                                       // Determine next point of LOS
-          ex0[i] = ex1[i];                                                        // Copy tangent vector
-        } // i
-      } // np
-      ++np;
-      assert(np < NLOSMAX && "Too many LOS points!");
+    double const norm_ex1 = NORM(ex1);
+    for(int i = 0; i < 3; i++) {
+      ex1[i] /= norm_ex1;
+      x[i] += 0.5*ds*(ex0[i] + ex1[i]);                                       // Determine next point of LOS
+      ex0[i] = ex1[i];                                                        // Copy tangent vector
+    } // i
+  } // np
+  ++np;
+  assert(np < NLOSMAX && "Too many LOS points!");
 
-      // FIXME: added..
-      if(scattering_included) {
-        /* Check length of last segment... */
-        if(los[np - 2].ds < 1e-3 && np - 1 > 1)
-          np--;
-      }
+  // FIXME: added..
+  if(scattering_included) {
+    /* Check length of last segment... */
+    if(los[np - 2].ds < 1e-3 && np - 1 > 1)
+      np--;
+  }
 
-      // Get tangent point (before changing segment lengths!)
-      jur_tangent_point(los, np, z_low_idx, &obs->tpz[ir], &obs->tplon[ir], &obs->tplat[ir]);
-      jur_trapezoid_rule_pos(np, los);
-      jur_column_density(ctl->ng, los, np);
+  // Get tangent point (before changing segment lengths!)
+  jur_tangent_point(los, np, z_low_idx, &obs->tpz[ir], &obs->tplon[ir], &obs->tplat[ir]);
+  jur_trapezoid_rule_pos(np, los);
+  jur_column_density(ctl->ng, los, np);
 #ifdef CURTIS_GODSON
-      if(ctl->formod == 1) jur_curtis_godson(ctl, los, np);
-      // this could be done during the while loop using the aux-variables:
-      //          double cgpxu[NGMAX];  /*! Curtis-Godson pressure times column density */
-      //          double cgtxu[NGMAX];  /*! Curtis-Godson temperature times column density */
+  if(ctl->formod == 1) jur_curtis_godson(ctl, los, np);
+  // this could be done during the while loop using the aux-variables:
+  // double cgpxu[NGMAX];  /*! Curtis-Godson pressure times column density */
+  // double cgtxu[NGMAX];  /*! Curtis-Godson temperature times column density */
 #else
-      assert(1 != ctl->formod);
+  assert(1 != ctl->formod);
 #endif
 
-      if(scattering_included) {
-        np = jur_add_aerosol_layers(ctl, atm, los, aero, np, (int) atmIdx, atmNp);
-      }
-      return np;
-    } // jur_traceray
+  if(scattering_included) {
+    np = jur_add_aerosol_layers(ctl, atm, los, aero, np, (int) atmIdx, atmNp);
+  }
+  return np;
+} // jur_traceray
