@@ -31,19 +31,19 @@
    ------------------------------------------------------------ */
 
 /* Allocate memory. */
-#define ALLOC(ptr, type, n)				\
-  if((ptr=malloc((size_t)(n)*sizeof(type)))==NULL)	\
-    ERRMSG("Out of memory!");
+#define ALLOC(ptr, type, n)       \
+  if((ptr=malloc((size_t)(n)*sizeof(type)))==NULL)  \
+  ERRMSG("Out of memory!");
 
 /* Compute angle between two vectors. */
-#define ANGLE(a, b)						\
+#define ANGLE(a, b)           \
   acos(GSL_MIN(GSL_MAX(DOTP(a, b)/NORM(a)/NORM(b), -1), 1))
 
 /* Compute Cartesian distance between two vectors. */
 #define DIST(a, b) sqrt(DIST2(a, b))
 
 /* Compute squared distance between two vectors. */
-#define DIST2(a, b)							\
+#define DIST2(a, b)             \
   ((a[0]-b[0])*(a[0]-b[0])+(a[1]-b[1])*(a[1]-b[1])+(a[2]-b[2])*(a[2]-b[2]))
 
 /* Compute dot product of two vectors. */
@@ -51,38 +51,38 @@
 
 /* Print error message and quit program. */
 #define ERRMSG(msg) {                                                   \
-    printf("\nError (%s, %s, l%d): %s\n\n",                             \
-           __FILE__, __func__, __LINE__, msg);                      \
-    exit(EXIT_FAILURE);                                                 \
-  }
+  printf("\nError (%s, %s, l%d): %s\n\n",                             \
+      __FILE__, __func__, __LINE__, msg);                      \
+  exit(EXIT_FAILURE);                                                 \
+}
 
 /* Compute exponential interpolation. */
-#define EXP(x0, y0, x1, y1, x)					\
-  (((y0)>0 && (y1)>0)						\
+#define EXP(x0, y0, x1, y1, x)          \
+  (((y0)>0 && (y1)>0)           \
    ? ((y0)*exp(log((y1)/(y0))/((x1)-(x0))*((x)-(x0))))          \
    : LIN(x0, y0, x1, y1, x))
 
 /* Read binary data. */
 #define FREAD(ptr, type, nmemb, stream) {                               \
-    if(fread(ptr, sizeof(type), (size_t)nmemb, stream)!=(size_t)nmemb)  \
-      ERRMSG("Error while reading!");                                   \
-  }
+  if(fread(ptr, sizeof(type), (size_t)nmemb, stream)!=(size_t)nmemb)  \
+  ERRMSG("Error while reading!");                                   \
+}
 
 /* Write binary data. */
-#define FWRITE(ptr, type, nmemb, stream) {				\
-    if(fwrite(ptr, sizeof(type), (size_t)nmemb, stream)!=(size_t)nmemb)	\
-      ERRMSG("Error while writing!");					\
-  }
+#define FWRITE(ptr, type, nmemb, stream) {        \
+  if(fwrite(ptr, sizeof(type), (size_t)nmemb, stream)!=(size_t)nmemb) \
+  ERRMSG("Error while writing!");         \
+}
 
 /* Compute linear interpolation. */
-#define LIN(x0, y0, x1, y1, x)			\
+#define LIN(x0, y0, x1, y1, x)      \
   ((y0)+((y1)-(y0))/((x1)-(x0))*((x)-(x0)))
 
 /* Execute netCDF library command and check result. */
-#define NC(cmd) {				     \
-    if((cmd)!=NC_NOERR)				     \
-      ERRMSG(nc_strerror(cmd));			     \
-  }
+#define NC(cmd) {            \
+  if((cmd)!=NC_NOERR)            \
+  ERRMSG(nc_strerror(cmd));          \
+}
 
 /* Compute norm of a vector. */
 #define NORM(a) sqrt(DOTP(a, a))
@@ -90,7 +90,7 @@
 /* Print macro for debugging. */
 #define PRINT(format, var)                                              \
   printf("Print (%s, %s, l%d): %s= "format"\n",                         \
-         __FILE__, __func__, __LINE__, #var, var);
+      __FILE__, __func__, __LINE__, #var, var);
 
 //Added:
 
@@ -105,18 +105,18 @@
 
 /*! Read string tokens. */
 // in scatter version there were 4 parameters
-#define TOK_FIVE_ARGS(line, tok, format, var, saveptr) {			\
-	if(((tok)=strtok_r((line), " \t",saveptr))) {			\
-		if(sscanf(tok, format, &(var))!=1) continue;	\
-	} else ERRMSG("Error while reading!");		\
+#define TOK_FIVE_ARGS(line, tok, format, var, saveptr) {      \
+  if(((tok)=strtok_r((line), " \t",saveptr))) {     \
+    if(sscanf(tok, format, &(var))!=1) continue;  \
+  } else ERRMSG("Error while reading!");    \
 }
 
 /* Read string tokens. */
-#define TOK(line, tok, format, var) {			\
-    if(((tok)=strtok((line), " \t"))) {			\
-      if(sscanf(tok, format, &(var))!=1) continue;	\
-    } else ERRMSG("Error while reading!");		\
-  }
+#define TOK(line, tok, format, var) {     \
+  if(((tok)=strtok((line), " \t"))) {     \
+    if(sscanf(tok, format, &(var))!=1) continue;  \
+  } else ERRMSG("Error while reading!");    \
+}
 
 /* ------------------------------------------------------------
    Constants...
