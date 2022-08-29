@@ -896,7 +896,6 @@ void jur_read_ctl(int argc, char *argv[], ctl_t *ctl) {
     if(0 == in_o2  && ctl->ctm_o2)	{ ctl->ctm_o2  = 0; printf("No frequency in O2 range, automatically set CTM_O2 = 0\n"); }
   }
 
-  // TODO: new! needs to be tested!
   /* Scattering on Aerosol/Clouds ... */
   ctl->sca_n=(int)jur_scan_ctl(argc, argv, "SCA_N", -1, "0", NULL);
   if(ctl->sca_n<0 || ctl->sca_n>SCAMODMAX)
@@ -916,7 +915,7 @@ void jur_read_ctl(int argc, char *argv[], ctl_t *ctl) {
   ctl->refrac = (int) jur_scan_ctl(argc, argv, "REFRAC", -1, "1", NULL);
   ctl->rayds = jur_scan_ctl(argc, argv, "RAYDS", -1, "10", NULL);
   ctl->raydz = jur_scan_ctl(argc, argv, "RAYDZ", -1, "0.5", NULL);
-  ctl->transs=jur_scan_ctl(argc, argv, "TRANSS", -1, "0.02", NULL); // TODO: new! needs to be tested!
+  ctl->transs=jur_scan_ctl(argc, argv, "TRANSS", -1, "0.02", NULL);
   // Field of view
   jur_scan_ctl(argc, argv, "FOV", -1, "-", ctl->fov);
   // Retrieval interface
@@ -933,7 +932,6 @@ void jur_read_ctl(int argc, char *argv[], ctl_t *ctl) {
     ctl->retk_zmax[iw] = jur_scan_ctl(argc, argv, "RETK_ZMAX", iw, "-999", NULL);
   }
 
-  // TODO: new! needs to be tested!
   ctl->retnn=(int)jur_scan_ctl(argc, argv, "RETNN", -1, "0", NULL);
   ctl->retrr=(int)jur_scan_ctl(argc, argv, "RETRR", -1, "0", NULL);
   ctl->retss=(int)jur_scan_ctl(argc, argv, "RETSS", -1, "0", NULL);
@@ -966,7 +964,6 @@ void jur_read_ctl(int argc, char *argv[], ctl_t *ctl) {
       (0 == ctl->checkmode)?"run":((ctl->checkmode > 0)?"skip":"obs"));
   ctl->gpu_nbytes_shared_memory = (int) jur_scan_ctl(argc, argv, "GPU_SHARED_MEMORY", -1, "0", NULL);
 
-  // TODO: new! needs to be tested!
   /* Number of leaf rays ... */
   ctl->leaf_nr=(int) jur_scan_ctl(argc, argv, "MAX_QUEUE", -1, "0", NULL);
 }

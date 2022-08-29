@@ -460,7 +460,6 @@ void jur_formod_multiple_packages_GPU(ctl_t *ctl, atm_t *atm, obs_t *obs,
     } // do_init || (!do_init && multi_atm_before != multi_atm_now)
   } //<------- omp critical is here, maybe I should put it to the end of the function!
 
-  // TODO: this may be a probelm in juwels-booster case (with more then one GPU  device per node)
   cudaSetDevice(0);
 
   if (ctl->checkmode) { printf("# %s: no operation in checkmode\n", __func__); return; }

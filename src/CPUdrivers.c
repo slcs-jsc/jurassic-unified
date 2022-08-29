@@ -1,5 +1,4 @@
 #include "jr_common.h" // inline definitions of common functions for CPU and GPU code
-#include <omp.h> // TODO: remove it after the benchmarking is over
 
 // ################ CPU driver routines - keep consistent with GPUdrivers.cu ##############
 
@@ -16,7 +15,7 @@ void jur_radiance_to_brightness_CPU(ctl_t const *ctl, obs_t *obs) {
 
 __host__
 void jur_surface_terms_CPU(trans_table_t const *tbl, obs_t *obs, double const tsurf[], int const nd) {
-#pragma omp  parallel for
+#pragma omp parallel for
   for(int ir = 0; ir < obs->nr; ir++) { // loop over rays
     for(int id = 0; id < nd; id++) { // loop over detectors
       jur_add_surface_core(obs, tbl, tsurf[ir], ir, id);
@@ -281,10 +280,7 @@ trans_table_t* jur_get_tbl_on_GPU(ctl_t const *ctl)
 
 __host__
 void jur_table_initialization(ctl_t const *ctl) {
-  double tic = omp_get_wtime();
   jur_get_tbl(ctl);
-  double toc = omp_get_wtime();
-  printf("TIMER #%d jurassic table initialization time: %lf\n", ctl->MPIglobrank, toc - tic);
 } // jur_table_initialization
 
 __host__
