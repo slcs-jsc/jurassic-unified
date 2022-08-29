@@ -6,7 +6,7 @@
 /* Module containing all variables and functions related to a work-queue for scattering */
 
 #define Queue_Inactive -1
-#define Queue_Prepare   2 
+#define Queue_Prepare   2
 #define Queue_Execute   8
 #define Queue_Collect  32
 
