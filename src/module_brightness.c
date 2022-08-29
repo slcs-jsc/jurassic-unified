@@ -2,18 +2,18 @@
 
 int main(int argc, char *argv[]) {
 
-  double nu, rad;
-  
-  /* Check arguments... */
-  if(argc<3)
-    ERRMSG("Give parameters: <rad> <nu>");
+	double nu, rad;
 
-  /* Read arguments... */
-  rad=atof(argv[1]);
-  nu=atof(argv[2]);
+	/* Check arguments... */
+	if(argc<3)
+		ERRMSG("Give parameters: <rad> <nu>");
 
-  /* Compute brightness temperature... */
-  printf("%g\n", jur_brightness_core(rad, nu));
+	/* Read arguments... */
+	rad=atof(argv[1]);
+	nu=atof(argv[2]);
 
-  return EXIT_SUCCESS;
+	/* Compute brightness temperature... */
+	printf("%g\n", jur_brightness_core(rad, nu));
+
+	return EXIT_SUCCESS;
 }
