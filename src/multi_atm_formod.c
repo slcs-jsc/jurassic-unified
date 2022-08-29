@@ -106,8 +106,6 @@ int main(
   for(int i = 0; i < total_num_of_rays; i++)
     assert(atm_id[i] < num_of_atms);
 
-  // FIXME: without this line there is a problem with barrier inside get_tbl(..) function
-  // FIXME: also, SIGSEGV in useGPU case, but only when using gdb :o
   jur_table_initialization(&ctl);
 
   jur_formod_multiple_packages(&ctl, atm, obs, num_of_obs, atm_id, NULL);

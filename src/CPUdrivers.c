@@ -57,7 +57,7 @@ double jur_continua_core_CPU(ctl_t const *ctl, pos_t const *los, int const id) {
 
 __host__
 void jur_apply_kernels_CPU(trans_table_t const *tbl, ctl_t const *ctl, obs_t *obs,
-    pos_t /* FIXME: const */ (*restrict los)[NLOSMAX], int const np[],
+    pos_t (*restrict los)[NLOSMAX], int const np[],
     double const (*restrict aero_beta)[NDMAX]) { // aero_beta is added
 
 #pragma omp parallel for

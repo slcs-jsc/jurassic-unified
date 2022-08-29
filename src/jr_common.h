@@ -656,8 +656,8 @@ void jur_intersection_point(ctl_t const *ctl,
   jur_intpol_atm_geo_qk(ctl, atm, atmIdx, atmNp, los_aero[jp].z, los_aero[jp].lon, los_aero[jp].lat, los_aero[jp].q, los_aero[jp].k);     // Interpolate atmospheric data
 } // jur_intersection_point
 
-// FIXME: these 2 functions are added to remove gsl min and
-//        gsl_stats_min and gsl_stats_max functions
+// the next 2 functions are added to remove the
+// gsl_stats_min and gsl_stats_max functions:
 __host__ __device__ __ext_inline__
 double jur_min_value_in_array(double *arr, int n) {
   double ret = arr[0];
@@ -855,7 +855,6 @@ int jur_add_aerosol_layers(ctl_t const *ctl,
     /* Get aerosol/cloud layer id and factor */
     los[ip].aeroi = -999;
     los[ip].aerofac = 0.;
-    // FIXME: added ip > 0 2 times..
     if ( ((ip > 0 && los[ip-1].z < altimax) || los[ip].z < altimax) &&
         ((ip > 0 && los[ip-1].z > altimin) || los[ip].z > altimin) ) {
       for (il=0; il<aero->nl;il++){
@@ -1025,7 +1024,6 @@ int jur_traceray(ctl_t const *ctl, atm_t const *atm, obs_t *obs, int const ir, p
   ++np;
   assert(np < NLOSMAX && "Too many LOS points!");
 
-  // FIXME: added..
   if(scattering_included) {
     /* Check length of last segment... */
     if(los[np - 2].ds < 1e-3 && np - 1 > 1)
