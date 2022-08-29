@@ -77,22 +77,22 @@ void* __allocate_unified_memory(size_t const nBytes, char const *srcfile=nullptr
 #define getUnifiedMemory(TYPE, NUM) (TYPE *)__allocate_unified_memory((NUM)*sizeof(TYPE), __FILE__, __LINE__)
 
 extern "C" {
-  trans_table_t* jur_get_tbl_on_GPU(ctl_t const *ctl);
+  tbl_t* jur_get_tbl_on_GPU(ctl_t const *ctl);
 }
 __host__
-trans_table_t* jur_get_tbl_on_GPU(ctl_t const *ctl) {
+tbl_t* jur_get_tbl_on_GPU(ctl_t const *ctl) {
   printf("DEBUG #%d jur_get_tbl_on_GPU was called..\n", ctl->MPIglobrank);
-  static trans_table_t *tbl_G = nullptr;
+  static tbl_t *tbl_G = nullptr;
   if (!tbl_G) {
     printf("DEBUG #%d tbl_G == nullptr\n", ctl->MPIglobrank);
-    trans_table_t* tbl = jur_get_tbl_core(ctl);
+    tbl_t* tbl = jur_get_tbl_core(ctl);
 #ifdef  USE_UNIFIED_MEMORY_FOR_TABLES
-    printf("[INFO] allocated %.3f MByte unified memory for tables\n", 1e-6*sizeof(trans_table_t));
+    printf("[INFO] allocated %.3f MByte unified memory for tables\n", 1e-6*sizeof(tbl_t));
     tbl_G = tbl; // just passing a pointer, same memory space
 #else
-    printf("[INFO] try to allocate %.3f MByte GPU memory for tables\n", 1e-6*sizeof(trans_table_t));
-    tbl_G = malloc_GPU(trans_table_t, 1);
-    copy_data_to_GPU(tbl_G, tbl, sizeof(trans_table_t), 0);
+    printf("[INFO] try to allocate %.3f MByte GPU memory for tables\n", 1e-6*sizeof(tbl_t));
+    tbl_G = malloc_GPU(tbl_t, 1);
+    copy_data_to_GPU(tbl_G, tbl, sizeof(tbl_t), 0);
 #endif
   } // !tbl_G
   return tbl_G;
@@ -113,7 +113,7 @@ jur_radiance_to_brightness_GPU(ctl_t const *ctl, obs_t *obs) { // operates onto 
 
 // Add planetary surface emission ////////////////////////////////////////////
 void __global__ // GPU-kernel
-jur_surface_terms_GPU(const trans_table_t *tbl, obs_t *obs, double const tsurf[], int const nd) {
+jur_surface_terms_GPU(const tbl_t *tbl, obs_t *obs, double const tsurf[], int const nd) {
   for(int ir = blockIdx.x; ir < obs->nr; ir += gridDim.x) { // grid stride loop over blocks = rays
     for(int id = threadIdx.x; id < nd; id += blockDim.x) { // grid stride loop over threads = detectors
       jur_add_surface_core(obs, tbl, tsurf[ir], ir, id);
@@ -138,7 +138,7 @@ double jur_continua_core_temp(ctl_t const *ctl, pos_t const *los, int const ig_c
 
 template<int CO2, int H2O, int N2, int O2>
 void __global__ // GPU-kernel
-jur_fusion_kernel_GPU(trans_table_t const *tbl, ctl_t const *ctl,
+jur_fusion_kernel_GPU(tbl_t const *tbl, ctl_t const *ctl,
     obs_t *obs, pos_t const (*restrict los)[NLOSMAX],
     int const np[], int const ig_co2, int const ig_h2o,
     double const (*restrict aero_beta)[NDMAX]) {
@@ -170,7 +170,7 @@ jur_fusion_kernel_GPU(trans_table_t const *tbl, ctl_t const *ctl,
 } // jur_fusion_kernel_GPU
 
 __host__
-void jur_multi_version_GPU(char const fourbit, trans_table_t const *tbl, ctl_t const *ctl,
+void jur_multi_version_GPU(char const fourbit, tbl_t const *tbl, ctl_t const *ctl,
     obs_t *obs, pos_t const (*restrict los)[NLOSMAX],
     int const np[], int const ig_co2, int const ig_h2o,
     double const (*restrict aero_beta)[NDMAX],
@@ -239,7 +239,7 @@ typedef struct {
 
 // The full forward model working on one package of NRMAX rays
 void jur_formod_one_package_GPU(ctl_t *ctl, ctl_t *ctl_G,
-    trans_table_t const *tbl_G,
+    tbl_t const *tbl_G,
     atm_t *atm, // can be made const if we do not get the atms back
     obs_t *obs,
     aero_t const *aero,
@@ -342,7 +342,7 @@ void jur_formod_multiple_packages_GPU(ctl_t *ctl, atm_t *atm, obs_t *obs,
     int n, int32_t const *atm_id, aero_t const *aero) {
 
   static ctl_t *ctl_G=NULL;
-  static trans_table_t *tbl_G=NULL;
+  static tbl_t *tbl_G=NULL;
 
   static int numDevices = 0;
   static gpuLane_t* gpuLanes=NULL;

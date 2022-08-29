@@ -139,7 +139,7 @@ typedef struct {  /// Transposed emissivity look-up tables. - GPU version  /////
   double u0inv[NGMAX][TBLNPMAX][TBLNTMAX][NDMAX];                       /// FAST_INVERSE_OF_U
   /// We assume a logarithmic increment by 2^(1/6)          /// FAST_INVERSE_OF_U
 #endif
-} trans_table_t; ///////////////////////////////////////////////////////////////////////
+} tbl_t; ///////////////////////////////////////////////////////////////////////
 
 /// --------------------------------- for scattering -----------------------------------
 typedef struct { /// Aerosol and Cloud properties. /////////////////////////////////////

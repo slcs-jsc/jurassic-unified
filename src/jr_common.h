@@ -58,16 +58,16 @@ double jur_eip(double const x0, double const y0, double const x1, double const y
 
 // Setup tables if necessary and cache them ///////////////////////////////////
 __host__ __ext_inline__
-trans_table_t* jur_get_tbl_core(ctl_t const *ctl) {
-  static trans_table_t *tbl = NULL;
+tbl_t* jur_get_tbl_core(ctl_t const *ctl) {
+  static tbl_t *tbl = NULL;
 #pragma omp critical
   {
     if(!tbl) {
 #ifdef  USE_UNIFIED_MEMORY_FOR_TABLES
-      printf("# call cudaMallocManaged for tables of size %.3f MByte\n", 1e-6*sizeof(trans_table_t));
-      int const status = cudaMallocManaged(&tbl, sizeof(trans_table_t));
+      printf("# call cudaMallocManaged for tables of size %.3f MByte\n", 1e-6*sizeof(tbl_t));
+      int const status = cudaMallocManaged(&tbl, sizeof(tbl_t));
 #else
-      tbl = (trans_table_t*)malloc(sizeof(trans_table_t));
+      tbl = (tbl_t*)malloc(sizeof(tbl_t));
 #endif
       jur_init_tbl(ctl, tbl); // CPU reads the table content from files
     }
@@ -155,7 +155,7 @@ void jur_locate_atm(atm_t const *atm, double const time, size_t *atmIdx, int *at
 } // jur_locate_atm
 
 __host__ __device__ __ext_inline__
-double jur_get_eps(trans_table_t const *tbl, int const ig, int const id, int const ip, int const it, double const u) {
+double jur_get_eps(tbl_t const *tbl, int const ig, int const id, int const ip, int const it, double const u) {
   int const nu = tbl->nu[ig][ip][it][id]; // number of u grid entries
 #ifdef  FAST_INVERSE_OF_U
   double const x = u * tbl->u0inv[ig][ip][it][id];
@@ -178,7 +178,7 @@ double jur_get_eps(trans_table_t const *tbl, int const ig, int const id, int con
 } // jur_get_eps
 
 __host__ __device__ __ext_inline__
-double jur_get_u(trans_table_t const *tbl, int const ig, int const id, int const ip, int const it, double const eps) {
+double jur_get_u(tbl_t const *tbl, int const ig, int const id, int const ip, int const it, double const eps) {
   int const idx = jur_locate_tbl_id(tbl->eps[ig][ip][it], tbl->nu[ig][ip][it][id], eps, id, 0);
   return jur_lip(tbl->eps[ig][ip][it][idx   ][id], tbl->u[ig][ip][it][idx   ][id],
       tbl->eps[ig][ip][it][idx + 1][id], tbl->u[ig][ip][it][idx + 1][id],
@@ -219,14 +219,14 @@ double jur_gravity(double const z, double const lat) {
 
 // Black body radiation //////////////////////////////////////////////////////
 __host__ __device__ __ext_inline__
-double jur_src_planck_core(trans_table_t const *tbl, double const t, int const id) {
+double jur_src_planck_core(tbl_t const *tbl, double const t, int const id) {
   int const it = jur_locate_st(tbl->st, TBLNSMAX, t);
   return jur_lip(tbl->st[it], tbl->sr[it][id], tbl->st[it + 1], tbl->sr[it + 1][id], t);
 } // jur_src_planck_core
 
 // Surface emission //////////////////////////////////////////////////////////
 __host__ __device__ __ext_inline__
-void jur_add_surface_core(obs_t *obs, trans_table_t const *tbl, double const tsurf, int const ir, int const id) {
+void jur_add_surface_core(obs_t *obs, tbl_t const *tbl, double const tsurf, int const ir, int const id) {
   if(tsurf > 0.) {
     int const it = jur_locate_st(tbl->st, TBLNSMAX, tsurf);
     double const src = jur_lip(tbl->st[it], tbl->sr[it][id], tbl->st[it + 1], tbl->sr[it + 1][id], tsurf);
@@ -236,7 +236,7 @@ void jur_add_surface_core(obs_t *obs, trans_table_t const *tbl, double const tsu
 
 // EGA model //////////////////////////////////////////////////////////////////
 __host__ __device__ __ext_inline__
-double jur_ega_eps(trans_table_t const *tbl, double const tau, double const t, double const u, double const p, int const ig, int const id) {
+double jur_ega_eps(tbl_t const *tbl, double const tau, double const t, double const u, double const p, int const ig, int const id) {
   if(tau < 1e-9)  return 0.; // opaque
   if(tbl->np[ig][id] < 2) return 1.; // no table
   int const ipr = jur_locate_id(tbl->p[ig], tbl->np[ig][id], p, id);
@@ -269,7 +269,7 @@ double jur_ega_eps(trans_table_t const *tbl, double const tau, double const t, d
 } // jur_ega_eps
 
 __host__ __device__ __ext_inline__
-double jur_apply_ega_core(trans_table_t const *tbl, pos_t const *los, double (*ptr tau_path), int const ng, int const id) {
+double jur_apply_ega_core(tbl_t const *tbl, pos_t const *los, double (*ptr tau_path), int const ng, int const id) {
   double tau_gas = 1.0;
   for(int ig = 0; ig < NGMAX; ig++) { // to enable unrolling of this loop, static indexing into tau_path, so tau_path can stay in regfile
     double eps = 1.0;
@@ -281,7 +281,7 @@ double jur_apply_ega_core(trans_table_t const *tbl, pos_t const *los, double (*p
 } // jur_apply_ega_core
 
 __host__ __device__ __ext_inline__
-void jur_apply_ega_kernel(trans_table_t const *tbl, pos_t const *los,
+void jur_apply_ega_kernel(tbl_t const *tbl, pos_t const *los,
     double (*ptr tau_path)[NGMAX], // tau_path[id][ig] gets modified as well
     double *ptr tau_gas, // [NDMAX] result
     int const ng, int const nd) {

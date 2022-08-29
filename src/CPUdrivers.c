@@ -14,7 +14,7 @@ void jur_radiance_to_brightness_CPU(ctl_t const *ctl, obs_t *obs) {
 } // jur_radiance_to_brightness
 
 __host__
-void jur_surface_terms_CPU(trans_table_t const *tbl, obs_t *obs, double const tsurf[], int const nd) {
+void jur_surface_terms_CPU(tbl_t const *tbl, obs_t *obs, double const tsurf[], int const nd) {
 #pragma omp parallel for
   for(int ir = 0; ir < obs->nr; ir++) { // loop over rays
     for(int id = 0; id < nd; id++) { // loop over detectors
@@ -56,7 +56,7 @@ double jur_continua_core_CPU(ctl_t const *ctl, pos_t const *los, int const id) {
 } // jur_continua_core_CPU
 
 __host__
-void jur_apply_kernels_CPU(trans_table_t const *tbl, ctl_t const *ctl, obs_t *obs,
+void jur_apply_kernels_CPU(tbl_t const *tbl, ctl_t const *ctl, obs_t *obs,
     pos_t (*restrict los)[NLOSMAX], int const np[],
     double const (*restrict aero_beta)[NDMAX]) { // aero_beta is added
 
@@ -136,7 +136,7 @@ void jur_formod_one_package_CPU(ctl_t const *ctl, atm_t *atm, obs_t *obs,
   char mask[NRMAX][NDMAX];
   jur_save_mask(mask, obs, ctl);
 
-  trans_table_t const *tbl = jur_get_tbl(ctl);
+  tbl_t const *tbl = jur_get_tbl(ctl);
   double *t_surf = (double*)malloc((size_t) obs->nr * sizeof(double));
   int *np = (int*)malloc((size_t) obs->nr * sizeof(int));
   pos_t (*los)[NLOSMAX] = (pos_t (*)[NLOSMAX])malloc((size_t) (obs->nr * NLOSMAX) * sizeof(pos_t));
@@ -252,7 +252,7 @@ void jur_formod(ctl_t const *ctl, // function with the original parameters, with
 
 //we could use the same trick as above but it's not necessary
   __host__
-trans_table_t* jur_get_tbl_on_GPU(ctl_t const *ctl)
+tbl_t* jur_get_tbl_on_GPU(ctl_t const *ctl)
 #ifdef hasGPU
   ; // declaration only, will be provided by GPUdrivers.o at link time
 #else
@@ -284,8 +284,8 @@ void jur_table_initialization(ctl_t const *ctl) {
 } // jur_table_initialization
 
 __host__
-trans_table_t* jur_get_tbl(ctl_t const *ctl) {
-  trans_table_t *ret = NULL;
+tbl_t* jur_get_tbl(ctl_t const *ctl) {
+  tbl_t *ret = NULL;
   if(ctl->useGPU)
     ret = jur_get_tbl_on_GPU(ctl);
   else

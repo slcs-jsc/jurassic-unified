@@ -358,7 +358,7 @@ void jur_sca_formod_pencil(ctl_t *ctl,
 
   // removing tbl_t
   // static tbl_t *tbl;
-  static trans_table_t *trans_tbl;
+  static tbl_t *trans_tbl;
 
   pos_t *los;
   int np = 0;

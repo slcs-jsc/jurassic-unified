@@ -251,7 +251,7 @@ void jur_hydrostatic_1d(ctl_t const *const ctl, atm_t *atm, int const ip0, int c
 
 //***************************************************************************
 
-void jur_init_tbl(ctl_t const *ctl, trans_table_t *tbl) {
+void jur_init_tbl(ctl_t const *ctl, tbl_t *tbl) {
   TIMER("INIT_TBL", 1);
   int const logg = 0;
   size_t warn_nu_ignored = 0;

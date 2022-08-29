@@ -12,13 +12,13 @@ void jur_table_initialization(ctl_t const *ctl);
 int jur_traceray(ctl_t *ctl, atm_t *atm, obs_t *obs, int const ir,
 	pos_t los[], double *tsurf, aero_t *aero, int scattering_included);
 
-trans_table_t* jur_get_tbl(ctl_t const *ctl);
+tbl_t* jur_get_tbl(ctl_t const *ctl);
 
-double jur_src_planck_core(trans_table_t const *tbl, double const t, int const id);
+double jur_src_planck_core(tbl_t const *tbl, double const t, int const id);
 
 double jur_continua_core_CPU(ctl_t const *ctl, pos_t const *los, int const id);
 
-double jur_apply_ega_core(trans_table_t const *tbl, pos_t const *los, double (*ptr tau_path), int const ng, int const id);
+double jur_apply_ega_core(tbl_t const *tbl, pos_t const *los, double (*ptr tau_path), int const ng, int const id);
 
 void jur_read_atm(char const *dirname, char const *filename, ctl_t *ctl, atm_t *atm);
 

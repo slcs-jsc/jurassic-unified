@@ -133,7 +133,7 @@ void jur_formod_rfm(
 /*! Compute Planck source function. */
 void jur_formod_srcfunc(
     ctl_t const *ctl,
-    trans_table_t const *tbl,
+    tbl_t const *tbl,
     double const t,
     double *src);
 
@@ -170,7 +170,7 @@ void jur_idx2name(
 /*! Initialize look-up tables. */
 void jur_init_tbl(
     ctl_t const * ctl,
-    trans_table_t * tbl);
+    tbl_t * tbl);
 
 /*! Interpolate complete atmospheric data set. */
 void jur_intpol_atm(
@@ -228,7 +228,7 @@ void jur_intpol_atm_3d(
 
 /*! Interpolate emissivity from look-up tables. */
 double jur_intpol_tbl_eps(
-    trans_table_t const *tbl,
+    tbl_t const *tbl,
     int const ig,
     int const id,
     int const ip,
@@ -237,7 +237,7 @@ double jur_intpol_tbl_eps(
 
 /*! Interpolate column density from look-up tables. */
 double jur_intpol_tbl_u(
-    trans_table_t const *tbl,
+    tbl_t const *tbl,
     int const ig,
     int const id,
     int const ip,
@@ -447,4 +447,4 @@ void jur_divide_atm_data_into_packages(atm_t const *atm, obs_t const *obs, int n
 void jur_get_dimensions(int32_t *dimensions);
 
 // Added:
-trans_table_t* jur_get_tbl(ctl_t const *ctl);
+tbl_t* jur_get_tbl(ctl_t const *ctl);
