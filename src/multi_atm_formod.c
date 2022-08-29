@@ -10,7 +10,7 @@ const int MAX_LIST_SIZE = 100;
 const int MAX_FILENAME_LENGTH = 30;
 const int MAX_OBS = 100;
 
-int read_name_list(char const *dirname, char const *filename, 
+int read_name_list(char const *dirname, char const *filename,
     char name_list[MAX_LIST_SIZE][MAX_FILENAME_LENGTH]) {
   FILE *in;
   char line[LENMAX], *tok, *saveptr;
@@ -32,7 +32,7 @@ int read_name_list(char const *dirname, char const *filename,
   return i;
 }
 
-int read_atm_id(char const *dirname, char const *filename, 
+int read_atm_id(char const *dirname, char const *filename,
     int32_t atm_id[MAX_OBS]) {
   FILE *in;
   char line[LENMAX], *tok, *saveptr;
@@ -56,7 +56,7 @@ int read_atm_id(char const *dirname, char const *filename,
 
 // at the moment we use only CPU version
 void formod_CPU(ctl_t const *ctl, atm_t *atm, obs_t *obs,
-    int32_t const *atm_id, aero_t const *aero); 
+    int32_t const *atm_id, aero_t const *aero);
 
 int main(
     int argc,
@@ -103,25 +103,25 @@ int main(
 
   printf("list length vs. obs->nr: %d vs. %d\n", atm_id_list_length, total_num_of_rays);
   assert(atm_id_list_length == total_num_of_rays);
-  for(int i = 0; i < total_num_of_rays; i++) 
+  for(int i = 0; i < total_num_of_rays; i++)
     assert(atm_id[i] < num_of_atms);
 
   // FIXME: without this line there is a problem with barrier inside get_tbl(..) function
   // FIXME: also, SIGSEGV in useGPU case, but only when using gdb :o
-  jur_table_initialization(&ctl); 
+  jur_table_initialization(&ctl);
 
   jur_formod_multiple_packages(&ctl, atm, obs, num_of_obs, atm_id, NULL);
 
   for(int i = 0; i < num_of_rads; i++) {
     jur_write_obs(".", rad_list[i], &ctl, &obs[i]);
   }
-  
+
   // ------------------------
   // testing muti - single - multi - single scenario
 
   atm_t *one_atm;
   ALLOC(one_atm, atm_t, 1);
-	memcpy(one_atm, &atm[0], sizeof(atm_t));
+  memcpy(one_atm, &atm[0], sizeof(atm_t));
   obs_t *one_obs;
   ALLOC(one_obs, obs_t, 1);
   memcpy(one_obs, &obs[0], sizeof(obs_t));
