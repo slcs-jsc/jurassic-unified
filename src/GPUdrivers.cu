@@ -368,7 +368,6 @@ void jur_formod_multiple_packages_GPU(ctl_t *ctl, atm_t *atm, obs_t *obs,
 #pragma omp critical
   {
     if (do_init || (!do_init && multi_atm_before != multi_atm_now)) {
-      double tic = omp_get_wtime();
       size_t sizePerLane = sizeof(aero_t) + sizeof(obs_t) + sizeof(atm_t) + NRMAX * (NLOSMAX * sizeof(pos_t) + sizeof(double) + sizeof(int));
       // in this case we have NRMAX * atm_t instead of the only one and one additional atm_id array
       if(multi_atm_now)
@@ -403,11 +402,7 @@ void jur_formod_multiple_packages_GPU(ctl_t *ctl, atm_t *atm, obs_t *obs,
           // Initialize ctl and tbl-struct (1 per GPU)
           ctl_G = malloc_GPU(ctl_t, 1);
           copy_data_to_GPU(ctl_G, ctl, sizeof(ctl_t), 0);
-          double tic = omp_get_wtime();
           tbl_G = jur_get_tbl_on_GPU(ctl);
-          double toc = omp_get_wtime();
-          printf("TIMER #%d jurassic-gpu reading table time: %lf\n",
-              ctl->MPIglobrank, toc - tic);
         }
 
         // Get number of possible lanes
@@ -454,11 +449,9 @@ void jur_formod_multiple_packages_GPU(ctl_t *ctl, atm_t *atm, obs_t *obs,
       } // checkmode
 
       multi_atm_before = multi_atm_now;
-      double toc = omp_get_wtime();
-      printf("TIMER #%d jurassic-gpu gpu_lanes initialization time: %lf\n", ctl->MPIglobrank, toc - tic);
       do_init = false;
     } // do_init || (!do_init && multi_atm_before != multi_atm_now)
-  } //<------- omp critical is here, maybe I should put it to the end of the function!
+  }
 
   cudaSetDevice(0);
 
