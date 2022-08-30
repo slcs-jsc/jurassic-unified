@@ -14,7 +14,9 @@ Therefore, in JURASSIC-unified, radiation for rays from higher recursion levels 
 * Because it performs the significant part of the simulation on GPUs, this implementation is around <b>24×</b> faster then the JURASSIC-scatter implementation.
 
 ## JURASSIC-unified as a library
-* todo..
+* JURASSIC-unified can be used from the [JURASSIC](https://github.com/slcs-jsc/jurassic) reference project as a library.
+To do this, first the `generate_library.sh` script, in which the code is adapted, compiled and wrapped into the C static library `libjurassic unified.a`.
+This C static library has to be linked when compiling the JURASSIC reference project, but to use it, the files from the `include` folder have to be included into the JURASSIC reference code.
 <img align="middle" src="docu/images/library.png"  width="480" height="480">
 
 ## Documentation
