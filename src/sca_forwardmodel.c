@@ -18,8 +18,8 @@ void jur_sca_copy_obs_row(obs_t const *source, int rs, obs_t *dest, int rd) {
   dest->tplon[rd] = source->tplon[rs];
   dest->tplat[rd] = source->tplat[rs];
   for(int i=0; i<NDMAX; i++) {
-    dest->tau[rd][i] = source->tau[rs][i]; //CHANGED
-    dest->rad[rd][i] = source->rad[rs][i]; //CHANGED
+    dest->tau[rd][i] = source->tau[rs][i];
+    dest->rad[rd][i] = source->rad[rs][i];
   }
 }
 
@@ -113,7 +113,7 @@ void jur_sca_formod(ctl_t *ctl,
   /* Save observation mask... */
   for(id=0; id<ctl->nd; id++)
     for(ir=0; ir<obs->nr; ir++)
-      mask[id][ir]=!gsl_finite(obs->rad[ir][id]); //CHANGED
+      mask[id][ir]=!gsl_finite(obs->rad[ir][id]);
 
   /* Hydrostatic equilibrium... */
   // WARNING: ctl->ctm_h2o is at the moment not exectly the same as in jurassic-GPU
@@ -267,13 +267,13 @@ void jur_sca_formod(ctl_t *ctl,
   if(ctl->write_bbt)
     for(ir=0; ir<obs->nr; ir++)
       for(id=0; id<ctl->nd; id++)
-        obs->rad[ir][id]=jur_brightness_core(obs->rad[ir][id], ctl->nu[id]); //CHANGED
+        obs->rad[ir][id]=jur_brightness_core(obs->rad[ir][id], ctl->nu[id]);
 
   /* Apply observation mask... */
   for(id=0; id<ctl->nd; id++)
     for(ir=0; ir<obs->nr; ir++)
       if(mask[id][ir])
-        obs->rad[ir][id]=GSL_NAN; //CHANGED
+        obs->rad[ir][id]=GSL_NAN;
 }
 
 /*****************************************************************************/
@@ -310,8 +310,8 @@ void jur_sca_formod_fov(ctl_t *ctl,
       if(obs->time[ir2]==obs->time[ir]) {
         z[nz]=obs2.tpz[ir2];
         for(id=0; id<ctl->nd; id++) {
-          rad[id][nz]=obs2.rad[ir2][id]; //CAHNGED
-          tau[id][nz]=obs2.tau[ir2][id]; //CHANGED
+          rad[id][nz]=obs2.rad[ir2][id];
+          tau[id][nz]=obs2.tau[ir2][id];
         }
         nz++;
       }
@@ -321,25 +321,25 @@ void jur_sca_formod_fov(ctl_t *ctl,
     /* Convolute profiles with FOV... */
     wsum=0;
     for(id=0; id<ctl->nd; id++) {
-      obs->rad[ir][id]=0; //CHANGED
-      obs->tau[ir][id]=0; //CHANGED
+      obs->rad[ir][id]=0;
+      obs->tau[ir][id]=0;
     }
     for(i=0; i<n; i++) {
       zfov=obs->tpz[ir]+dz[i];
       idx=jur_locate(z, nz, zfov);
       for(id=0; id<ctl->nd; id++) {
-        obs->rad[ir][id]+=w[i] //CHANGED
+        obs->rad[ir][id]+=w[i]
           *LIN(z[idx], rad[id][idx],
               z[idx+1], rad[id][idx+1], zfov);
-        obs->tau[ir][id]+=w[i] //CHANGED
+        obs->tau[ir][id]+=w[i]
           *LIN(z[idx], tau[id][idx],
               z[idx+1], tau[id][idx+1], zfov);
       }
       wsum+=w[i];
     }
     for(id=0; id<ctl->nd; id++) {
-      obs->rad[ir][id]/=wsum; //CHANGED
-      obs->tau[ir][id]/=wsum; //CHANGED
+      obs->rad[ir][id]/=wsum;
+      obs->tau[ir][id]/=wsum;
     }
   }
 }
@@ -403,8 +403,8 @@ void jur_sca_formod_pencil(ctl_t *ctl,
     jur_sca_pop_queue(q, (void*)&obs2, &ir); /* pop result */
     /* Copy results... */
     for(id=0; id<ctl->nd; id++) {
-      obs->rad[ir][id] = obs2->rad[ir][id]; //CHANGED
-      obs->tau[ir][id] = obs2->tau[ir][id]; //CAHNGED
+      obs->rad[ir][id] = obs2->rad[ir][id];
+      obs->tau[ir][id] = obs2->tau[ir][id];
     } /* id */
 
     // free obs2 only in simulations with scattering
@@ -428,8 +428,8 @@ void jur_sca_formod_pencil(ctl_t *ctl,
 
     /* Initialize... */
     for(id=0; id<ctl->nd; id++) {
-      obs->rad[ir][id]=0.0; //CHANGED
-      obs->tau[ir][id]=1.0; //CHANGED
+      obs->rad[ir][id]=0.0;
+      obs->tau[ir][id]=1.0;
       // added for jurassic-gpu tau_gas
       for(ig = 0; ig < NGMAX; ig++) { // loop over gases
         tau_path[id][ig] = 1.0;
@@ -495,10 +495,10 @@ void jur_sca_formod_pencil(ctl_t *ctl,
               beta_ext_tot;
 
             /* Compute radiance: path extinction * segment emissivity * segment source */
-            obs->rad[ir][id] += obs->tau[ir][id]*eps*src_all; //CHANGED
+            obs->rad[ir][id] += obs->tau[ir][id]*eps*src_all;
 
             /* Compute path transmittance... */
-            obs->tau[ir][id] *= exp(-1.*beta_ext_tot*los[ip].ds); //CAHNGED
+            obs->tau[ir][id] *= exp(-1.*beta_ext_tot*los[ip].ds);
           }
       } /* C */
     }
@@ -525,10 +525,10 @@ void jur_sca_formod_pencil(ctl_t *ctl,
             }
 
             /* Compute radiance... */
-            obs->rad[ir][id]+=src_planck[id]*eps*obs->tau[ir][id]; //CHANGED
+            obs->rad[ir][id]+=src_planck[id]*eps*obs->tau[ir][id];
 
             /* Compute path transmittance... */
-            obs->tau[ir][id]*=(1-eps); //CAHNGED
+            obs->tau[ir][id]*=(1-eps);
           }
       }
     } /* Cx */
@@ -543,7 +543,7 @@ void jur_sca_formod_pencil(ctl_t *ctl,
       }
 
       for(id=0; id<ctl->nd; id++)
-        obs->rad[ir][id]+=src_planck[id]*obs->tau[ir][id]; //CHANGED
+        obs->rad[ir][id]+=src_planck[id]*obs->tau[ir][id];
     }
 
   } /* Cx */
