@@ -436,7 +436,7 @@ void jur_trapezoid_rule_pos(int np, pos_t los[]) {
     los[ip].ds = 0.5*(los[ip - 1].ds + los[ip].ds);
   } // ip
   los[0].ds *= 0.5; // first point
-} // jur_trapezoid_rule
+} // jur_trapezoid_rule_pos
 
 // Compute column density
 __host__ __device__ __ext_inline__
@@ -626,7 +626,7 @@ void jur_hydrostatic_1d_h2o(ctl_t const *ctl, atm_t *atm, int const ip0, int con
     } // i
     atm->p[ip] = atm->p[ip + 1]*exp(-1000*mean*(atm->z[ip] - atm->z[ip + 1])); // Compute p(z,T)
   } // ip
-} // jur_hydrostatic_1d
+} // jur_hydrostatic_1d_h2o
 
 // ----------- functions for the new raytracer -----------
 

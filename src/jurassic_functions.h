@@ -54,44 +54,10 @@ void jur_atm2x_help(
     int *ipa,
     size_t * n);
 
-/*! Convert Cartesian coordinates to geolocation. */
-// void cart2geo(
-//    double const *x,
-//    double *z,
-//    double *lon,
-//    double *lat) __deprecated__;
-
 /*! Interpolate climatological data. */
 void jur_climatology(
     ctl_t const * ctl,
     atm_t * atm_mean);
-
-/*! Compute carbon dioxide continuum (optical depth). */
-double jur_ctmco2(
-    double nu,
-    double p,
-    double t,
-    double u) __deprecated__;
-
-/*! Compute water vapor continuum (optical depth). */
-double jur_ctmh2o(
-    double nu,
-    double p,
-    double t,
-    double q,
-    double u) __deprecated__;
-
-/*! Compute nitrogen continuum (absorption coefficient). */
-double jur_ctmn2(
-    double nu,
-    double p,
-    double t) __deprecated__;
-
-/*! Compute oxygen continuum (absorption coefficient). */
-double jur_ctmo2(
-    double nu,
-    double p,
-    double t) __deprecated__;
 
 /*! Copy and initialize atmospheric data. */
 void jur_copy_atm(
@@ -136,30 +102,6 @@ void jur_formod_srcfunc(
     tbl_t const *tbl,
     double const t,
     double *src);
-
-/*! Convert geolocation to Cartesian coordinates. */
-// void geo2cart(
-//    double z,
-//    double lon,
-//    double lat,
-//    double *x) __deprecated__;
-
-// /*! Determine gravity of Earth. */
-// double gravity(
-//    double z,
-//    double lat) __deprecated__;
-
-/*! Set hydrostatic equilibrium. */
-void jur_hydrostatic(
-    ctl_t const *ctl,
-    atm_t * atm) __deprecated__;
-
-/*! Set hydrostatic equilibrium for individual profile. */
-void jur_hydrostatic_1d(
-    ctl_t const *ctl,
-    atm_t * atm,
-    int const ip0,
-    int const ip1) __deprecated__;
 
 /*! Determine name of state vector quantity for given index. */
 void jur_idx2name(
@@ -255,13 +197,6 @@ void jur_jsec2time(
     int *sec,
     double *remain);
 
-/*! Compute Jacobians. */
-void jur_kernel(
-    ctl_t const *ctl,
-    atm_t *atm,
-    obs_t *obs,
-    gsl_matrix * k) __deprecated__;
-
 /*! Compose measurement vector. */
 size_t jur_obs2y(
     ctl_t const *ctl,
@@ -274,16 +209,6 @@ size_t jur_obs2y(
 double jur_planck(
     double const t,
     double const nu);
-
-void jur_altitude_range(
-    atm_t const *atm,
-    double *zmin,
-    double *zmax) __deprecated__;
-
-/*! Change segment lengths according to trapezoid rule */
-void jur_trapezoid_rule(
-    int const np,
-    double ds[]) __deprecated__;
 
 /*! Read atmospheric data. */
 void jur_read_atm(
@@ -332,11 +257,6 @@ int jur_read_shape(
     double *x,
     double *y,
     int const checkmode);
-
-// /*! Compute refractivity (return value is n - 1). */
-// double refractivity(
-//    double p,
-//    double t) __deprecated__;
 
 /*! Search control parameter file for variable entry. */
 double jur_scan_ctl(

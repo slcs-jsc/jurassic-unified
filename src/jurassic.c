@@ -199,56 +199,6 @@ void jur_formod_fov(ctl_t const *const ctl, obs_t *obs) {
   }
 }
 
-
-
-//***************************************************************************
-void jur_hydrostatic(ctl_t const *const ctl, atm_t *atm) {
-  if(ctl->hydz < 0) return; // Check reference height
-  if (ctl->checkmode) { printf("# apply hydrostatic equation to individual profiles\n"); return; }
-  double lat0 = -999, lon0 = -999;
-  int ip0 = -999;
-  for(int ip = 0; ip < atm->np; ip++)		// Apply hydrostatic equation to individual profiles
-    if((atm->lon[ip] != lon0) || (atm->lat[ip] != lat0)) {
-      if(ip > 0) jur_hydrostatic_1d(ctl, atm, ip0, ip);
-      lon0 = atm->lon[ip];
-      lat0 = atm->lat[ip];
-      ip0 = ip;
-    }
-  jur_hydrostatic_1d(ctl, atm, ip0, atm->np);
-}
-
-//***************************************************************************
-void jur_hydrostatic_1d(ctl_t const *const ctl, atm_t *atm, int const ip0, int const ip1) {
-  static int ig_h2o = -999;
-  double dzmin = 1e99, e = 0, mmair = 28.96456e-3, mmh2o = 18.0153e-3;
-  int ipref = 0, ipts = 20;
-  if(ig_h2o == -999) ig_h2o = jur_find_emitter(ctl, "H2O");					// Determine emitter index of H2O
-  for(int ip = ip0; ip < ip1; ip++)							// Find air parcel next to reference height
-    if(fabs(atm->z[ip] - ctl->hydz) < dzmin) {
-      dzmin = fabs(atm->z[ip] - ctl->hydz);
-      ipref = ip;
-    }
-  for(int ip = ipref + 1; ip < ip1; ip++) {						// Upper part of profile
-    double mean = 0;
-    for(int i = 0; i < ipts; i++) {
-      const double z = LIN(0.0, atm->z[ip - 1], ipts - 1.0, atm->z[ip], (double) i);
-      if(ig_h2o >= 0) e = LIN(0.0, atm->q[ig_h2o][ip - 1], ipts - 1.0, atm->q[ig_h2o][ip], (double) i);
-      mean += (e*mmh2o + (1 - e)*mmair)*jur_gravity(z, atm->lat[ipref])/GSL_CONST_MKSA_MOLAR_GAS/LIN(0.0, atm->t[ip - 1], ipts - 1.0, atm->t[ip], (double) i)/ipts;
-    }
-    atm->p[ip] = exp(log(atm->p[ip - 1]) - mean*1000*(atm->z[ip] - atm->z[ip - 1]));		// Compute p(z,T)
-  }
-  for(int ip = ipref - 1; ip >= ip0; ip--) {						// Lower part of profile
-    double mean = 0;
-    for(int i = 0; i < ipts; i++) {
-      const double z = LIN(0.0, atm->z[ip + 1], ipts - 1.0, atm->z[ip], (double) i);
-      if(ig_h2o >= 0) e = LIN(0.0, atm->q[ig_h2o][ip + 1], ipts - 1.0, atm->q[ig_h2o][ip], (double) i);
-      mean += (e*mmh2o + (1 - e)*mmair)*jur_gravity(z, atm->lat[ipref])/GSL_CONST_MKSA_MOLAR_GAS/LIN(0.0, atm->t[ip + 1], ipts - 1.0, atm->t[ip], (double) i)/ipts;
-    }
-    atm->p[ip] = exp(log(atm->p[ip + 1]) - mean*1000*(atm->z[ip] - atm->z[ip + 1]));		// Compute p(z,T)
-  }
-}
-
-
 //***************************************************************************
 
 void jur_init_tbl(ctl_t const *ctl, tbl_t *tbl) {
@@ -732,80 +682,8 @@ void jur_intpol_atm_3d(ctl_t const *const ctl, atm_t *atm,
   }
 }
 
-
-//***************************************************************************
-// Refractivity of air at 4 to 15 micron
-// inline double refractivity(double p, double t) { return 7.753e-05*p/t; } // moved to jr_common.h
-
-//***************************************************************************
-void jur_kernel(ctl_t const *const ctl, atm_t *atm, obs_t *obs, gsl_matrix *k) {
-  int iqa[NMAX];
-  jur_formod(ctl, atm, obs);	// Compute radiance for undisturbed atmospheric data
-  // Compose vectors
-  size_t m = k->size1, n = k->size2;
-  //printf("k->size2=%ld\n", (long int) n);
-  gsl_vector *x0, *yy0;
-  x0	= gsl_vector_alloc(n);
-  yy0 = gsl_vector_alloc(m);
-  jur_atm2x(ctl, atm, x0, iqa, NULL);
-  jur_obs2y(ctl, obs, yy0, NULL, NULL);
-  gsl_matrix_set_zero(k);													// Initialize kernel matrix
-  //	#pragma omp parallel default(shared)
-  {
-    gsl_vector *x1 = gsl_vector_alloc(n), *yy1 = gsl_vector_alloc(m);
-    atm_t* atm1 = malloc(sizeof(atm_t));
-    obs_t* obs1 = malloc(sizeof(obs_t));
-    //#pragma omp for
-    for(int j = 0; j < (int) n; j++) {							// Loop over state vector elements
-      // Set perturbation size
-      double h;
-      if(iqa[j] == IDXP)																	 h = GSL_MAX(fabs(0.01*gsl_vector_get(x0, (size_t) j)), 1e-7);
-      else if(iqa[j] == IDXT)															 h = 1;
-      else if(iqa[j] >= IDXQ(0) && iqa[j] < IDXQ(ctl->ng)) h = GSL_MAX(fabs(0.01*gsl_vector_get(x0, (size_t) j)), 1e-15);
-      else if(iqa[j] >= IDXK(0) && iqa[j] < IDXK(ctl->nw)) h = 1e-4;
-      else																								 ERRMSG("Cannot set perturbation size!");
-      // Disturb state vector element
-      gsl_vector_memcpy(x1, x0);
-      gsl_vector_set(x1, (size_t) j, gsl_vector_get(x1, (size_t) j) + h);
-      jur_copy_atm(ctl, atm1, atm, 0);
-      jur_copy_obs(ctl, obs1, obs, 0);
-      jur_x2atm(ctl, x1, atm1);
-      jur_formod(ctl, atm1, obs1);	// Compute radiance for disturbed atmospheric data
-      jur_obs2y(ctl, obs1, yy1, NULL, NULL);						// Compose measurement vector for disturbed radiance data
-      for(size_t i = 0; i < m; i++) {								// Compute derivatives
-        gsl_matrix_set(k, i, (size_t)j, (gsl_vector_get(yy1, i) - gsl_vector_get(yy0, i))/h);
-      }
-    }
-    gsl_vector_free(x1);
-    gsl_vector_free(yy1);
-    free(obs1);
-    free(atm1);
-  }
-  gsl_vector_free(x0);
-  gsl_vector_free(yy0);
-}
-
 //***************************************************************************
 inline double jur_planck(double t, double nu) { return C1*gsl_pow_3(nu)/gsl_expm1(C2 *nu/t); }
-
-//***************************************************************************
-void jur_altitude_range(atm_t const *atm, double *zmin, double *zmax) {
-  *zmax = *zmin = atm->z[0];
-  for(int ipp = 0;
-      (ipp < atm->np) && (atm->lon[ipp] == atm->lon[0]) && (atm->lat[ipp] == atm->lat[0]);
-      ++ipp) {
-    *zmax = fmax(*zmax, atm->z[ipp]);
-    *zmin = fmin(*zmin, atm->z[ipp]);
-  }
-}
-
-// Change segment lengths according to trapezoid rule
-void jur_trapezoid_rule(int const np, double ds[]) {
-  for(int ip = np - 1; ip >= 1; ip--) {
-    ds[ip] = 0.5*(ds[ip - 1] + ds[ip]);
-  }
-  ds[0] *= 0.5;
-}
 
 //***************************************************************************
 void jur_read_atm(char const *dirname, char const *filename, ctl_t *ctl, atm_t *atm) {
