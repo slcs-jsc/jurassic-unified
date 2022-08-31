@@ -40,4 +40,4 @@ Since the JURASSIC reference model ignores scattering, this function does not ha
 
 
 # Documentation
-* To see more details about the project as well as how to use the library to speed up the JURASSIC reference code, please take a look at Stjepan Požgaj's [master's thesis](docu/stjepan_pozgaj_thesis.pdf).
+* To see more details about the project as well as how to use the library to speed up the JURASSIC reference code, see Stjepan Požgaj's [master's thesis](docu/stjepan_pozgaj_thesis.pdf).
