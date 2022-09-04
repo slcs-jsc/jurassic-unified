@@ -10,7 +10,7 @@ DESTDIR ?= ../bin
 
 # for the unified library
 # JURASSIC-unified path:
-JURASSIC_UNIFIED_PATH=../../../jurassic-unified/jurassic-scatter/jurassic-gpu
+JURASSIC_UNIFIED_PATH=/p/project/cslmet/pozgaj1/pozgaj1/unified/jurassic-unified
 
 # for the unified library
 # JURASSIC-unified library wrapper location (without .h or .c)
