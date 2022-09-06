@@ -17,7 +17,7 @@ INCDIR =
 #INCDIR += -I ../lib/build/include
 
 # Linking...
-STATIC = 1
+#STATIC = 1
 
 # -----------------------------------------------------------------------------
 # Set flags for GNU compiler...
@@ -64,7 +64,7 @@ CFLAGS = -std=gnu99 $(INCDIR) -DHAVE_INLINE -DGSL_DISABLE_DEPRACTED $(COPTFLAGS)
 # CUDA Compiler optimization flags...
 # CUOPTFLAGS += -gencode arch=compute_60,code=sm_60 $(INCDIR) ## sm_60 for P100
 CUOPTFLAGS += -gencode arch=compute_70,code=sm_70 $(INCDIR) ## sm_70 for V100
-# CUOPTFLAGS += -gencode arch=compute_80,code=sm_80 $(INCDIR) ## sm_80 for A100
+CUOPTFLAGS += -gencode arch=compute_80,code=sm_80 $(INCDIR) ## sm_80 for A100
 
 # CUDA Compiler flags...
 CUFLAGS =
