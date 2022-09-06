@@ -827,7 +827,7 @@ void jur_read_ctl(int argc, char *argv[], ctl_t *ctl) {
     jur_scan_ctl(argc, argv, "RFMXSC", ig, "-", ctl->rfmxsc[ig]);
   } // ig
 
-  ctl->useGPU = (int) jur_scan_ctl(argc, argv, "USEGPU", -1, "0", NULL);
+  ctl->useGPU = (int) jur_scan_ctl(argc, argv, "USEGPU", -1, "-1", NULL);
 #ifndef hasGPU
   if (ctl->useGPU > 0) {
     ERRMSG("Requested USEGPU = 1 (always) but compiled without -D hasGPU");
@@ -843,7 +843,7 @@ void jur_read_ctl(int argc, char *argv[], ctl_t *ctl) {
   ctl->gpu_nbytes_shared_memory = (int) jur_scan_ctl(argc, argv, "GPU_SHARED_MEMORY", -1, "0", NULL);
 
   /* Number of leaf rays ... */
-  ctl->leaf_nr=(int) jur_scan_ctl(argc, argv, "MAX_QUEUE", -1, "0", NULL);
+  ctl->leaf_nr=(int) jur_scan_ctl(argc, argv, "MAX_QUEUE", -1, "1e6", NULL);
 }
 
 //***************************************************************************
