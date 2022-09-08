@@ -211,7 +211,7 @@ void jur_init_tbl(ctl_t const *ctl, tbl_t *tbl) {
     if (0 == ctl->checkmode) {
 #pragma omp parallel for
       for(int id = 0; id < ctl->nd; id++) {
-
+        tbl->np[ig][id] = -1;
         char filename[2 * LENMAX];
 #ifdef      DIRECTORY_WITH_GAS_NAME
         sprintf(filename, "%s/%s_%s/boxcar_%.4f_%s.tab", ctl->tblbase,
