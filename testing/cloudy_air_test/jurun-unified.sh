@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=12
 #SBATCH --output=out
 #SBATCH --error=err
-#SBATCH --time=00:10:00
+#SBATCH --time=02:00:00
 ##SBATCH --partition=gpus
 #SBATCH --partition=booster
 ##SBATCH --gres=gpu:1
@@ -32,11 +32,11 @@ module load GSL/2.6
 
 # Setup...
 
-if [ "$1" = "unified-gpu" ]; then
-  jurassic_formod=../../src/formod
-else
-  jurassic_formod=../../src/sca_formod
-fi
+#if [ "$1" = "unified-gpu" ]; then
+#  jurassic_formod=../../src/formod
+#else
+jurassic_formod=../../src/sca_formod
+#fi
 
 nvidia-smi
 
@@ -48,5 +48,5 @@ w2=812
 
 ### run forward model
 
-time srun $jurassic_formod clear-${w1}-${w2}-ascii.ctl obs_small.tab atm.tab rad-$1.tab
+time srun $jurassic_formod cloudy-${w1}-${w2}-ascii.ctl obs_small.tab atm.tab rad-$1.tab AEROFILE aero.tab
 
