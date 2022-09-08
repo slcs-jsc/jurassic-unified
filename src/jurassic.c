@@ -792,7 +792,7 @@ void jur_read_ctl(int argc, char *argv[], ctl_t *ctl) {
   // Ray-tracing
   ctl->refrac = (int) jur_scan_ctl(argc, argv, "REFRAC", -1, "1", NULL);
   ctl->rayds = jur_scan_ctl(argc, argv, "RAYDS", -1, "10", NULL);
-  ctl->raydz = jur_scan_ctl(argc, argv, "RAYDZ", -1, "0.5", NULL);
+  ctl->raydz = jur_scan_ctl(argc, argv, "RAYDZ", -1, "1", NULL);
   ctl->transs=jur_scan_ctl(argc, argv, "TRANSS", -1, "0.02", NULL);
   // Field of view
   jur_scan_ctl(argc, argv, "FOV", -1, "-", ctl->fov);
