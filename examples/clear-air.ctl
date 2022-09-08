@@ -15,5 +15,3 @@ TBLBASE = tab/boxcar
 DZ = 1.
 ZMAX = 80.
 CLIMPATH = ../clim/clim_remedios.tab
-
-USEGPU = 0

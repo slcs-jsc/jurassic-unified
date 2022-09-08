@@ -15,7 +15,6 @@ TBLBASE = tab/boxcar
 SCA_N = 1
 SCA_MULT = 0
 
-
 # Atmosphere/Climatology
 DZ = 1
 ZMAX = 80
