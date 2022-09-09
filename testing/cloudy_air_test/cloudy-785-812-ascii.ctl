@@ -1,4 +1,3 @@
-
 # Emitters...
 NG = 23
 EMITTER[0] = C2H2
@@ -123,6 +122,3 @@ DZ = 1
 
 # READ_BINARY = -1
 # WRITE_BINARY = -1
-
-MAX_QUEUE = 1e5
-USEGPU = -1
